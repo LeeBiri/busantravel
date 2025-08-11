@@ -64,7 +64,8 @@ public class PlaceDAO {
                                 rs.getString("r_num"),
                                 rs.getString("r_rest"),
                                 rs.getString("r_addr"),
-                                rs.getString("r_thum")
+                                rs.getString("r_thum"),
+                                rs.getString("r_menu")
                         );
                         places.add(restaurant);
                         break;
@@ -76,7 +77,8 @@ public class PlaceDAO {
                                 rs.getString("l_num"),
                                 rs.getString("l_tra"),
                                 rs.getString("l_infor"),
-                                rs.getString("l_addr")
+                                rs.getString("l_addr"),
+                                rs.getString("l_thum")
                         );
                         places.add(lodging);
                         break;
@@ -142,7 +144,8 @@ public class PlaceDAO {
                                 rs.getString("r_num"),
                                 rs.getString("r_rest"),
                                 rs.getString("r_addr"),
-                                rs.getString("r_thum")
+                                rs.getString("r_thum"),
+                                rs.getString("r_menu")
                         );
                         places.add(restaurant);
                     } else if ("stay".equals(tableName)) {
@@ -153,7 +156,8 @@ public class PlaceDAO {
                                 rs.getString("l_num"),
                                 rs.getString("l_tra"),
                                 rs.getString("l_infor"),
-                                rs.getString("l_addr")
+                                rs.getString("l_addr"),
+                                rs.getString("l_thum")
                         );
                         places.add(lodging);
                     } else if ("festival".equals(tableName)) {
@@ -226,13 +230,15 @@ public class PlaceDAO {
                             rs.getString("r_thum"),
                             "", // transportation for restaurant
                             rs.getString("r_rest"),
-                            rs.getString("r_addr")
+                            rs.getString("r_addr"),
+                            rs.getString("r_menu"),
+                            rs.getString("r_num")
                     );
                 } else if ("stay".equals(tableName)) {
                     placeDetailInfo = new PlaceDetailInfo(
                             rs.getString("l_place"),
                             removeHtmlTags(rs.getString("l_intro")),
-                            "", // thumbnail for lodging
+                            rs.getString("l_thum"), // thumbnail for lodging
                             rs.getString("l_tra"),
                             rs.getString("l_infor"), // restDay for lodging is l_infor
                             rs.getString("l_addr")
@@ -243,7 +249,7 @@ public class PlaceDAO {
                             removeHtmlTags(rs.getString("f_intro")),
                             rs.getString("f_thum"), // festival 썸네일 컬럼을 f_thum으로 변경
                             rs.getString("f_tra"),
-                            removeHtmlTags(rs.getString("f_intro")), // restDay for festival is f_intro
+                            rs.getString("f_plan"), // restDay for festival is f_plan
                             rs.getString("f_addr")
                     );
                 }
@@ -293,7 +299,7 @@ public class PlaceDAO {
             case "맛집":
                 return "r_thum";
             case "숙소":
-                return null;
+                return "l_thum";
             case "축제":
                 return "t_thum"; // 축제 썸네일 컬럼을 t_thum으로 변경
             default:

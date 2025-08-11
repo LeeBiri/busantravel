@@ -8,10 +8,11 @@ public class Lodging {
 	private String l_tra; //교통 정보
 	private String l_infor; //운영 정보
 	private String l_addr; //주소
+	private String l_thum; //썸네일
 	
 	
 	public Lodging(String l_id, String l_place, String l_intro, String l_num, String l_tra, String l_infor,
-			String l_addr) {
+			String l_addr, String l_thum) {
 		this.l_id = l_id;
 		this.l_place = l_place;
 		this.l_intro = l_intro;
@@ -19,6 +20,7 @@ public class Lodging {
 		this.l_tra = l_tra;
 		this.l_infor = l_infor;
 		this.l_addr = l_addr;
+		this.l_thum = l_thum;
 	}
 	
 	public String getL_id() {
@@ -62,5 +64,13 @@ public class Lodging {
 	}
 	public void setL_addr(String l_addr) {
 		this.l_addr = l_addr;
+	}
+
+	public String getL_thum() {
+		return l_thum;
+	}
+
+	public void setL_thum(String l_thum) {
+		this.l_thum = l_thum;
 	}
 }

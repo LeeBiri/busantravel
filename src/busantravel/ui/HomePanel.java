@@ -49,7 +49,7 @@ public class HomePanel extends JPanel {
         }
 
         // --- 장소 카드 패널 ---
-        gridPanel = new JPanel(new GridLayout(0, 4, 30, 30));
+        gridPanel = new JPanel(); // 레이아웃은 loadPlaces에서 동적으로 설정
         gridPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 20, 20));
         gridPanel.setBackground(Color.WHITE);
 
@@ -81,11 +81,30 @@ public class HomePanel extends JPanel {
     // 장소 데이터 로드
     private void loadPlaces(String category) {
         gridPanel.removeAll();
+        
+        // 카테고리에 따라 레이아웃 변경
+        if (category.equals("맛집") || category.equals("숙소")) {
+            gridPanel.setLayout(new BoxLayout(gridPanel, BoxLayout.Y_AXIS));
+        } else {
+            gridPanel.setLayout(new GridLayout(0, 4, 30, 30));
+        }
+
         List<Object> places = placeDAO.getPlacesByCategory(category);
 
         if (places.isEmpty()) {
             gridPanel.add(new JLabel("데이터가 없습니다."));
         } else {
+            PlaceCard.ViewType viewType = (category.equals("맛집") || category.equals("숙소")) ? PlaceCard.ViewType.LIST : PlaceCard.ViewType.GRID;
+            
+            JPanel contentPanel = new JPanel();
+            if(viewType == PlaceCard.ViewType.LIST) {
+                contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+                contentPanel.setBackground(Color.WHITE);
+            } else {
+                contentPanel.setLayout(new GridLayout(0, 4, 30, 30));
+                contentPanel.setBackground(Color.WHITE);
+            }
+
             for (Object place : places) {
                 String placeName = "";
                 String thumbnail = "";
@@ -97,11 +116,26 @@ public class HomePanel extends JPanel {
                     thumbnail = ((Restaurant) place).getR_thum();
                 } else if (place instanceof Lodging) {
                     placeName = ((Lodging) place).getL_place();
+                    thumbnail = ((Lodging) place).getL_thum();
                 } else if (place instanceof Festival) {
                     placeName = ((Festival) place).getF_name();
                     thumbnail = ((Festival) place).getF_thum();
                 }
-                gridPanel.add(new PlaceCard(frame, placeName, category, thumbnail));
+                contentPanel.add(new PlaceCard(frame, placeName, category, thumbnail, viewType));
+            }
+            
+            if (viewType == PlaceCard.ViewType.LIST) {
+                JPanel wrapper = new JPanel(new BorderLayout());
+                wrapper.setBackground(Color.WHITE);
+                wrapper.add(contentPanel, BorderLayout.NORTH);
+                gridPanel.setLayout(new BorderLayout());
+                gridPanel.add(wrapper, BorderLayout.CENTER);
+            } else {
+                gridPanel.setLayout(new GridLayout(0, 4, 30, 30));
+                // 기존 gridPanel에 직접 추가하기 위해 contentPanel의 컴포넌트들을 옮김
+                for(Component comp : contentPanel.getComponents()){
+                    gridPanel.add(comp);
+                }
             }
         }
 
@@ -113,6 +147,8 @@ public class HomePanel extends JPanel {
     // 검색어로 장소 데이터 로드
     private void loadPlacesBySearch(String query) {
         gridPanel.removeAll();
+        gridPanel.setLayout(new GridLayout(0, 4, 30, 30)); // 검색 결과는 항상 그리드
+        
         List<Object> places = placeDAO.searchPlaces(query);
 
         if (places.isEmpty()) {
@@ -134,13 +170,13 @@ public class HomePanel extends JPanel {
                 } else if (place instanceof Lodging) {
                     placeName = ((Lodging) place).getL_place();
                     category = "숙소";
-                    // Lodging 모델에 썸네일 필드가 없으므로 빈 문자열
+                    thumbnail = ((Lodging) place).getL_thum();
                 } else if (place instanceof Festival) {
                     placeName = ((Festival) place).getF_name();
                     category = "축제";
                     thumbnail = ((Festival) place).getF_thum();
                 }
-                gridPanel.add(new PlaceCard(frame, placeName, category, thumbnail));
+                gridPanel.add(new PlaceCard(frame, placeName, category, thumbnail, PlaceCard.ViewType.GRID));
             }
         }
 
