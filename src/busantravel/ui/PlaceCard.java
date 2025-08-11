@@ -183,221 +183,340 @@ public class PlaceCard extends JPanel {
         detailDialog.setLocationRelativeTo(frame);
         detailDialog.setLayout(new BorderLayout());
 
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBackground(Color.WHITE);
-
-        JPanel detailPanel = new JPanel();
-        detailPanel.setLayout(new BoxLayout(detailPanel, BoxLayout.Y_AXIS));
-        detailPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        detailPanel.setBackground(Color.WHITE);
-
         PlaceDetailInfo detailInfo = placeDAO.getPlaceDetail(placeName, category);
-        String descriptionText = "해당 장소의 정보를 찾을 수 없습니다.";
 
-        JLabel detailImageLabel = new JLabel();
-        detailImageLabel.setBackground(new Color(230, 240, 250));
-        detailImageLabel.setOpaque(true);
-        detailImageLabel.setPreferredSize(new Dimension(500, 400));
-        detailImageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        detailImageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        detailImageLabel.setVerticalAlignment(SwingConstants.CENTER);
+        if ("맛집".equals(category) && detailInfo != null) {
+            // 맛집 상세 정보 레이아웃
+            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+            splitPane.setDividerLocation(600);
+            splitPane.setResizeWeight(0.5);
+            splitPane.setEnabled(false); // 사용자가 크기 조절 못하게
+            splitPane.setBorder(null);
 
-        if (detailInfo != null) {
-            descriptionText = detailInfo.getDescription();
-            URL localImageURL = null;
+            // 왼쪽 패널 (사진, 설명)
+            JPanel leftPanel = new JPanel(new BorderLayout(10, 10));
+            leftPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+            leftPanel.setBackground(Color.WHITE);
+
+            JLabel imageLabel = new JLabel();
+            imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            imageLabel.setVerticalAlignment(SwingConstants.CENTER);
+            imageLabel.setPreferredSize(new Dimension(560, 420));
+            imageLabel.setBackground(new Color(230, 240, 250));
+            imageLabel.setOpaque(true);
+            
             if (detailInfo.getImagePath() != null && !detailInfo.getImagePath().isEmpty()) {
-                localImageURL = getClass().getResource("/busantravel/ui/" + detailInfo.getImagePath());
-            }
-
-            if (localImageURL != null) {
-                ImageIcon detailImageIcon = new ImageIcon(localImageURL);
-                Image originalDetailImage = detailImageIcon.getImage();
-                int imgWidth = originalDetailImage.getWidth(null);
-                int imgHeight = originalDetailImage.getHeight(null);
-                double scaleFactor = (double) 300 / imgHeight;
-                Image scaledDetailImage = originalDetailImage.getScaledInstance((int) (imgWidth * scaleFactor), 300, Image.SCALE_SMOOTH);
-                detailImageLabel.setIcon(new ImageIcon(scaledDetailImage));
-                detailImageLabel.setText(null);
-            } else if (detailInfo.getImagePath() != null && !detailInfo.getImagePath().isEmpty()) {
-                loadImage(detailImageLabel, detailInfo.getImagePath(), placeName, 500, 400, false);
+                loadImage(imageLabel, detailInfo.getImagePath(), placeName, 560, 420, false);
             } else {
-                loadGoogleImage(detailImageLabel, placeName, 500, 400, false);
+                loadGoogleImage(imageLabel, placeName, 560, 420, false);
             }
+
+            JTextArea descriptionArea = new JTextArea(detailInfo.getDescription());
+            descriptionArea.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+            descriptionArea.setWrapStyleWord(true);
+            descriptionArea.setLineWrap(true);
+            descriptionArea.setEditable(false);
+            descriptionArea.setFocusable(false);
+            descriptionArea.setBorder(BorderFactory.createTitledBorder("식당 설명"));
+            
+            JScrollPane descriptionScrollPane = new JScrollPane(descriptionArea);
+            descriptionScrollPane.setPreferredSize(new Dimension(560, 200));
+
+            leftPanel.add(imageLabel, BorderLayout.CENTER);
+            leftPanel.add(descriptionScrollPane, BorderLayout.SOUTH);
+
+            // 오른쪽 패널 (운영 시간, 주소, 메뉴)
+            JPanel rightPanel = new JPanel();
+            rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
+            rightPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+            rightPanel.setBackground(Color.WHITE);
+
+            JLabel titleLabel = new JLabel(placeName);
+            titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 24));
+            titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            
+            rightPanel.add(titleLabel);
+            rightPanel.add(Box.createVerticalStrut(20));
+
+            // 운영 시간
+            JTextArea restArea = new JTextArea(detailInfo.getRestDay());
+            restArea.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+            restArea.setWrapStyleWord(true);
+            restArea.setLineWrap(true);
+            restArea.setEditable(false);
+            restArea.setFocusable(false);
+            restArea.setBorder(BorderFactory.createTitledBorder("운영 시간"));
+            rightPanel.add(restArea);
+            rightPanel.add(Box.createVerticalStrut(10));
+
+            // 주소
+            JTextArea addrArea = new JTextArea(detailInfo.getAddress());
+            addrArea.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+            addrArea.setWrapStyleWord(true);
+            addrArea.setLineWrap(true);
+            addrArea.setEditable(false);
+            addrArea.setFocusable(false);
+            addrArea.setBorder(BorderFactory.createTitledBorder("주소"));
+            rightPanel.add(addrArea);
+            rightPanel.add(Box.createVerticalStrut(10));
+
+            // 전화번호
+            JTextArea phoneArea = new JTextArea(detailInfo.getPhone());
+            phoneArea.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+            phoneArea.setWrapStyleWord(true);
+            phoneArea.setLineWrap(true);
+            phoneArea.setEditable(false);
+            phoneArea.setFocusable(false);
+            phoneArea.setBorder(BorderFactory.createTitledBorder("전화번호"));
+            rightPanel.add(phoneArea);
+            rightPanel.add(Box.createVerticalStrut(10));
+
+            // 메뉴
+            JTextArea menuArea = new JTextArea(detailInfo.getMenu());
+            menuArea.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+            menuArea.setWrapStyleWord(true);
+            menuArea.setLineWrap(true);
+            menuArea.setEditable(false);
+            menuArea.setFocusable(false);
+            menuArea.setBorder(BorderFactory.createTitledBorder("메뉴"));
+            
+            JScrollPane menuScrollPane = new JScrollPane(menuArea);
+            menuScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+            
+            rightPanel.add(menuScrollPane);
+            
+            rightPanel.add(Box.createVerticalGlue()); // 남은 공간 채우기
+
+            splitPane.setLeftComponent(leftPanel);
+            splitPane.setRightComponent(rightPanel);
+            
+            detailDialog.add(splitPane, BorderLayout.CENTER);
+
         } else {
-            detailImageLabel.setText("장소 정보를 찾을 수 없습니다.");
-        }
+            // 기존 상세 정보 레이아웃 (관광지 등)
+            JPanel mainPanel = new JPanel(new BorderLayout());
+            mainPanel.setBackground(Color.WHITE);
 
-        JLabel title = new JLabel(placeName);
-        title.setFont(new Font("맑은 고딕", Font.BOLD, 22));
-        title.setAlignmentX(Component.CENTER_ALIGNMENT);
-        title.setForeground(new Color(50, 50, 50));
+            JPanel detailPanel = new JPanel();
+            detailPanel.setLayout(new BoxLayout(detailPanel, BoxLayout.Y_AXIS));
+            detailPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+            detailPanel.setBackground(Color.WHITE);
 
-        JTextArea description = new JTextArea(descriptionText);
-        description.setLineWrap(true);
-        description.setWrapStyleWord(true);
-        description.setEditable(false);
-        description.setBackground(detailPanel.getBackground());
-        description.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
-        description.setForeground(new Color(80, 80, 80));
-        
-        JScrollPane descriptionScrollPane = new JScrollPane(description);
-        descriptionScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        descriptionScrollPane.setBorder(null);
-        descriptionScrollPane.setAlignmentX(Component.CENTER_ALIGNMENT);
+            String descriptionText = "해당 장소의 정보를 찾을 수 없습니다.";
 
-        JButton saveBtn = new JButton("저장하기");
-        saveBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
-        saveBtn.setBackground(new Color(222, 146, 124));
-        saveBtn.setForeground(Color.WHITE);
-        saveBtn.setFocusPainted(false);
-        saveBtn.setBorderPainted(false);
-        saveBtn.setFont(new Font("맑은 고딕", Font.BOLD, 15));
-        saveBtn.setPreferredSize(new Dimension(120, 35));
+            JLabel detailImageLabel = new JLabel();
+            detailImageLabel.setBackground(new Color(230, 240, 250));
+            detailImageLabel.setOpaque(true);
+            detailImageLabel.setPreferredSize(new Dimension(500, 400));
+            detailImageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            detailImageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            detailImageLabel.setVerticalAlignment(SwingConstants.CENTER);
 
-        saveBtn.addActionListener(e -> JOptionPane.showMessageDialog(detailDialog, placeName + " 저장 완료! 저장된 장소 탭에서 확인하세요."));
-
-        detailPanel.add(detailImageLabel);
-        detailPanel.add(Box.createVerticalStrut(15));
-        detailPanel.add(title);
-        detailPanel.add(Box.createVerticalStrut(10));
-        detailPanel.add(descriptionScrollPane);
-        detailPanel.add(Box.createVerticalStrut(25));
-        detailPanel.add(saveBtn);
-
-        mainPanel.add(detailPanel, BorderLayout.CENTER);
-
-        if ("관광지".equals(category) && detailInfo != null) {
-            JPanel infoPanel = new JPanel();
-            infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
-            infoPanel.setBackground(Color.WHITE);
-            infoPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 20));
-
-            JLabel traLabel = new JLabel("<html><body style='width: 200px'>교통 정보: " + detailInfo.getTransportation() + "</body></html>");
-            JLabel restLabel = new JLabel("휴무일: " + detailInfo.getRestDay());
-            JLabel addrLabel = new JLabel("<html><body style='width: 200px'>주소: " + detailInfo.getAddress() + "</body></html>");
-
-            infoPanel.add(traLabel);
-            infoPanel.add(Box.createVerticalStrut(10));
-            infoPanel.add(restLabel);
-            infoPanel.add(Box.createVerticalStrut(10));
-            infoPanel.add(addrLabel);
-
-            infoPanel.add(Box.createVerticalStrut(10));
-
-            JLabel mapLabel = new JLabel();
-            mapLabel.setPreferredSize(new Dimension(300, 300));
-            infoPanel.add(mapLabel);
-
-            JButton zoomInButton = new JButton("+");
-            JButton zoomOutButton = new JButton("-");
-            JPanel zoomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-            zoomPanel.setBackground(Color.WHITE);
-            zoomPanel.add(zoomInButton);
-            zoomPanel.add(zoomOutButton);
-            infoPanel.add(zoomPanel);
-
-            JPanel reviewsContainer = new JPanel(new BorderLayout());
-            reviewsContainer.setBackground(Color.WHITE);
-            reviewsContainer.setBorder(BorderFactory.createTitledBorder("리뷰"));
-            
-            JPanel reviewsPanel = new JPanel();
-            reviewsPanel.setLayout(new BoxLayout(reviewsPanel, BoxLayout.Y_AXIS));
-            reviewsPanel.setBackground(Color.WHITE);
-            
-            JScrollPane reviewScrollPane = new JScrollPane(reviewsPanel);
-            reviewScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-            reviewScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-            reviewScrollPane.setBorder(null);
-            reviewsContainer.add(reviewScrollPane, BorderLayout.CENTER);
-            
-            infoPanel.add(Box.createVerticalStrut(10));
-            infoPanel.add(reviewsContainer);
-
-            new SwingWorker<PlaceInfo, Void>() {
-                @Override
-                protected PlaceInfo doInBackground() throws Exception {
-                    List<AutocompletePrediction> predictions = apiHandler.getAutocompletePredictions(placeName, API_KEY);
-                    if (!predictions.isEmpty()) {
-                        return apiHandler.getPlaceDetailsById(predictions.get(0).getPlaceId(), API_KEY);
-                    }
-                    return null;
+            if (detailInfo != null) {
+                descriptionText = detailInfo.getDescription();
+                URL localImageURL = null;
+                if (detailInfo.getImagePath() != null && !detailInfo.getImagePath().isEmpty()) {
+                    localImageURL = getClass().getResource("/busantravel/ui/" + detailInfo.getImagePath());
                 }
 
-                @Override
-                protected void done() {
-                    try {
-                        PlaceInfo placeInfo = get();
-                        if (placeInfo != null) {
-                            updateMap(mapLabel, placeInfo, currentZoom, mapLabel.getPreferredSize().width, mapLabel.getPreferredSize().height);
-                            
-                            reviewsPanel.removeAll();
-                            if (placeInfo.getReviews() != null && !placeInfo.getReviews().isEmpty()) {
-                                for (PlaceReview review : placeInfo.getReviews()) {
-                                    JPanel reviewPanel = new JPanel();
-                                    reviewPanel.setLayout(new BoxLayout(reviewPanel, BoxLayout.Y_AXIS));
-                                    reviewPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-                                    reviewPanel.setBackground(new Color(248, 248, 248));
-                                    
-                                    JLabel authorLabel = new JLabel(review.getAuthorName() + " (" + review.getRating() + "/5)");
-                                    authorLabel.setFont(new Font("맑은 고딕", Font.BOLD, 12));
-                                    
-                                    JTextArea reviewText = new JTextArea(review.getText());
-                                    reviewText.setLineWrap(true);
-                                    reviewText.setWrapStyleWord(true);
-                                    reviewText.setEditable(false);
-                                    reviewText.setBackground(reviewPanel.getBackground());
-                                    reviewText.setFont(new Font("맑은 고딕", Font.PLAIN, 11));
-                                    
-                                    reviewPanel.add(authorLabel);
-                                    reviewPanel.add(Box.createVerticalStrut(3));
-                                    reviewPanel.add(reviewText);
-                                    
-                                    reviewsPanel.add(reviewPanel);
-                                    reviewsPanel.add(Box.createVerticalStrut(5));
+                if (localImageURL != null) {
+                    ImageIcon detailImageIcon = new ImageIcon(localImageURL);
+                    Image originalDetailImage = detailImageIcon.getImage();
+                    int imgWidth = originalDetailImage.getWidth(null);
+                    int imgHeight = originalDetailImage.getHeight(null);
+                    double scaleFactor = (double) 300 / imgHeight;
+                    Image scaledDetailImage = originalDetailImage.getScaledInstance((int) (imgWidth * scaleFactor), 300, Image.SCALE_SMOOTH);
+                    detailImageLabel.setIcon(new ImageIcon(scaledDetailImage));
+                    detailImageLabel.setText(null);
+                } else if (detailInfo.getImagePath() != null && !detailInfo.getImagePath().isEmpty()) {
+                    loadImage(detailImageLabel, detailInfo.getImagePath(), placeName, 500, 400, false);
+                } else {
+                    loadGoogleImage(detailImageLabel, placeName, 500, 400, false);
+                }
+            } else {
+                detailImageLabel.setText("장소 정보를 찾을 수 없습니다.");
+            }
+
+            JLabel title = new JLabel(placeName);
+            title.setFont(new Font("맑은 고딕", Font.BOLD, 22));
+            title.setAlignmentX(Component.CENTER_ALIGNMENT);
+            title.setForeground(new Color(50, 50, 50));
+
+            JTextArea description = new JTextArea(descriptionText);
+            description.setLineWrap(true);
+            description.setWrapStyleWord(true);
+            description.setEditable(false);
+            description.setBackground(detailPanel.getBackground());
+            description.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+            description.setForeground(new Color(80, 80, 80));
+            
+            JScrollPane descriptionScrollPane = new JScrollPane(description);
+            descriptionScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+            descriptionScrollPane.setBorder(null);
+            descriptionScrollPane.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            JButton saveBtn = new JButton("저장하기");
+            saveBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+            saveBtn.setBackground(new Color(222, 146, 124));
+            saveBtn.setForeground(Color.WHITE);
+            saveBtn.setFocusPainted(false);
+            saveBtn.setBorderPainted(false);
+            saveBtn.setFont(new Font("맑은 고딕", Font.BOLD, 15));
+            saveBtn.setPreferredSize(new Dimension(120, 35));
+
+            saveBtn.addActionListener(e -> JOptionPane.showMessageDialog(detailDialog, placeName + " 저장 완료! 저장된 장소 탭에서 확인하세요."));
+
+            detailPanel.add(detailImageLabel);
+            detailPanel.add(Box.createVerticalStrut(15));
+            detailPanel.add(title);
+            detailPanel.add(Box.createVerticalStrut(10));
+            detailPanel.add(descriptionScrollPane);
+            detailPanel.add(Box.createVerticalStrut(25));
+            detailPanel.add(saveBtn);
+
+            mainPanel.add(detailPanel, BorderLayout.CENTER);
+
+            if (("관광지".equals(category) || "축제".equals(category)) && detailInfo != null) {
+                JPanel infoPanel = new JPanel();
+                infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+                infoPanel.setBackground(Color.WHITE);
+                infoPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 20));
+
+                if ("축제".equals(category)) {
+                    JLabel periodLabel = new JLabel("<html><body style='width: 200px'>축제 기간: " + detailInfo.getRestDay() + "</body></html>");
+                    JLabel traLabel = new JLabel("<html><body style='width: 200px'>교통편: " + detailInfo.getTransportation() + "</body></html>");
+                    JLabel addrLabel = new JLabel("<html><body style='width: 200px'>주소: " + detailInfo.getAddress() + "</body></html>");
+                    infoPanel.add(periodLabel);
+                    infoPanel.add(Box.createVerticalStrut(10));
+                    infoPanel.add(traLabel);
+                    infoPanel.add(Box.createVerticalStrut(10));
+                    infoPanel.add(addrLabel);
+                } else { // 관광지
+                    JLabel traLabel = new JLabel("<html><body style='width: 200px'>교통 정보: " + detailInfo.getTransportation() + "</body></html>");
+                    JLabel restLabel = new JLabel("휴무일: " + detailInfo.getRestDay());
+                    JLabel addrLabel = new JLabel("<html><body style='width: 200px'>주소: " + detailInfo.getAddress() + "</body></html>");
+                    infoPanel.add(traLabel);
+                    infoPanel.add(Box.createVerticalStrut(10));
+                    infoPanel.add(restLabel);
+                    infoPanel.add(Box.createVerticalStrut(10));
+                    infoPanel.add(addrLabel);
+                }
+                infoPanel.add(Box.createVerticalStrut(10));
+
+                JLabel mapLabel = new JLabel();
+                mapLabel.setPreferredSize(new Dimension(300, 300));
+                infoPanel.add(mapLabel);
+
+                JButton zoomInButton = new JButton("+");
+                JButton zoomOutButton = new JButton("-");
+                JPanel zoomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+                zoomPanel.setBackground(Color.WHITE);
+                zoomPanel.add(zoomInButton);
+                zoomPanel.add(zoomOutButton);
+                infoPanel.add(zoomPanel);
+
+                JPanel reviewsContainer = new JPanel(new BorderLayout());
+                reviewsContainer.setBackground(Color.WHITE);
+                reviewsContainer.setBorder(BorderFactory.createTitledBorder("리뷰"));
+                
+                JPanel reviewsPanel = new JPanel();
+                reviewsPanel.setLayout(new BoxLayout(reviewsPanel, BoxLayout.Y_AXIS));
+                reviewsPanel.setBackground(Color.WHITE);
+                
+                JScrollPane reviewScrollPane = new JScrollPane(reviewsPanel);
+                reviewScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+                reviewScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+                reviewScrollPane.setBorder(null);
+                reviewsContainer.add(reviewScrollPane, BorderLayout.CENTER);
+                
+                infoPanel.add(Box.createVerticalStrut(10));
+                infoPanel.add(reviewsContainer);
+
+                new SwingWorker<PlaceInfo, Void>() {
+                    @Override
+                    protected PlaceInfo doInBackground() throws Exception {
+                        List<AutocompletePrediction> predictions = apiHandler.getAutocompletePredictions(placeName, API_KEY);
+                        if (!predictions.isEmpty()) {
+                            return apiHandler.getPlaceDetailsById(predictions.get(0).getPlaceId(), API_KEY);
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    protected void done() {
+                        try {
+                            PlaceInfo placeInfo = get();
+                            if (placeInfo != null) {
+                                updateMap(mapLabel, placeInfo, currentZoom, mapLabel.getPreferredSize().width, mapLabel.getPreferredSize().height);
+                                
+                                reviewsPanel.removeAll();
+                                if (placeInfo.getReviews() != null && !placeInfo.getReviews().isEmpty()) {
+                                    for (PlaceReview review : placeInfo.getReviews()) {
+                                        JPanel reviewPanel = new JPanel();
+                                        reviewPanel.setLayout(new BoxLayout(reviewPanel, BoxLayout.Y_AXIS));
+                                        reviewPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+                                        reviewPanel.setBackground(new Color(248, 248, 248));
+                                        
+                                        JLabel authorLabel = new JLabel(review.getAuthorName() + " (" + review.getRating() + "/5)");
+                                        authorLabel.setFont(new Font("맑은 고딕", Font.BOLD, 12));
+                                        
+                                        JTextArea reviewText = new JTextArea(review.getText());
+                                        reviewText.setLineWrap(true);
+                                        reviewText.setWrapStyleWord(true);
+                                        reviewText.setEditable(false);
+                                        reviewText.setBackground(reviewPanel.getBackground());
+                                        reviewText.setFont(new Font("맑은 고딕", Font.PLAIN, 11));
+                                        
+                                        reviewPanel.add(authorLabel);
+                                        reviewPanel.add(Box.createVerticalStrut(3));
+                                        reviewPanel.add(reviewText);
+                                        
+                                        reviewsPanel.add(reviewPanel);
+                                        reviewsPanel.add(Box.createVerticalStrut(5));
+                                    }
+                                } else {
+                                    reviewsPanel.add(new JLabel("리뷰가 없습니다."));
                                 }
+                                reviewsPanel.revalidate();
+                                reviewsPanel.repaint();
+
+                                for(ActionListener al : zoomInButton.getActionListeners()) { zoomInButton.removeActionListener(al); }
+                                for(ActionListener al : zoomOutButton.getActionListeners()) { zoomOutButton.removeActionListener(al); }
+
+                                zoomInButton.addActionListener(e -> {
+                                    if (currentZoom < 20) {
+                                        currentZoom++;
+                                        updateMap(mapLabel, placeInfo, currentZoom, mapLabel.getPreferredSize().width, mapLabel.getPreferredSize().height);
+                                    }
+                                });
+
+                                zoomOutButton.addActionListener(e -> {
+                                    if (currentZoom > 1) {
+                                        currentZoom--;
+                                        updateMap(mapLabel, placeInfo, currentZoom, mapLabel.getPreferredSize().width, mapLabel.getPreferredSize().height);
+                                    }
+                                });
+
                             } else {
-                                reviewsPanel.add(new JLabel("리뷰가 없습니다."));
+                                mapLabel.setText("지도 정보를 가져올 수 없습니다.");
+                                reviewsPanel.add(new JLabel("리뷰 정보를 가져올 수 없습니다."));
+                                reviewsPanel.revalidate();
+                                reviewsPanel.repaint();
                             }
-                            reviewsPanel.revalidate();
-                            reviewsPanel.repaint();
-
-                            for(ActionListener al : zoomInButton.getActionListeners()) { zoomInButton.removeActionListener(al); }
-                            for(ActionListener al : zoomOutButton.getActionListeners()) { zoomOutButton.removeActionListener(al); }
-
-                            zoomInButton.addActionListener(e -> {
-                                if (currentZoom < 20) {
-                                    currentZoom++;
-                                    updateMap(mapLabel, placeInfo, currentZoom, mapLabel.getPreferredSize().width, mapLabel.getPreferredSize().height);
-                                }
-                            });
-
-                            zoomOutButton.addActionListener(e -> {
-                                if (currentZoom > 1) {
-                                    currentZoom--;
-                                    updateMap(mapLabel, placeInfo, currentZoom, mapLabel.getPreferredSize().width, mapLabel.getPreferredSize().height);
-                                }
-                            });
-
-                        } else {
-                            mapLabel.setText("지도 정보를 가져올 수 없습니다.");
-                            reviewsPanel.add(new JLabel("리뷰 정보를 가져올 수 없습니다."));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            mapLabel.setText("정보 로드 중 오류 발생");
+                            reviewsPanel.add(new JLabel("정보 로드 중 오류 발생"));
                             reviewsPanel.revalidate();
                             reviewsPanel.repaint();
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        mapLabel.setText("정보 로드 중 오류 발생");
-                        reviewsPanel.add(new JLabel("정보 로드 중 오류 발생"));
-                        reviewsPanel.revalidate();
-                        reviewsPanel.repaint();
                     }
-                }
-            }.execute();
+                }.execute();
 
-            mainPanel.add(infoPanel, BorderLayout.EAST);
+                mainPanel.add(infoPanel, BorderLayout.EAST);
+            }
+            detailDialog.add(mainPanel, BorderLayout.CENTER);
         }
-
-        detailDialog.add(mainPanel, BorderLayout.CENTER);
         detailDialog.setVisible(true);
     }
 

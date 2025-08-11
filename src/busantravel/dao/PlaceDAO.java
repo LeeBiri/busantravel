@@ -64,7 +64,8 @@ public class PlaceDAO {
                                 rs.getString("r_num"),
                                 rs.getString("r_rest"),
                                 rs.getString("r_addr"),
-                                rs.getString("r_thum")
+                                rs.getString("r_thum"),
+                                rs.getString("r_menu")
                         );
                         places.add(restaurant);
                         break;
@@ -142,7 +143,8 @@ public class PlaceDAO {
                                 rs.getString("r_num"),
                                 rs.getString("r_rest"),
                                 rs.getString("r_addr"),
-                                rs.getString("r_thum")
+                                rs.getString("r_thum"),
+                                rs.getString("r_menu")
                         );
                         places.add(restaurant);
                     } else if ("stay".equals(tableName)) {
@@ -226,7 +228,9 @@ public class PlaceDAO {
                             rs.getString("r_thum"),
                             "", // transportation for restaurant
                             rs.getString("r_rest"),
-                            rs.getString("r_addr")
+                            rs.getString("r_addr"),
+                            rs.getString("r_menu"),
+                            rs.getString("r_num")
                     );
                 } else if ("stay".equals(tableName)) {
                     placeDetailInfo = new PlaceDetailInfo(
@@ -243,7 +247,7 @@ public class PlaceDAO {
                             removeHtmlTags(rs.getString("f_intro")),
                             rs.getString("f_thum"), // festival 썸네일 컬럼을 f_thum으로 변경
                             rs.getString("f_tra"),
-                            removeHtmlTags(rs.getString("f_intro")), // restDay for festival is f_intro
+                            rs.getString("f_plan"), // restDay for festival is f_plan
                             rs.getString("f_addr")
                     );
                 }

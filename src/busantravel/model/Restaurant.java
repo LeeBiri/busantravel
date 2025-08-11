@@ -8,9 +8,10 @@ public class Restaurant {
 	private String r_rest; //운영 정보
 	private String r_addr; //주소
 	private String r_thum;
+	private String r_menu;
 
 	public Restaurant(String r_id, String r_place, String r_intro, String r_num, String r_rest,
-			String r_addr, String r_thum) {
+			String r_addr, String r_thum, String r_menu) {
 		this.r_id = r_id;
 		this.r_place = r_place;
 		this.r_intro = r_intro;
@@ -18,6 +19,7 @@ public class Restaurant {
 		this.r_rest = r_rest;
 		this.r_addr = r_addr;
 		this.r_thum = r_thum;
+		this.r_menu = r_menu;
 	}
 	
 	public String getR_id() {
@@ -55,6 +57,14 @@ public class Restaurant {
 	}
 	public void setR_addr(String r_addr) {
 		this.r_addr = r_addr;
+	}
+
+	public String getR_menu() {
+		return r_menu;
+	}
+
+	public void setR_menu(String r_menu) {
+		this.r_menu = r_menu;
 	}
 
 	public String getR_thum() {
