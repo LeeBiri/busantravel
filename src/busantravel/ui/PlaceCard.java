@@ -54,11 +54,18 @@ public class PlaceCard extends JPanel {
         imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
         imageLabel.setVerticalAlignment(SwingConstants.CENTER);
 
-        ImageIcon cachedImage = ImageCache.getInstance().getImage(placeName);
+        String imageUrl = thumbnail;
+        ImageIcon cachedImage = null;
+
+        if (imageUrl != null && !imageUrl.isEmpty() && imageUrl.startsWith("http")) {
+            cachedImage = ImageCache.getInstance().getImage(imageUrl);
+        }
+
         if (cachedImage != null) {
-            imageLabel.setIcon(cachedImage);
-        } else if (thumbnail != null && !thumbnail.isEmpty() && thumbnail.startsWith("http")) {
-            loadImage(imageLabel, thumbnail, placeName, 180, 120, false);
+            Image scaledImage = cachedImage.getImage().getScaledInstance(180, 120, Image.SCALE_SMOOTH);
+            imageLabel.setIcon(new ImageIcon(scaledImage));
+        } else if (imageUrl != null && !imageUrl.isEmpty() && imageUrl.startsWith("http")) {
+            loadImage(imageLabel, imageUrl, placeName, 180, 120, false);
         } else {
             loadGoogleImage(imageLabel, placeName, 180, 120, false);
         }
@@ -104,11 +111,17 @@ public class PlaceCard extends JPanel {
         imageLabel.setBackground(new Color(230, 240, 250));
         imageLabel.setOpaque(true);
 
-        ImageIcon cachedImage = ImageCache.getInstance().getImage(placeName);
+        String imageUrl = thumbnail;
+        ImageIcon cachedImage = null;
+
+        if (imageUrl != null && !imageUrl.isEmpty() && imageUrl.startsWith("http")) {
+            cachedImage = ImageCache.getInstance().getImage(imageUrl);
+        }
+
         if (cachedImage != null) {
             imageLabel.setIcon(new ImageIcon(cachedImage.getImage().getScaledInstance(120, 120, Image.SCALE_SMOOTH)));
-        } else if (thumbnail != null && !thumbnail.isEmpty() && thumbnail.startsWith("http")) {
-            loadImage(imageLabel, thumbnail, placeName, 120, 120, true);
+        } else if (imageUrl != null && !imageUrl.isEmpty() && imageUrl.startsWith("http")) {
+            loadImage(imageLabel, imageUrl, placeName, 120, 120, true);
         } else {
             loadGoogleImage(imageLabel, placeName, 120, 120, true);
         }
@@ -430,7 +443,7 @@ public class PlaceCard extends JPanel {
                     Image scaledImage = image.getScaledInstance(width, height, Image.SCALE_SMOOTH);
                     ImageIcon imageIcon = new ImageIcon(scaledImage);
                     if (!isList) { // 그리드 뷰일 때만 캐시 (리스트 뷰는 썸네일이므로)
-                        ImageCache.getInstance().putImage(placeName, new ImageIcon(image));
+                        ImageCache.getInstance().putImage(imagePath, new ImageIcon(image));
                     }
                     return imageIcon;
                 }
@@ -464,10 +477,16 @@ public class PlaceCard extends JPanel {
                     PlaceInfo placeInfo = apiHandler.getPlaceDetailsById(placeId, API_KEY);
                     if (placeInfo != null && placeInfo.getPhotoReference() != null) {
                         String imageUrl = apiHandler.getPhotoUrl(placeInfo.getPhotoReference(), 400, API_KEY);
+                        
+                        ImageIcon cachedIcon = ImageCache.getInstance().getImage(imageUrl);
+                        if (cachedIcon != null) {
+                            return new ImageIcon(cachedIcon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH));
+                        }
+
                         Image image = ImageIO.read(new URL(imageUrl));
                         if (image != null) {
                             if (!isList) {
-                                ImageCache.getInstance().putImage(placeName, new ImageIcon(image));
+                                ImageCache.getInstance().putImage(imageUrl, new ImageIcon(image));
                             }
                             return new ImageIcon(image.getScaledInstance(width, height, Image.SCALE_SMOOTH));
                         }
