@@ -193,7 +193,7 @@ public class PlaceCard extends JPanel {
             descriptionText = detailInfo.getDescription();
             URL localImageURL = null;
             if (detailInfo.getImagePath() != null && !detailInfo.getImagePath().isEmpty()) {
-                localImageURL = getClass().getResource("/BusanHow1/" + detailInfo.getImagePath());
+                localImageURL = getClass().getResource("/busantravel/ui/" + detailInfo.getImagePath());
             }
 
             if (localImageURL != null) {
