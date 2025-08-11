@@ -160,6 +160,13 @@ public class ApiHandler {
             maxWidth, photoReference, key
         );
     }
+
+    public String getStaticMapUrl(double latitude, double longitude, int zoom, int width, int height, String key) {
+        return String.format(
+            "https://maps.googleapis.com/maps/api/staticmap?center=%f,%f&zoom=%d&size=%dx%d&markers=color:red%%7C%f,%f&key=%s",
+            latitude, longitude, zoom, width, height, latitude, longitude, key
+        );
+    }
     
     
 
@@ -186,7 +193,7 @@ public class ApiHandler {
         return parsePlaceId(jsonResponse);
     }
 
-    private PlaceInfo getPlaceDetailsById(String placeId, String key) throws Exception {
+    public PlaceInfo getPlaceDetailsById(String placeId, String key) throws Exception {
         String apiUrl = "https://maps.googleapis.com/maps/api/place/details/json" +
                         "?place_id=" + placeId +
                         "&fields=name,formatted_address,rating,reviews,geometry,photos" +

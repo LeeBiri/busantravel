@@ -63,6 +63,4 @@ public class Lodging {
 	public void setL_addr(String l_addr) {
 		this.l_addr = l_addr;
 	}
-	
-	
 }
