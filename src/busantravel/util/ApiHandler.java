@@ -197,7 +197,6 @@ public class ApiHandler {
         String apiUrl = "https://maps.googleapis.com/maps/api/place/details/json" +
                         "?place_id=" + placeId +
                         "&fields=name,formatted_address,rating,reviews,geometry,photos" +
-                        "&fields=name,formatted_address,rating,reviews,geometry" +
                         "&language=ko" +
                         "&key=" + key;
 
