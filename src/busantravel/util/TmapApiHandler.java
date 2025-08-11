@@ -8,6 +8,8 @@ import org.json.simple.parser.ParseException;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +25,49 @@ import java.util.List;
  */
 public class TmapApiHandler {
 
-    private static final String TMAP_URL = "https://apis.openapi.sk.com/tmap/routes?version=1";
+    private static final String TMAP_ROUTE_URL = "https://apis.openapi.sk.com/tmap/routes?version=1";
+    private static final String TMAP_GEOCODING_URL = "https://apis.openapi.sk.com/tmap/pois?version=1&count=1&searchKeyword=";
+    private final String apiKey;
+
+    public TmapApiHandler(String apiKey) {
+        this.apiKey = apiKey;
+    }
+
+    public Coordinate getCoordinates(String placeName) throws IOException, ParseException {
+        String encodedPlaceName = URLEncoder.encode(placeName, StandardCharsets.UTF_8.name());
+        String requestUrl = TMAP_GEOCODING_URL + encodedPlaceName + "&appKey=" + apiKey +
+                            "&searchtypCd=R&radius=30&centerLon=129.0756&centerLat=35.1796";
+        URL url = new URL(requestUrl);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+
+        if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) {
+                    response.append(line);
+                }
+
+                JSONParser parser = new JSONParser();
+                JSONObject jsonObj = (JSONObject) parser.parse(response.toString());
+                JSONObject searchPoiInfo = (JSONObject) jsonObj.get("searchPoiInfo");
+                if (searchPoiInfo != null) {
+                    JSONObject pois = (JSONObject) searchPoiInfo.get("pois");
+                    if (pois != null) {
+                        JSONArray poi = (JSONArray) pois.get("poi");
+                        if (poi != null && !poi.isEmpty()) {
+                            JSONObject firstPoi = (JSONObject) poi.get(0);
+                            double lat = Double.parseDouble(firstPoi.get("noorLat").toString());
+                            double lon = Double.parseDouble(firstPoi.get("noorLon").toString());
+                            return new Coordinate(lat, lon);
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
     /**
      * Tmap 경로안내 API를 호출하여 경로 요약 및 상세 좌표를 포함한 전체 결과를 반환합니다.
@@ -38,7 +82,7 @@ public class TmapApiHandler {
                 "\"reqCoordType\":\"WGS84GEO\",\"resCoordType\":\"WGS84GEO\",\"tollgateFareOption\":16}",
                 startX, startY, endX, endY, startName, endName
             );
-            URL url = new URL(TMAP_URL);
+            URL url = new URL(TMAP_ROUTE_URL);
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setDoOutput(true);

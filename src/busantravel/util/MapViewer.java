@@ -6,6 +6,8 @@ import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
 import java.awt.Image;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import javax.imageio.ImageIO;
 
@@ -18,9 +20,10 @@ public class MapViewer {
      * 지정된 이미지 URL을 사용하여 지도 이미지를 새로운 창에 표시합니다.
      * Swing GUI 작업은 Event Dispatch Thread(EDT)에서 실행되도록 보장합니다.
      *
-     * @param imageUrl 표시할 이미지의 완전한 URL
+     * @param imageUrl   표시할 이미지의 완전한 URL
+     * @param tmapApiKey TMAP API 키
      */
-    public static void showMap(String imageUrl) {
+    public static void showMap(String imageUrl, String tmapApiKey) {
         // Swing GUI는 항상 Event Dispatch Thread에서 생성하고 수정해야 합니다.
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Static Map Viewer");
@@ -29,16 +32,33 @@ public class MapViewer {
             frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); 
 
             try {
-                URL url = new URL(imageUrl);
-                // URL로부터 이미지를 읽어옵니다. 이 과정에서 네트워크 통신이 발생합니다.
-                Image image = ImageIO.read(url);
+                // curl 명령어 생성 및 출력
+                String curlCommand = String.format("curl \"%s\" --header \"appKey: %s\"", imageUrl, tmapApiKey);
+                System.out.println("\n--- API Call (curl) ---");
+                System.out.println(curlCommand);
 
-                if (image != null) {
-                    ImageIcon imageIcon = new ImageIcon(image);
-                    JLabel imageLabel = new JLabel(imageIcon);
-                    frame.add(imageLabel);
+                URL url = new URL(imageUrl);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setRequestProperty("appKey", tmapApiKey);
+
+                int responseCode = connection.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    try (InputStream inputStream = connection.getInputStream()) {
+                        Image image = ImageIO.read(inputStream);
+                        if (image != null) {
+                            ImageIcon imageIcon = new ImageIcon(image);
+                            JLabel imageLabel = new JLabel(imageIcon);
+                            frame.add(imageLabel);
+                        } else {
+                            frame.add(new JLabel("이미지를 로드할 수 없습니다."));
+                        }
+                    }
                 } else {
-                    frame.add(new JLabel("이미지를 로드할 수 없습니다. URL을 확인하세요."));
+                    try (InputStream errorStream = connection.getErrorStream()) {
+                        String errorResponse = new String(errorStream.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+                        frame.add(new JLabel("<html><pre>" + errorResponse + "</pre></html>"));
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();

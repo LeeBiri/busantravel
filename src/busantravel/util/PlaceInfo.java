@@ -1,117 +1,58 @@
 package busantravel.util;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
- * Google Places API로부터 받은 장소의 상세 정보를 저장하는 데이터 모델 클래스입니다.
- * <p>
- * 이 클래스는 장소의 이름, 포매팅된 주소, 평점, 좌표 및 관련 리뷰 목록을 포함합니다.
+ * TMAP API 기반 장소 상세 정보를 저장하는 데이터 클래스입니다.
+ * Google Places API와의 호환성을 위해 일부 필드와 메소드는 유지되었으나,
+ * TMAP API에서 제공하지 않는 정보(평점, 리뷰, 사진)는 기본값을 반환합니다.
  *
  * @see ApiHandler
- * @see PlaceReview
  */
 public class PlaceInfo {
     private final String name;
-    private final String formattedAddress;
-    private final double rating;
-    private final List<PlaceReview> reviews;
-    private final double latitude;  // 위도
-    private final double longitude; // 경도
-    private final String photoReference;
+    private final String address;
+    private final double latitude;
+    private final double longitude;
 
     /**
-     * 새로운 PlaceInfo 객체를 생성합니다.
+     * TMAP API 응답에 맞춰진 생성자입니다.
      *
-     * @param name 장소의 이름
-     * @param formattedAddress 전체 주소
-     * @param rating 장소에 대한 평균 평점 (1.0 ~ 5.0)
-     * @param reviews 장소에 대한 리뷰 목록 (List&lt;PlaceReview&gt;)
-     * @param latitude 장소의 위도
-     * @param longitude 장소의 경도
+     * @param name           장소의 이름
+     * @param address        정규화된 주소
+     * @param rating         (사용되지 않음)
+     * @param reviews        (사용되지 않음)
+     * @param latitude       장소의 위도
+     * @param longitude      장소의 경도
+     * @param photoReference (사용되지 않음)
      */
-    public PlaceInfo(String name, String formattedAddress, double rating, List<PlaceReview> reviews, double latitude, double longitude, String photoReference) {
+    public PlaceInfo(String name, String address, double rating, List<Object> reviews, double latitude, double longitude, String photoReference) {
         this.name = name;
-        this.formattedAddress = formattedAddress;
-        this.rating = rating;
-        this.reviews = reviews;
+        this.address = address;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.photoReference = photoReference;
     }
 
-    
-    /**
-     * 장소의 이름을 반환합니다.
-     * @return 장소명 (String)
-     */
+    // Getter
     public String getName() { return name; }
-    
-    /**
-     * 장소의 주소를 반환합니다.
-     * @return 주소 (String)
-     */
-    public String getFormattedAddress() { return formattedAddress; }
-    
-    /**
-     * 장소의 평균 평점을 double 형으로 반환합니다.
-     * @return 평균 평점 (double)
-     */
-    public double getRating() { return rating; }
-    
-    /**
-     * 해당 장소의 리뷰 목록을 List&lt;PlaceReview&gt; 형태로 반환합니다.
-     * <p>
-     * 리스트의 각 {@link PlaceReview} 객체는 다음과 같은 메소드를 통해 개별 정보에 접근할 수 있습니다.
-     * <ul>
-     *   <li><b>getAuthorName()</b>: 작성자 닉네임 (String)</li>
-     *   <li><b>getRating()</b>: 별점 (long)</li>
-     *   <li><b>getText()</b>: 리뷰 본문 (String)</li>
-     *   <li><b>getRelativeTimeDescription()</b>: 작성 시기 (String, 예: "2주 전")</li>
-     * </ul>
-     *
-     * <pre>
-     * <b>[사용 예제]</b>
-     * List&lt;PlaceReview&gt; reviewList = placeInfo.getReviews();
-     * for (PlaceReview review : reviewList) {
-     *     System.out.println("작성자: " + review.getAuthorName());
-     *     System.out.println("별점: " + review.getRating());
-     * }
-     * </pre>
-     *
-     * @return 이 장소에 대한 리뷰 목록 ({@code List<PlaceReview>}). 리뷰가 없으면 비어있는 리스트가 반환됩니다.
-     */
-    public List<PlaceReview> getReviews() { return reviews; }
-    
-    /**
-     * 장소의 위도(Latitude)를 반환합니다.
-     * @return 위도 값 (double)
-     */
+    public String getAddress() { return address; }
     public double getLatitude() { return latitude; }
-
-    /**
-     * 장소의 경도(Longitude)를 반환합니다.
-     * @return 경도 값 (double)
-     */
     public double getLongitude() { return longitude; }
-    
-    /**
-     * 장소의 대표 사진에 대한 참조 ID를 반환합니다.
-     * 이 값은 getPhotoUrl 메소드에 사용될 수 있습니다.
-     * @return 사진 참조 ID. 사진이 없는 경우 null.
-     */
-    public String getPhotoReference() { // <<--- getter 추가
-        return photoReference;
-    }
+
+    // Google API 호환성을 위한 메소드
+    public String getFormattedAddress() { return address; }
+    public double getRating() { return 0.0; } // TMAP 미제공
+    public List<Object> getReviews() { return Collections.emptyList(); } // TMAP 미제공
+    public String getPhotoReference() { return null; } // TMAP 미제공
 
     @Override
     public String toString() {
         return "PlaceInfo {" +
                 "\n Name: '" + name + '\'' +
-                ",\n Address: '" + formattedAddress + '\'' +
-                ",\n Rating: " + rating +
+                ",\n Address: '" + address + '\'' +
                 ",\n Latitude: " + latitude +
                 ",\n Longitude: " + longitude +
-                ",\n Reviews: " + reviews +
                 "\n}";
     }
 }

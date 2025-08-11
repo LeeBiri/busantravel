@@ -116,6 +116,7 @@ public class HomePanel extends JPanel {
                     thumbnail = ((Restaurant) place).getR_thum();
                 } else if (place instanceof Lodging) {
                     placeName = ((Lodging) place).getL_place();
+                    thumbnail = ((Lodging) place).getL_thum();
                 } else if (place instanceof Festival) {
                     placeName = ((Festival) place).getF_name();
                     thumbnail = ((Festival) place).getF_thum();
@@ -169,7 +170,7 @@ public class HomePanel extends JPanel {
                 } else if (place instanceof Lodging) {
                     placeName = ((Lodging) place).getL_place();
                     category = "숙소";
-                    // Lodging 모델에 썸네일 필드가 없으므로 빈 문자열
+                    thumbnail = ((Lodging) place).getL_thum();
                 } else if (place instanceof Festival) {
                     placeName = ((Festival) place).getF_name();
                     category = "축제";
