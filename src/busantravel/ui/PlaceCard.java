@@ -22,23 +22,35 @@ public class PlaceCard extends JPanel {
     private int currentZoom = 14;
     private static final String API_KEY = "AIzaSyCbEjKNhNT9tjRh0KqCil4sUMlF06Dfu5Y";
 
-    public PlaceCard(JFrame frame, String placeName, String category, String thumbnail) {
+    public enum ViewType {
+        GRID,
+        LIST
+    }
+
+    public PlaceCard(JFrame frame, String placeName, String category, String thumbnail, ViewType viewType) {
         this.placeDAO = new PlaceDAO();
         this.apiHandler = new ApiHandler();
-        setLayout(new BorderLayout());
-        setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY)); // 기본 테두리
-        setBackground(Color.WHITE); // 배경색
 
-        // 카드 크기 고정 (요청 반영)
+        if (viewType == ViewType.GRID) {
+            setupGridView(frame, placeName, category, thumbnail);
+        } else {
+            setupListView(frame, placeName, category, thumbnail);
+        }
+    }
+    
+    private void setupGridView(JFrame frame, String placeName, String category, String thumbnail) {
+        setLayout(new BorderLayout());
+        setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        setBackground(Color.WHITE);
+
         setPreferredSize(new Dimension(180, 180));
         setMinimumSize(new Dimension(180, 180));
         setMaximumSize(new Dimension(180, 180));
 
-        // 이미지 표시 영역 (현재는 단색 배경)
         JLabel imageLabel = new JLabel();
-        imageLabel.setBackground(new Color(230, 240, 250)); // 이미지 없을 시 배경색
-        imageLabel.setOpaque(true); // 배경색이 보이도록 설정
-        imageLabel.setPreferredSize(new Dimension(180, 120)); // 이미지 영역 크기
+        imageLabel.setBackground(new Color(230, 240, 250));
+        imageLabel.setOpaque(true);
+        imageLabel.setPreferredSize(new Dimension(180, 120));
         imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
         imageLabel.setVerticalAlignment(SwingConstants.CENTER);
 
@@ -46,66 +58,108 @@ public class PlaceCard extends JPanel {
         if (cachedImage != null) {
             imageLabel.setIcon(cachedImage);
         } else if (thumbnail != null && !thumbnail.isEmpty() && thumbnail.startsWith("http")) {
-            loadImage(imageLabel, thumbnail, placeName);
+            loadImage(imageLabel, thumbnail, placeName, 180, 120, false);
         } else {
-            new SwingWorker<ImageIcon, Void>() {
-                @Override
-                protected ImageIcon doInBackground() throws Exception {
-                    List<AutocompletePrediction> predictions = apiHandler.getAutocompletePredictions(placeName, API_KEY);
-                    if (!predictions.isEmpty()) {
-                        String placeId = predictions.get(0).getPlaceId();
-                        PlaceInfo placeInfo = apiHandler.getPlaceDetailsById(placeId, API_KEY);
-                        if (placeInfo != null && placeInfo.getPhotoReference() != null) {
-                            String photoReference = placeInfo.getPhotoReference();
-                            String imageUrl = apiHandler.getPhotoUrl(photoReference, 400, API_KEY);
-                            Image image = ImageIO.read(new URL(imageUrl));
-                            if (image != null) {
-                                ImageIcon imageIcon = new ImageIcon(image);
-                                ImageCache.getInstance().putImage(placeName, imageIcon);
-                                return imageIcon;
-                            }
-                        }
-                    }
-                    return null;
-                }
-
-                @Override
-                protected void done() {
-                    try {
-                        ImageIcon imageIcon = get();
-                        if (imageIcon != null) {
-                            imageLabel.setIcon(imageIcon);
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }.execute();
+            loadGoogleImage(imageLabel, placeName, 180, 120, false);
         }
 
-        // 장소 이름 라벨
         JLabel nameLabel = new JLabel(placeName, JLabel.CENTER);
         nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 14));
-        nameLabel.setBorder(BorderFactory.createEmptyBorder(8, 5, 8, 5)); // 패딩 추가
-        nameLabel.setBackground(new Color(245, 245, 245)); // 이름 라벨 배경색
-        nameLabel.setOpaque(true); // 배경색이 보이도록 설정
+        nameLabel.setBorder(BorderFactory.createEmptyBorder(8, 5, 8, 5));
+        nameLabel.setBackground(new Color(245, 245, 245));
+        nameLabel.setOpaque(true);
 
         add(imageLabel, BorderLayout.CENTER);
         add(nameLabel, BorderLayout.SOUTH);
 
-        // 클릭 시 상세 정보 팝업 및 호버 효과
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 showPlaceDetailDialog(frame, placeName, category);
             }
             @Override
-            public void mouseEntered(MouseEvent e) { // 마우스가 카드 위에 올라갔을 때
-                setBorder(BorderFactory.createLineBorder(new Color(222, 146, 124), 2)); // 하이라이트 테두리
+            public void mouseEntered(MouseEvent e) {
+                setBorder(BorderFactory.createLineBorder(new Color(222, 146, 124), 2));
             }
             @Override
-            public void mouseExited(MouseEvent e) { // 마우스가 카드에서 벗어났을 때
-                setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY)); // 원래 테두리로 복원
+            public void mouseExited(MouseEvent e) {
+                setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+            }
+        });
+    }
+
+    private void setupListView(JFrame frame, String placeName, String category, String thumbnail) {
+        setLayout(new BorderLayout(15, 10));
+        setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(220, 220, 220)),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        setBackground(Color.WHITE);
+        setMaximumSize(new Dimension(Integer.MAX_VALUE, 140)); // 높이 수정
+
+        JLabel imageLabel = new JLabel();
+        imageLabel.setPreferredSize(new Dimension(120, 120)); // 이미지 크기 수정
+        imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        imageLabel.setVerticalAlignment(SwingConstants.CENTER);
+        imageLabel.setBackground(new Color(230, 240, 250));
+        imageLabel.setOpaque(true);
+
+        ImageIcon cachedImage = ImageCache.getInstance().getImage(placeName);
+        if (cachedImage != null) {
+            imageLabel.setIcon(new ImageIcon(cachedImage.getImage().getScaledInstance(120, 120, Image.SCALE_SMOOTH)));
+        } else if (thumbnail != null && !thumbnail.isEmpty() && thumbnail.startsWith("http")) {
+            loadImage(imageLabel, thumbnail, placeName, 120, 120, true);
+        } else {
+            loadGoogleImage(imageLabel, placeName, 120, 120, true);
+        }
+        add(imageLabel, BorderLayout.WEST);
+
+        JPanel infoPanel = new JPanel();
+        infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+        infoPanel.setBackground(Color.WHITE);
+
+        JLabel nameLabel = new JLabel(placeName);
+        nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 18));
+        nameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JTextArea descriptionArea = new JTextArea("설명 로딩 중...");
+        descriptionArea.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+        descriptionArea.setForeground(Color.DARK_GRAY);
+        descriptionArea.setWrapStyleWord(true);
+        descriptionArea.setLineWrap(true);
+        descriptionArea.setEditable(false);
+        descriptionArea.setFocusable(false);
+        descriptionArea.setOpaque(false);
+        descriptionArea.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        PlaceDetailInfo detailInfo = placeDAO.getPlaceDetail(placeName, category);
+        String descriptionText = "이 장소에 대한 설명을 찾을 수 없습니다.";
+        if (detailInfo != null && detailInfo.getDescription() != null && !detailInfo.getDescription().isEmpty()) {
+            descriptionText = detailInfo.getDescription();
+        }
+        descriptionArea.setText(descriptionText);
+
+        infoPanel.add(nameLabel);
+        infoPanel.add(Box.createVerticalStrut(8));
+        infoPanel.add(descriptionArea);
+        infoPanel.add(Box.createVerticalGlue());
+
+        add(infoPanel, BorderLayout.CENTER);
+
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                showPlaceDetailDialog(frame, placeName, category);
+            }
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                setBackground(new Color(245, 245, 245));
+                infoPanel.setBackground(new Color(245, 245, 245));
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                setBackground(Color.WHITE);
+                infoPanel.setBackground(Color.WHITE);
             }
         });
     }
@@ -124,13 +178,11 @@ public class PlaceCard extends JPanel {
         detailPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         detailPanel.setBackground(Color.WHITE);
 
-        // PlaceDAO에서 장소 상세 정보 불러오기
         PlaceDetailInfo detailInfo = placeDAO.getPlaceDetail(placeName, category);
         String descriptionText = "해당 장소의 정보를 찾을 수 없습니다.";
 
-        // 상세 정보 이미지 영역
         JLabel detailImageLabel = new JLabel();
-        detailImageLabel.setBackground(new Color(230, 240, 250)); // 기본 배경색
+        detailImageLabel.setBackground(new Color(230, 240, 250));
         detailImageLabel.setOpaque(true);
         detailImageLabel.setPreferredSize(new Dimension(500, 400));
         detailImageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -154,53 +206,9 @@ public class PlaceCard extends JPanel {
                 detailImageLabel.setIcon(new ImageIcon(scaledDetailImage));
                 detailImageLabel.setText(null);
             } else if (detailInfo.getImagePath() != null && !detailInfo.getImagePath().isEmpty()) {
-                loadImage(detailImageLabel, detailInfo.getImagePath(), placeName);
+                loadImage(detailImageLabel, detailInfo.getImagePath(), placeName, 500, 400, false);
             } else {
-                detailImageLabel.setText("이미지 로딩 중...");
-                new SwingWorker<ImageIcon, Void>() {
-                    @Override
-                    protected ImageIcon doInBackground() throws Exception {
-                        List<AutocompletePrediction> predictions = apiHandler.getAutocompletePredictions(placeName, API_KEY);
-                        if (!predictions.isEmpty()) {
-                            PlaceInfo placeInfo = apiHandler.getPlaceDetailsById(predictions.get(0).getPlaceId(), API_KEY);
-                            if (placeInfo != null && placeInfo.getPhotoReference() != null) {
-                                String imageUrl = apiHandler.getPhotoUrl(placeInfo.getPhotoReference(), 400, API_KEY);
-                                Image image = ImageIO.read(new URL(imageUrl));
-                                if (image != null) {
-                                    return new ImageIcon(image);
-                                }
-                            }
-                        }
-                        return null;
-                    }
-
-                    @Override
-                    protected void done() {
-                        try {
-                            ImageIcon imageIcon = get();
-                            if (imageIcon != null) {
-                                Image originalDetailImage = imageIcon.getImage();
-                                int imgWidth = originalDetailImage.getWidth(null);
-                                int imgHeight = originalDetailImage.getHeight(null);
-                                int targetWidth = detailImageLabel.getPreferredSize().width;
-                                int targetHeight = detailImageLabel.getPreferredSize().height;
-                                if (imgWidth > 0 && imgHeight > 0) {
-                                    double scaleFactor = (double) 300 / imgHeight;
-                                    Image scaledDetailImage = originalDetailImage.getScaledInstance((int) (imgWidth * scaleFactor), 300, Image.SCALE_SMOOTH);
-                                    detailImageLabel.setIcon(new ImageIcon(scaledDetailImage));
-                                    detailImageLabel.setText(null);
-                                }
-                            } else {
-                                detailImageLabel.setText("이미지를 찾을 수 없습니다.");
-                                detailImageLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
-                                detailImageLabel.setForeground(Color.RED);
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            detailImageLabel.setText("이미지 로드 중 오류 발생");
-                        }
-                    }
-                }.execute();
+                loadGoogleImage(detailImageLabel, placeName, 500, 400, false);
             }
         } else {
             detailImageLabel.setText("장소 정보를 찾을 수 없습니다.");
@@ -267,7 +275,6 @@ public class PlaceCard extends JPanel {
             mapLabel.setPreferredSize(new Dimension(300, 300));
             infoPanel.add(mapLabel);
 
-            // Zoom buttons
             JButton zoomInButton = new JButton("+");
             JButton zoomOutButton = new JButton("-");
             JPanel zoomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -276,7 +283,6 @@ public class PlaceCard extends JPanel {
             zoomPanel.add(zoomOutButton);
             infoPanel.add(zoomPanel);
 
-            // Reviews Panel
             JPanel reviewsContainer = new JPanel(new BorderLayout());
             reviewsContainer.setBackground(Color.WHITE);
             reviewsContainer.setBorder(BorderFactory.createTitledBorder("리뷰"));
@@ -294,8 +300,6 @@ public class PlaceCard extends JPanel {
             infoPanel.add(Box.createVerticalStrut(10));
             infoPanel.add(reviewsContainer);
 
-
-            // SwingWorker to fetch PlaceInfo (which includes map and reviews)
             new SwingWorker<PlaceInfo, Void>() {
                 @Override
                 protected PlaceInfo doInBackground() throws Exception {
@@ -311,10 +315,8 @@ public class PlaceCard extends JPanel {
                     try {
                         PlaceInfo placeInfo = get();
                         if (placeInfo != null) {
-                            // Update Map
                             updateMap(mapLabel, placeInfo, currentZoom, mapLabel.getPreferredSize().width, mapLabel.getPreferredSize().height);
                             
-                            // Update Reviews
                             reviewsPanel.removeAll();
                             if (placeInfo.getReviews() != null && !placeInfo.getReviews().isEmpty()) {
                                 for (PlaceReview review : placeInfo.getReviews()) {
@@ -346,7 +348,6 @@ public class PlaceCard extends JPanel {
                             reviewsPanel.revalidate();
                             reviewsPanel.repaint();
 
-                            // Add ActionListeners for zoom buttons here, after placeInfo is fetched
                             for(ActionListener al : zoomInButton.getActionListeners()) { zoomInButton.removeActionListener(al); }
                             for(ActionListener al : zoomOutButton.getActionListeners()) { zoomOutButton.removeActionListener(al); }
 
@@ -419,15 +420,18 @@ public class PlaceCard extends JPanel {
         }.execute();
     }
 
-    private void loadImage(JLabel label, String imagePath, String placeName) {
+    private void loadImage(JLabel label, String imagePath, String placeName, int width, int height, boolean isList) {
         new SwingWorker<ImageIcon, Void>() {
             @Override
             protected ImageIcon doInBackground() throws Exception {
                 URL url = new URL(imagePath);
                 Image image = ImageIO.read(url);
                 if (image != null) {
-                    ImageIcon imageIcon = new ImageIcon(image);
-                    ImageCache.getInstance().putImage(placeName, imageIcon);
+                    Image scaledImage = image.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+                    ImageIcon imageIcon = new ImageIcon(scaledImage);
+                    if (!isList) { // 그리드 뷰일 때만 캐시 (리스트 뷰는 썸네일이므로)
+                        ImageCache.getInstance().putImage(placeName, new ImageIcon(image));
+                    }
                     return imageIcon;
                 }
                 return null;
@@ -439,8 +443,50 @@ public class PlaceCard extends JPanel {
                     ImageIcon imageIcon = get();
                     if (imageIcon != null) {
                         label.setIcon(imageIcon);
+                    } else {
+                        label.setText("이미지 없음");
                     }
                 } catch (Exception e) {
+                    label.setText("이미지 로드 실패");
+                    e.printStackTrace();
+                }
+            }
+        }.execute();
+    }
+
+    private void loadGoogleImage(JLabel label, String placeName, int width, int height, boolean isList) {
+        new SwingWorker<ImageIcon, Void>() {
+            @Override
+            protected ImageIcon doInBackground() throws Exception {
+                List<AutocompletePrediction> predictions = apiHandler.getAutocompletePredictions(placeName, API_KEY);
+                if (!predictions.isEmpty()) {
+                    String placeId = predictions.get(0).getPlaceId();
+                    PlaceInfo placeInfo = apiHandler.getPlaceDetailsById(placeId, API_KEY);
+                    if (placeInfo != null && placeInfo.getPhotoReference() != null) {
+                        String imageUrl = apiHandler.getPhotoUrl(placeInfo.getPhotoReference(), 400, API_KEY);
+                        Image image = ImageIO.read(new URL(imageUrl));
+                        if (image != null) {
+                            if (!isList) {
+                                ImageCache.getInstance().putImage(placeName, new ImageIcon(image));
+                            }
+                            return new ImageIcon(image.getScaledInstance(width, height, Image.SCALE_SMOOTH));
+                        }
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    ImageIcon imageIcon = get();
+                    if (imageIcon != null) {
+                        label.setIcon(imageIcon);
+                    } else {
+                        label.setText("이미지 없음");
+                    }
+                } catch (Exception e) {
+                    label.setText("이미지 로드 실패");
                     e.printStackTrace();
                 }
             }
