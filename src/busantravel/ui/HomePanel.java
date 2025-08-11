@@ -47,7 +47,6 @@ public class HomePanel extends JPanel {
             categoryButtons.put(category, btn);
             topCategoryPanel.add(btn);
         }
-        add(topCategoryPanel, BorderLayout.NORTH);
 
         // --- 장소 카드 패널 ---
         gridPanel = new JPanel(new GridLayout(0, 4, 30, 30));
@@ -58,6 +57,8 @@ public class HomePanel extends JPanel {
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.setBorder(null);
+
+        add(topCategoryPanel, BorderLayout.NORTH); // 카테고리 패널 추가
         add(scrollPane, BorderLayout.CENTER);
 
         // 초기 버튼 색상 및 장소 로드
@@ -98,6 +99,7 @@ public class HomePanel extends JPanel {
                     placeName = ((Lodging) place).getL_place();
                 } else if (place instanceof Festival) {
                     placeName = ((Festival) place).getF_name();
+                    thumbnail = ((Festival) place).getF_thum();
                 }
                 gridPanel.add(new PlaceCard(frame, placeName, category, thumbnail));
             }
@@ -106,5 +108,49 @@ public class HomePanel extends JPanel {
         gridPanel.revalidate();
         gridPanel.repaint();
         SwingUtilities.invokeLater(() -> scrollPane.getVerticalScrollBar().setValue(0));
+    }
+
+    // 검색어로 장소 데이터 로드
+    private void loadPlacesBySearch(String query) {
+        gridPanel.removeAll();
+        List<Object> places = placeDAO.searchPlaces(query);
+
+        if (places.isEmpty()) {
+            gridPanel.add(new JLabel("검색 결과가 없습니다."));
+        } else {
+            for (Object place : places) {
+                String placeName = "";
+                String category = ""; // 검색 결과는 카테고리가 혼합될 수 있으므로, PlaceCard에 전달할 카테고리 필요
+                String thumbnail = "";
+
+                if (place instanceof Tourist) {
+                    placeName = ((Tourist) place).getT_place();
+                    category = "관광지";
+                    thumbnail = ((Tourist) place).getT_thum();
+                } else if (place instanceof Restaurant) {
+                    placeName = ((Restaurant) place).getR_place();
+                    category = "맛집";
+                    thumbnail = ((Restaurant) place).getR_thum();
+                } else if (place instanceof Lodging) {
+                    placeName = ((Lodging) place).getL_place();
+                    category = "숙소";
+                    // Lodging 모델에 썸네일 필드가 없으므로 빈 문자열
+                } else if (place instanceof Festival) {
+                    placeName = ((Festival) place).getF_name();
+                    category = "축제";
+                    thumbnail = ((Festival) place).getF_thum();
+                }
+                gridPanel.add(new PlaceCard(frame, placeName, category, thumbnail));
+            }
+        }
+
+        gridPanel.revalidate();
+        gridPanel.repaint();
+        SwingUtilities.invokeLater(() -> scrollPane.getVerticalScrollBar().setValue(0));
+    }
+
+    // 외부에서 검색을 트리거할 수 있는 메서드
+    public void performSearch(String query) {
+        loadPlacesBySearch(query);
     }
 }

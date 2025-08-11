@@ -161,7 +161,7 @@ public class ApiHandler {
         );
     }
 
-    public String getStaticMapUrl(double latitude, double longitude, int width, int height, int zoom, String key) {
+    public String getStaticMapUrl(double latitude, double longitude, int zoom, int width, int height, String key) {
         return String.format(
             "https://maps.googleapis.com/maps/api/staticmap?center=%f,%f&zoom=%d&size=%dx%d&markers=color:red%%7C%f,%f&key=%s",
             latitude, longitude, zoom, width, height, latitude, longitude, key

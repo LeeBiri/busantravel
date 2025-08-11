@@ -8,11 +8,12 @@ public class Festival {
 	private String f_tra; //교통 정보
 	private String f_rest; //운영 정보
 	private String f_addr; //주소
+	private String f_thum; //썸네일
 	
 	
 	
 	public Festival(String f_id, String f_name, String f_intro, String f_plan, String f_tra, String f_rest,
-			String f_addr) {
+			String f_addr, String f_thum) {
 		this.f_id = f_id;
 		this.f_name = f_name;
 		this.f_intro = f_intro;
@@ -20,6 +21,7 @@ public class Festival {
 		this.f_tra = f_tra;
 		this.f_rest = f_rest;
 		this.f_addr = f_addr;
+		this.f_thum = f_thum;
 	}
 	
 	public String getF_id() {
@@ -63,5 +65,13 @@ public class Festival {
 	}
 	public void setF_addr(String f_addr) {
 		this.f_addr = f_addr;
+	}
+
+	public String getF_thum() {
+		return f_thum;
+	}
+
+	public void setF_thum(String f_thum) {
+		this.f_thum = f_thum;
 	}
 }
