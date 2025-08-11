@@ -1,4 +1,4 @@
-package busantravel;
+package busantravel.ui;
 
 import java.time.LocalDate;
 import java.util.ArrayList;

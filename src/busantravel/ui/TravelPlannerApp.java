@@ -4,56 +4,68 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.net.URL;
 
 public class TravelPlannerApp {
     private JFrame frame;
     private JPanel mainPanel;
     private JPanel contentPanel;
+    private CardLayout contentCardLayout;
     private JPanel navigationPanel;
     private JLabel currentTitleLabel;
     private JLabel logoLabel;
     private JTextField searchField; // 검색 필드 추가
     private JButton searchButton; // 검색 버튼 추가
-    private JPanel searchAndAuthPanel; // 검색 및 인증 패널
 
-    private String currentTab = "home";
-    private HomePanel homePanel;
     private SchedulePanel schedulePanel;
+    private HomePanel homePanel;
+    private JPanel savedPanel; // 임시
+    private JPanel reviewPanel; // 임시
+    private PlanTripPanel planTripPanel; // PlanTripPanel 인스턴스
+
+    private String currentTab = "home"; // 초기 탭 설정
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new TravelPlannerApp().initialize());
     }
 
     public void initialize() {
-        // 패널들 미리 생성
-        homePanel = new HomePanel(frame);
-        schedulePanel = new SchedulePanel(frame);
         frame = new JFrame("부산 여행 플래너");
-        frame.setSize(1000, 700);
+        frame.setSize(1500, 1000); // 화면 크기 확장
+        frame.setMinimumSize(new Dimension(1000, 700)); // 최소 크기 유지
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLocationRelativeTo(null);
+        frame.setLocationRelativeTo(null); // 화면 중앙 배치
 
         mainPanel = new JPanel(new BorderLayout());
 
         // 상단 패널
         JPanel topAreaPanel = new JPanel(new BorderLayout());
         topAreaPanel.setBackground(Color.WHITE);
+        topAreaPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0)); // 상단/하단 패딩 조정
 
-        // 로고 이미지 (BusanHow1 패키지 내 logo.jpg)
+        // 로고 이미지 로드 및 스케일링
         try {
-            ImageIcon originalIcon = new ImageIcon(getClass().getResource("/busantravel/ui/logo.jpg"));
-            Image originalImage = originalIcon.getImage();
-            int targetWidth = 150;
-            double aspectRatio = (double) originalImage.getHeight(null) / originalImage.getWidth(null);
-            int targetHeight = (int) (targetWidth * aspectRatio);
-            Image scaledImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);
-            logoLabel = new JLabel(new ImageIcon(scaledImage));
+            URL imageUrl = getClass().getResource("/busantravel/ui/logo.jpg");
+            if (imageUrl != null) {
+                ImageIcon originalIcon = new ImageIcon(imageUrl);
+                Image originalImage = originalIcon.getImage();
+                int targetWidth = 150;
+                double aspectRatio = (double) originalImage.getHeight(null) / originalImage.getWidth(null);
+                int targetHeight = (int) (targetWidth * aspectRatio);
+                Image scaledImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);
+                logoLabel = new JLabel(new ImageIcon(scaledImage));
+            } else {
+                System.err.println("로고 이미지 파일을 찾을 수 없습니다! 기본 텍스트 로고 사용.");
+                logoLabel = new JLabel("<html><font color='#222222'>부산</font><font color='#DE927C'>어때</font></html>");
+                logoLabel.setFont(new Font("맑은 고딕", Font.BOLD, 26));
+            }
         } catch (Exception e) {
-            System.err.println("로고 이미지 파일을 찾을 수 없습니다: " + e.getMessage());
+            System.err.println("로고 이미지 로드 중 예외 발생: " + e.getMessage());
             logoLabel = new JLabel("<html><font color='#222222'>부산</font><font color='#DE927C'>어때</font></html>");
             logoLabel.setFont(new Font("맑은 고딕", Font.BOLD, 26));
         }
-        logoLabel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 10));
+
+        logoLabel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 10)); // 로고 내부 패딩
         logoLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         // 로고 클릭 시 여행 홈으로 이동
@@ -75,8 +87,36 @@ public class TravelPlannerApp {
         currentTitleLabel.setForeground(new Color(50, 50, 50));
         topAreaPanel.add(currentTitleLabel, BorderLayout.CENTER);
 
+        // 검색 및 인증 패널
+        JPanel searchAndAuthPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        searchAndAuthPanel.setBackground(Color.WHITE);
+
+        // 검색 UI
+        searchField = new JTextField(15);
+        searchButton = new JButton("검색");
+        searchButton.setPreferredSize(new Dimension(70, 25));
+        searchButton.setForeground(Color.WHITE);
+        searchButton.setBackground(new Color(180, 90, 70));
+        searchButton.setFocusPainted(false);
+        searchButton.setBorderPainted(false);
+        searchButton.setFont(new Font("맑은 고딕", Font.BOLD, 11));
+        
+        searchButton.addActionListener(e -> {
+            String query = searchField.getText();
+            if (homePanel != null) {
+                homePanel.performSearch(query.trim());
+            }
+            currentTab = "home"; // 검색 후 홈 탭으로 이동
+            updateContent(); // 홈 탭으로 전환
+            updateTopPanelTitle();
+            updateNavButtonStyles();
+        });
+
+        searchAndAuthPanel.add(searchField);
+        searchAndAuthPanel.add(searchButton);
+
         // 로그인/회원가입 버튼
-        JPanel authButtonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel authButtonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         authButtonsPanel.setBackground(Color.WHITE);
         JButton loginButton = new JButton("로그인");
         JButton signUpButton = new JButton("회원가입");
@@ -87,50 +127,42 @@ public class TravelPlannerApp {
         signUpButton.setForeground(new Color(50, 50, 50));
         loginButton.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
         signUpButton.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+        loginButton.setFocusPainted(false);
+        signUpButton.setFocusPainted(false);
 
         loginButton.addActionListener(e -> new LoginDialog(frame).showDialog());
         signUpButton.addActionListener(e -> new SignUpDialog(frame).showDialog());
 
         authButtonsPanel.add(loginButton);
         authButtonsPanel.add(signUpButton);
-
-        // 검색 UI (상단 우측)
-        searchField = new JTextField(15); // 필드 변수 사용
-        searchButton = new JButton("검색"); // 필드 변수 사용
-        searchButton.setPreferredSize(new Dimension(70, 25));
-        searchButton.setForeground(Color.WHITE);
-        searchButton.setBackground(new Color(180, 90, 70));
-        searchButton.setFocusPainted(false);
-        searchButton.setBorderPainted(false);
-        searchButton.setFont(new Font("맑은 고딕", Font.BOLD, 11));
-
-        searchAndAuthPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
-        searchAndAuthPanel.setBackground(Color.WHITE);
-        searchAndAuthPanel.add(searchField);
-        searchAndAuthPanel.add(searchButton);
-        searchAndAuthPanel.add(authButtonsPanel); // 기존 로그인/회원가입 버튼 패널 추가
-
-        // 검색 버튼 액션 리스너
-        searchButton.addActionListener(e -> {
-            String query = searchField.getText();
-            homePanel.performSearch(query.trim());
-            currentTab = "home"; // 검색 후 홈 탭으로 이동
-            updateContent(); // 홈 탭으로 전환
-            updateTopPanelTitle();
-            updateNavButtonStyles();
-        });
-
+        searchAndAuthPanel.add(authButtonsPanel);
+        searchAndAuthPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 20));
         topAreaPanel.add(searchAndAuthPanel, BorderLayout.EAST);
 
         mainPanel.add(topAreaPanel, BorderLayout.NORTH);
 
-        // contentPanel은 일반 JPanel로 유지 (스크롤 제거)
-        contentPanel = new JPanel(new BorderLayout());
+        // --- contentPanel (CardLayout 적용) ---
+        contentCardLayout = new CardLayout();
+        contentPanel = new JPanel(contentCardLayout);
+        contentPanel.setBackground(Color.WHITE); // 전체 배경색
+
+        // 모든 패널 인스턴스를 미리 생성하고 contentPanel에 추가
+        homePanel = new HomePanel(frame);
+        schedulePanel = new SchedulePanel(frame, this); // SchedulePanel에 TravelPlannerApp 인스턴스 (this) 전달
+        savedPanel = createPlaceholderPanel("저장된 장소 화면 (추후 구현)");
+        reviewPanel = createPlaceholderPanel("후기 화면 (추후 구현)");
+
+        contentPanel.add(homePanel, "home");
+        contentPanel.add(schedulePanel, "schedule");
+        contentPanel.add(savedPanel, "saved");
+        contentPanel.add(reviewPanel, "review");
+
         mainPanel.add(contentPanel, BorderLayout.CENTER);
 
         // 네비게이션 바
         navigationPanel = new JPanel(new GridLayout(1, 4));
         navigationPanel.setBackground(new Color(222, 146, 124));
+        navigationPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
         initNavigationButtons();
 
         mainPanel.add(navigationPanel, BorderLayout.SOUTH);
@@ -142,6 +174,40 @@ public class TravelPlannerApp {
 
         frame.add(mainPanel);
         frame.setVisible(true);
+    }
+
+    public void switchToPlanTrip(TripRoom room) {
+        if (planTripPanel != null) {
+            contentPanel.remove(planTripPanel);
+        }
+        
+        planTripPanel = new PlanTripPanel(room.getStartDate(), room.getEndDate(), this, room.getTitle());
+        contentPanel.add(planTripPanel, "plan"); 
+
+        currentTab = "plan";
+        updateContent();
+        updateTopPanelTitle();
+        updateNavButtonStyles();
+    }
+    
+    public void goToScheduleTab() {
+        currentTab = "schedule";
+        updateContent();
+        updateTopPanelTitle();
+        updateNavButtonStyles();
+        schedulePanel.refreshRoomLists();
+    }
+
+    private void updateContent() {
+        contentCardLayout.show(contentPanel, currentTab);
+        
+        boolean isHomeTab = "home".equals(currentTab);
+        searchField.setVisible(isHomeTab);
+        searchButton.setVisible(isHomeTab);
+
+        if ("schedule".equals(currentTab)) {
+            // schedulePanel.refreshRoomLists();
+        }
     }
 
     private void initNavigationButtons() {
@@ -172,7 +238,11 @@ public class TravelPlannerApp {
         for (Component comp : navigationPanel.getComponents()) {
             if (comp instanceof JButton) {
                 JButton btn = (JButton) comp;
-                btn.setBackground(btn.getText().equals(getTabText(currentTab)) ? new Color(180, 90, 70) : new Color(222, 146, 124));
+                if (!"plan".equals(currentTab)) {
+                    btn.setBackground(btn.getText().equals(getTabText(currentTab)) ? new Color(180, 90, 70) : new Color(222, 146, 124));
+                } else {
+                    btn.setBackground(new Color(222, 146, 124));
+                }
             }
         }
     }
@@ -187,34 +257,12 @@ public class TravelPlannerApp {
         }
     }
 
-    private void updateContent() {
-        contentPanel.removeAll();
-        
-        // 탭에 따라 검색창 보이기/숨기기
-        boolean isHomeTab = "home".equals(currentTab);
-        searchField.setVisible(isHomeTab);
-        searchButton.setVisible(isHomeTab);
-        
-        switch (currentTab) {
-            case "home":
-                contentPanel.add(homePanel, BorderLayout.CENTER);
-                break;
-            case "schedule":
-                contentPanel.add(schedulePanel, BorderLayout.CENTER);
-                break;
-            case "saved":
-                contentPanel.add(createPlaceholderPanel("저장된 장소 화면 (추후 구현)"), BorderLayout.CENTER);
-                break;
-            case "review":
-                contentPanel.add(createPlaceholderPanel("후기 화면 (추후 구현)"), BorderLayout.CENTER);
-                break;
-        }
-        contentPanel.revalidate();
-        contentPanel.repaint();
-    }
-
     private void updateTopPanelTitle() {
-        currentTitleLabel.setText(getTabText(currentTab));
+        if ("plan".equals(currentTab) && planTripPanel != null) {
+            currentTitleLabel.setText(planTripPanel.getTripTitle() + " 계획"); 
+        } else {
+            currentTitleLabel.setText(getTabText(currentTab));
+        }
     }
 
     private JPanel createPlaceholderPanel(String text) {

@@ -38,7 +38,7 @@ public class EnterCodeDialog extends JDialog {
                         "제목: " + room.getTitle() + "\n" +
                         "기간: " + room.getStartDate() + " ~ " + room.getEndDate() + "\n" +
                         "방 코드: " + room.getRoomCode());
-                schedulePanel.loadTripRoom(room);
+                    schedulePanel.refreshRoomLists();
                 dispose();
             } else {
                 JOptionPane.showMessageDialog(this, "존재하지 않는 코드입니다.", "오류", JOptionPane.ERROR_MESSAGE);

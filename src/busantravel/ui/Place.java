@@ -1,4 +1,4 @@
-package busantravel;
+package busantravel.ui;
 
 import java.util.Objects;
 
