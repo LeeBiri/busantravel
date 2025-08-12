@@ -17,15 +17,16 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 /**
- * TMAP API와의 통신을 처리하는 핸들러 클래스입니다.
+ * TMAP API를 통해 장소 조회, 지도 이미지 생성을 담당하는 클래스.
  * <p>
- * 이 클래스는 다음과 같은 기능을 제공합니다:
+ * 이 클래스는 GoogleMapsAPI 에서 TMapAPI로 변경되었으며, 다음과 같은 기능을 제공합니다:
  * <ul>
  *   <li>장소 이름 또는 Place ID를 이용한 상세 정보 조회 (통합 검색 API)</li>
  *   <li>사용자 입력에 대한 장소 자동 완성 목록 제공 (통합 검색 API)</li>
  *   <li>정적 지도 이미지 URL 생성 (Static Map API)</li>
  * </ul>
- * 모든 네트워크 통신은 자바 표준 라이브러리인 {@link HttpURLConnection}을 사용합니다.
+ * 
+ * 경로 제공 기능은 {@link TmapApiHandler} 클래스로 분리되었습니다.
  *
  */
 public class ApiHandler {

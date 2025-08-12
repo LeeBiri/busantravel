@@ -116,7 +116,7 @@ public class HomePanel extends JPanel {
                     thumbnail = ((Restaurant) place).getR_thum();
                 } else if (place instanceof Lodging) {
                     placeName = ((Lodging) place).getL_place();
-                    thumbnail = ((Lodging) place).getL_thum();
+                    thumbnail = "";
                 } else if (place instanceof Festival) {
                     placeName = ((Festival) place).getF_name();
                     thumbnail = ((Festival) place).getF_thum();
@@ -170,7 +170,7 @@ public class HomePanel extends JPanel {
                 } else if (place instanceof Lodging) {
                     placeName = ((Lodging) place).getL_place();
                     category = "숙소";
-                    thumbnail = ((Lodging) place).getL_thum();
+                    thumbnail = "";
                 } else if (place instanceof Festival) {
                     placeName = ((Festival) place).getF_name();
                     category = "축제";

@@ -41,7 +41,7 @@ public class DBConnectionMgr {
     private String _driver = "com.mysql.cj.jdbc.Driver",
     _url = "jdbc:mysql://113.198.238.95:3306/busan_travel?characterEncoding=UTF-8&serverTimezone=UTC",
     _user = "sangmin",
-    _password = "";
+    _password = "1234";
     
     private boolean _traceOn = false;
     private boolean initialized = false;
@@ -261,6 +261,10 @@ public class DBConnectionMgr {
 
             con = DriverManager.getConnection(_url, props);
         } catch (Throwable t) {
+        	System.err.println("DBConnectionMgr: DB 연결 실패");
+        	System.err.println("URL: " + _url);
+        	System.err.println("User: " + _user);
+        	t.printStackTrace();
             throw new SQLException(t.getMessage());
         }
 

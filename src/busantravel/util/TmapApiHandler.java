@@ -14,11 +14,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * SK Tmap 모빌리티 API와의 통신을 처리하는 핸들러 클래스입니다.
+ * TMap API를 통하여 두 지점 사이의 경로 세부 정보를 반환하는 클래스입니다.
  * <p>
  * 이 클래스는 자동차 경로안내 API를 호출하여 두 지점 간의 경로 정보를 요청하고,
  * 그 결과를 파싱하여 요약 정보와 상세 경로 좌표를 제공하는 기능을 담당합니다.
- * 네트워크 통신에는 {@link HttpURLConnection}을 사용합니다.
+ * 
+ * 장소 검색 및 지도 이미지 생성 기능은 {@link ApiHandler} 클래스로 분리되었습니다.
  *
  * @see TmapRouteResult
  * @see TmapRouteInfo

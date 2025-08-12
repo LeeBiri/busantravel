@@ -50,7 +50,7 @@ public class PlaceDAO {
                                 removeHtmlTags(rs.getString("t_intro")),
                                 rs.getString("t_num"),
                                 rs.getString("t_tra"),
-                                rs.getString("t_rest"),
+                                rs.getString("t_infor"),
                                 rs.getString("t_addr"),
                                 rs.getString("t_thum")
                         );
@@ -62,10 +62,10 @@ public class PlaceDAO {
                                 rs.getString("r_place"),
                                 removeHtmlTags(rs.getString("r_intro")),
                                 rs.getString("r_num"),
-                                rs.getString("r_rest"),
+                                rs.getString("r_infor"),
                                 rs.getString("r_addr"),
                                 rs.getString("r_thum"),
-                                rs.getString("r_menu")
+                                null
                         );
                         places.add(restaurant);
                         break;
@@ -73,12 +73,12 @@ public class PlaceDAO {
                         Lodging lodging = new Lodging(
                                 rs.getString("l_id"),
                                 rs.getString("l_place"),
-                                removeHtmlTags(rs.getString("l_intro")),
+                                null,
                                 rs.getString("l_num"),
-                                rs.getString("l_tra"),
-                                rs.getString("l_infor"),
+                                null,
+                                null,
                                 rs.getString("l_addr"),
-                                rs.getString("l_thum")
+                                null
                         );
                         places.add(lodging);
                         break;
@@ -89,7 +89,7 @@ public class PlaceDAO {
                                 removeHtmlTags(rs.getString("f_intro")),
                                 rs.getString("f_plan"),
                                 rs.getString("f_tra"),
-                                rs.getString("f_plan"), // f_rest -> f_plan
+                                rs.getString("f_infor"),
                                 rs.getString("f_addr"),
                                 rs.getString("f_thum")
                         );
@@ -131,7 +131,7 @@ public class PlaceDAO {
                                 removeHtmlTags(rs.getString("t_intro")),
                                 rs.getString("t_num"),
                                 rs.getString("t_tra"),
-                                rs.getString("t_rest"),
+                                rs.getString("t_infor"),
                                 rs.getString("t_addr"),
                                 rs.getString("t_thum")
                         );
@@ -142,22 +142,22 @@ public class PlaceDAO {
                                 rs.getString("r_place"),
                                 removeHtmlTags(rs.getString("r_intro")),
                                 rs.getString("r_num"),
-                                rs.getString("r_rest"),
+                                rs.getString("r_infor"),
                                 rs.getString("r_addr"),
                                 rs.getString("r_thum"),
-                                rs.getString("r_menu")
+                                null
                         );
                         places.add(restaurant);
                     } else if ("stay".equals(tableName)) {
                         Lodging lodging = new Lodging(
                                 rs.getString("l_id"),
                                 rs.getString("l_place"),
-                                removeHtmlTags(rs.getString("l_intro")),
+                                null,
                                 rs.getString("l_num"),
-                                rs.getString("l_tra"),
-                                rs.getString("l_infor"),
+                                null,
+                                null,
                                 rs.getString("l_addr"),
-                                rs.getString("l_thum")
+                                null
                         );
                         places.add(lodging);
                     } else if ("festival".equals(tableName)) {
@@ -167,7 +167,7 @@ public class PlaceDAO {
                                 removeHtmlTags(rs.getString("f_intro")),
                                 rs.getString("f_plan"),
                                 rs.getString("f_tra"),
-                                rs.getString("f_plan"), // f_rest -> f_plan
+                                rs.getString("f_infor"),
                                 rs.getString("f_addr"),
                                 rs.getString("f_thum")
                         );
@@ -220,7 +220,7 @@ public class PlaceDAO {
                             removeHtmlTags(rs.getString("t_intro")),
                             rs.getString("t_thum"),
                             rs.getString("t_tra"),
-                            rs.getString("t_rest"),
+                            rs.getString("t_infor"),
                             rs.getString("t_addr")
                     );
                 } else if ("restaurant".equals(tableName)) {
@@ -229,18 +229,18 @@ public class PlaceDAO {
                             removeHtmlTags(rs.getString("r_intro")),
                             rs.getString("r_thum"),
                             "", // transportation for restaurant
-                            rs.getString("r_rest"),
+                            rs.getString("r_infor"),
                             rs.getString("r_addr"),
-                            rs.getString("r_menu"),
+                            null,
                             rs.getString("r_num")
                     );
                 } else if ("stay".equals(tableName)) {
                     placeDetailInfo = new PlaceDetailInfo(
                             rs.getString("l_place"),
-                            removeHtmlTags(rs.getString("l_intro")),
-                            rs.getString("l_thum"), // thumbnail for lodging
-                            rs.getString("l_tra"),
-                            rs.getString("l_infor"), // restDay for lodging is l_infor
+                            null,
+                            null, 
+                            null,
+                            null, 
                             rs.getString("l_addr")
                     );
                 } else if ("festival".equals(tableName)) {
@@ -249,7 +249,7 @@ public class PlaceDAO {
                             removeHtmlTags(rs.getString("f_intro")),
                             rs.getString("f_thum"), // festival 썸네일 컬럼을 f_thum으로 변경
                             rs.getString("f_tra"),
-                            rs.getString("f_plan"), // restDay for festival is f_plan
+                            rs.getString("f_infor"), // restDay for festival is f_plan
                             rs.getString("f_addr")
                     );
                 }

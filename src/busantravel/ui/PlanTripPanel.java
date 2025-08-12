@@ -1,3 +1,14 @@
+/* PlanTripPanel.java
+ * 여행 계획 패널
+ * 사용자가 선택한 장소를 관리할 수 있는, 새 창으로 표시되는 UI
+ * 
+ * 
+ * 
+ */
+
+
+
+
 package busantravel.ui;
 
 import javax.swing.*;
