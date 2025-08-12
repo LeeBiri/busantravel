@@ -184,7 +184,7 @@ public class PlaceCard extends JPanel {
 
     private void showPlaceDetailDialog(JFrame frame, String placeName, String category) {
         JDialog detailDialog = new JDialog(frame, placeName + " 상세 정보", true);
-        detailDialog.setSize(1200, 800);
+        detailDialog.setSize(1180, 850);
         detailDialog.setLocationRelativeTo(frame);
         detailDialog.setLayout(new BorderLayout());
 
@@ -290,176 +290,162 @@ public class PlaceCard extends JPanel {
             
             detailDialog.add(splitPane, BorderLayout.CENTER);
 
-        } else {
-            JPanel mainPanel = new JPanel(new BorderLayout());
-            mainPanel.setBackground(Color.WHITE);
+        } else if (detailInfo != null) {
+            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+            splitPane.setDividerLocation(600);
+            splitPane.setResizeWeight(0.5);
+            splitPane.setEnabled(false);
+            splitPane.setBorder(null);
 
-            JPanel detailPanel = new JPanel();
-            detailPanel.setLayout(new BoxLayout(detailPanel, BoxLayout.Y_AXIS));
-            detailPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-            detailPanel.setBackground(Color.WHITE);
+            // Left Panel for Image and Description
+            JPanel leftPanel = new JPanel(new BorderLayout(10, 10));
+            leftPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+            leftPanel.setBackground(Color.WHITE);
 
-            String descriptionText = "해당 장소의 정보를 찾을 수 없습니다.";
+            JLabel imageLabel = new JLabel();
+            imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            imageLabel.setVerticalAlignment(SwingConstants.CENTER);
+            imageLabel.setPreferredSize(new Dimension(560, 420));
+            imageLabel.setBackground(new Color(230, 240, 250));
+            imageLabel.setOpaque(true);
 
-            JLabel detailImageLabel = new JLabel();
-            detailImageLabel.setBackground(new Color(230, 240, 250));
-            detailImageLabel.setOpaque(true);
-            detailImageLabel.setPreferredSize(new Dimension(500, 400));
-            detailImageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-            detailImageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-            detailImageLabel.setVerticalAlignment(SwingConstants.CENTER);
-
-            if (detailInfo != null) {
-                descriptionText = detailInfo.getDescription();
-                URL localImageURL = null;
-                if (detailInfo.getImagePath() != null && !detailInfo.getImagePath().isEmpty()) {
-                    localImageURL = getClass().getResource("/busantravel/ui/" + detailInfo.getImagePath());
-                }
-
-                if (localImageURL != null) {
-                    ImageIcon detailImageIcon = new ImageIcon(localImageURL);
-                    Image originalDetailImage = detailImageIcon.getImage();
-                    int imgWidth = originalDetailImage.getWidth(null);
-                    int imgHeight = originalDetailImage.getHeight(null);
-                    double scaleFactor = (double) 300 / imgHeight;
-                    Image scaledDetailImage = originalDetailImage.getScaledInstance((int) (imgWidth * scaleFactor), 300, Image.SCALE_SMOOTH);
-                    detailImageLabel.setIcon(new ImageIcon(scaledDetailImage));
-                    detailImageLabel.setText(null);
-                } else if (detailInfo.getImagePath() != null && !detailInfo.getImagePath().isEmpty()) {
-                    loadImage(detailImageLabel, detailInfo.getImagePath(), placeName, 500, 400, false);
-                } else {
-                    detailImageLabel.setText("이미지 없음");
-                }
+            if (detailInfo.getImagePath() != null && !detailInfo.getImagePath().isEmpty()) {
+                loadImage(imageLabel, detailInfo.getImagePath(), placeName, 560, 420, false);
             } else {
-                detailImageLabel.setText("장소 정보를 찾을 수 없습니다.");
+                imageLabel.setText("이미지 없음");
             }
 
-            JLabel title = new JLabel(placeName);
-            title.setFont(new Font("맑은 고딕", Font.BOLD, 22));
-            title.setAlignmentX(Component.CENTER_ALIGNMENT);
-            title.setForeground(new Color(50, 50, 50));
-
-            JTextArea description = new JTextArea(descriptionText);
-            description.setLineWrap(true);
-            description.setWrapStyleWord(true);
-            description.setEditable(false);
-            description.setBackground(detailPanel.getBackground());
-            description.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
-            description.setForeground(new Color(80, 80, 80));
+            JTextArea descriptionArea = new JTextArea(detailInfo.getDescription());
+            descriptionArea.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+            descriptionArea.setWrapStyleWord(true);
+            descriptionArea.setLineWrap(true);
+            descriptionArea.setEditable(false);
+            descriptionArea.setFocusable(false);
+            descriptionArea.setBorder(BorderFactory.createTitledBorder("장소 설명"));
             
-            JScrollPane descriptionScrollPane = new JScrollPane(description);
-            descriptionScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-            descriptionScrollPane.setBorder(null);
-            descriptionScrollPane.setAlignmentX(Component.CENTER_ALIGNMENT);
+            JScrollPane descriptionScrollPane = new JScrollPane(descriptionArea);
+            descriptionScrollPane.setPreferredSize(new Dimension(560, 200));
+
+            leftPanel.add(imageLabel, BorderLayout.CENTER);
+            leftPanel.add(descriptionScrollPane, BorderLayout.SOUTH);
+
+            // Right Panel for Details, Map, and Actions
+            JPanel rightPanel = new JPanel(new BorderLayout());
+            rightPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+            rightPanel.setBackground(Color.WHITE);
+
+            JLabel titleLabel = new JLabel(placeName);
+            titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 24));
+            rightPanel.add(titleLabel, BorderLayout.NORTH);
+
+            JPanel infoAndMapPanel = new JPanel();
+            infoAndMapPanel.setLayout(new BoxLayout(infoAndMapPanel, BoxLayout.Y_AXIS));
+            infoAndMapPanel.setBackground(Color.WHITE);
+
+            // Info Panel
+            JPanel infoPanel = new JPanel();
+            infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+            infoPanel.setBackground(Color.WHITE);
+            infoPanel.setBorder(BorderFactory.createTitledBorder("세부 정보"));
+            infoPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            if ("축제".equals(category)) {
+                infoPanel.add(createLabel("축제 기간: " + detailInfo.getRestDay()));
+                infoPanel.add(Box.createVerticalStrut(10));
+                infoPanel.add(createLabel("교통편: " + detailInfo.getTransportation()));
+                infoPanel.add(Box.createVerticalStrut(10));
+                infoPanel.add(createLabel("주소: " + detailInfo.getAddress()));
+            } else { // 관광지
+                infoPanel.add(createLabel("교통 정보: " + detailInfo.getTransportation()));
+                infoPanel.add(Box.createVerticalStrut(10));
+                infoPanel.add(createLabel("휴무일: " + detailInfo.getRestDay()));
+                infoPanel.add(Box.createVerticalStrut(10));
+                infoPanel.add(createLabel("주소: " + detailInfo.getAddress()));
+            }
+            
+            infoAndMapPanel.add(infoPanel);
+            infoAndMapPanel.add(Box.createVerticalStrut(10));
+
+            // Map Panel
+            JPanel mapPanel = new JPanel(new BorderLayout());
+            mapPanel.setBackground(Color.WHITE);
+            mapPanel.setBorder(BorderFactory.createTitledBorder("지도"));
+            mapPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            JLabel mapLabel = new JLabel();
+            mapLabel.setPreferredSize(new Dimension(800, 400));
+            mapPanel.add(mapLabel, BorderLayout.CENTER);
+
+            JButton zoomInButton = new JButton("+");
+            JButton zoomOutButton = new JButton("-");
+            JPanel zoomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+            zoomPanel.setBackground(Color.WHITE);
+            zoomPanel.add(zoomInButton);
+            zoomPanel.add(zoomOutButton);
+            mapPanel.add(zoomPanel, BorderLayout.SOUTH);
+            
+            infoAndMapPanel.add(mapPanel);
+
+            new SwingWorker<Coordinate, Void>() {
+                @Override
+                protected Coordinate doInBackground() throws Exception {
+                    return tmapApiHandler.getCoordinates(detailInfo.getAddress());
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        Coordinate coordinate = get();
+                        if (coordinate != null) {
+                            updateMap(mapLabel, coordinate, currentZoom, 800, 400);
+                            for(ActionListener al : zoomInButton.getActionListeners()) { zoomInButton.removeActionListener(al); }
+                            for(ActionListener al : zoomOutButton.getActionListeners()) { zoomOutButton.removeActionListener(al); }
+                            zoomInButton.addActionListener(e -> {
+                                if (currentZoom < 20) {
+                                    currentZoom++;
+                                    updateMap(mapLabel, coordinate, currentZoom, 800, 400);
+                                }
+                            });
+                            zoomOutButton.addActionListener(e -> {
+                                if (currentZoom > 1) {
+                                    currentZoom--;
+                                    updateMap(mapLabel, coordinate, currentZoom, 800, 400);
+                                }
+                            });
+                        } else {
+                            mapLabel.setText("지도 정보를 가져올 수 없습니다.");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        mapLabel.setText("정보 로드 중 오류 발생");
+                    }
+                }
+            }.execute();
+            
+            rightPanel.add(infoAndMapPanel, BorderLayout.CENTER);
 
             JButton saveBtn = new JButton("저장하기");
-            saveBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
             saveBtn.setBackground(new Color(222, 146, 124));
             saveBtn.setForeground(Color.WHITE);
             saveBtn.setFocusPainted(false);
             saveBtn.setBorderPainted(false);
             saveBtn.setFont(new Font("맑은 고딕", Font.BOLD, 15));
-            saveBtn.setPreferredSize(new Dimension(120, 35));
-
             saveBtn.addActionListener(e -> JOptionPane.showMessageDialog(detailDialog, placeName + " 저장 완료! 저장된 장소 탭에서 확인하세요."));
+            
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            buttonPanel.setBackground(Color.WHITE);
+            buttonPanel.add(saveBtn);
+            rightPanel.add(buttonPanel, BorderLayout.SOUTH);
 
-            detailPanel.add(detailImageLabel);
-            detailPanel.add(Box.createVerticalStrut(15));
-            detailPanel.add(title);
-            detailPanel.add(Box.createVerticalStrut(10));
-            detailPanel.add(descriptionScrollPane);
-            detailPanel.add(Box.createVerticalStrut(25));
-            detailPanel.add(saveBtn);
-
-            mainPanel.add(detailPanel, BorderLayout.CENTER);
-
-            if (("관광지".equals(category) || "축제".equals(category)) && detailInfo != null) {
-                JPanel infoPanel = new JPanel();
-                infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
-                infoPanel.setBackground(Color.WHITE);
-                infoPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 20));
-
-                if ("축제".equals(category)) {
-                    JLabel periodLabel = new JLabel("<html><body style='width: 200px'>축제 기간: " + detailInfo.getRestDay() + "</body></html>");
-                    JLabel traLabel = new JLabel("<html><body style='width: 200px'>교통편: " + detailInfo.getTransportation() + "</body></html>");
-                    JLabel addrLabel = new JLabel("<html><body style='width: 200px'>주소: " + detailInfo.getAddress() + "</body></html>");
-                    infoPanel.add(periodLabel);
-                    infoPanel.add(Box.createVerticalStrut(10));
-                    infoPanel.add(traLabel);
-                    infoPanel.add(Box.createVerticalStrut(10));
-                    infoPanel.add(addrLabel);
-                } else { // 관광지
-                    JLabel traLabel = new JLabel("<html><body style='width: 200px'>교통 정보: " + detailInfo.getTransportation() + "</body></html>");
-                    JLabel restLabel = new JLabel("휴무일: " + detailInfo.getRestDay());
-                    JLabel addrLabel = new JLabel("<html><body style='width: 200px'>주소: " + detailInfo.getAddress() + "</body></html>");
-                    infoPanel.add(traLabel);
-                    infoPanel.add(Box.createVerticalStrut(10));
-                    infoPanel.add(restLabel);
-                    infoPanel.add(Box.createVerticalStrut(10));
-                    infoPanel.add(addrLabel);
-                }
-                infoPanel.add(Box.createVerticalStrut(10));
-
-                JLabel mapLabel = new JLabel();
-                mapLabel.setPreferredSize(new Dimension(300, 300));
-                infoPanel.add(mapLabel);
-
-                JButton zoomInButton = new JButton("+");
-                JButton zoomOutButton = new JButton("-");
-                JPanel zoomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-                zoomPanel.setBackground(Color.WHITE);
-                zoomPanel.add(zoomInButton);
-                zoomPanel.add(zoomOutButton);
-                infoPanel.add(zoomPanel);
-
-                // 리뷰 패널 제거
-                // JPanel reviewsContainer = new JPanel(new BorderLayout());
-                // ...
-
-                new SwingWorker<Coordinate, Void>() {
-                    @Override
-                    protected Coordinate doInBackground() throws Exception {
-                        // 데이터베이스에서 가져온 주소로 좌표 검색
-                        return tmapApiHandler.getCoordinates(detailInfo.getAddress());
-                    }
-
-                    @Override
-                    protected void done() {
-                        try {
-                            Coordinate coordinate = get();
-                            if (coordinate != null) {
-                                updateMap(mapLabel, coordinate, currentZoom, mapLabel.getPreferredSize().width, mapLabel.getPreferredSize().height);
-                                
-                                for(ActionListener al : zoomInButton.getActionListeners()) { zoomInButton.removeActionListener(al); }
-                                for(ActionListener al : zoomOutButton.getActionListeners()) { zoomOutButton.removeActionListener(al); }
-
-                                zoomInButton.addActionListener(e -> {
-                                    if (currentZoom < 20) {
-                                        currentZoom++;
-                                        updateMap(mapLabel, coordinate, currentZoom, mapLabel.getPreferredSize().width, mapLabel.getPreferredSize().height);
-                                    }
-                                });
-
-                                zoomOutButton.addActionListener(e -> {
-                                    if (currentZoom > 1) {
-                                        currentZoom--;
-                                        updateMap(mapLabel, coordinate, currentZoom, mapLabel.getPreferredSize().width, mapLabel.getPreferredSize().height);
-                                    }
-                                });
-
-                            } else {
-                                mapLabel.setText("지도 정보를 가져올 수 없습니다.");
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            mapLabel.setText("정보 로드 중 오류 발생");
-                        }
-                    }
-                }.execute();
-
-                mainPanel.add(infoPanel, BorderLayout.EAST);
-            }
-            detailDialog.add(mainPanel, BorderLayout.CENTER);
+            splitPane.setLeftComponent(leftPanel);
+            splitPane.setRightComponent(rightPanel);
+            
+            detailDialog.add(splitPane, BorderLayout.CENTER);
+        } else {
+            // Fallback for when detailInfo is null
+            JPanel panel = new JPanel(new GridBagLayout());
+            panel.add(new JLabel("해당 장소의 정보를 찾을 수 없습니다."));
+            detailDialog.add(panel);
         }
         detailDialog.setVisible(true);
     }
@@ -535,5 +521,12 @@ public class PlaceCard extends JPanel {
     private void loadGoogleImage(JLabel label, String placeName, int width, int height, boolean isList) {
         // TMAP API로는 대체할 수 없으므로, 이 메소드는 비워두거나 기본 이미지를 설정합니다.
         label.setText("이미지 없음");
+    }
+
+    private JLabel createLabel(String text) {
+        JLabel label = new JLabel("<html><body style='width: 300px'>" + text + "</body></html>");
+        label.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return label;
     }
 }
