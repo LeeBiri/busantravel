@@ -73,12 +73,12 @@ public class PlaceDAO {
                         Lodging lodging = new Lodging(
                                 rs.getString("l_id"),
                                 rs.getString("l_place"),
-                                null,
+                                removeHtmlTags(rs.getString("l_intro")),
                                 rs.getString("l_num"),
-                                null,
-                                null,
+                                rs.getString("l_tra"),
+                                rs.getString("l_infor"),
                                 rs.getString("l_addr"),
-                                null
+                                rs.getString("l_thum") 
                         );
                         places.add(lodging);
                         break;
@@ -237,10 +237,10 @@ public class PlaceDAO {
                 } else if ("stay".equals(tableName)) {
                     placeDetailInfo = new PlaceDetailInfo(
                             rs.getString("l_place"),
-                            null,
-                            null, 
-                            null,
-                            null, 
+                            rs.getString("l_intro"),
+                            rs.getString("l_thum"),
+                            rs.getString("l_tra"),
+                            rs.getString("l_infor"),
                             rs.getString("l_addr")
                     );
                 } else if ("festival".equals(tableName)) {

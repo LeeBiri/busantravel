@@ -5,6 +5,7 @@ public class Lodging {
 	private String l_place; //장소명
 	private String l_num; // 연락처
 	private String l_addr; //주소
+	private String l_thum; //썸네일 이미지 URL
 	
 	
 	public Lodging(String l_id, String l_place, String l_intro, String l_num, String l_tra, String l_infor,
@@ -13,6 +14,7 @@ public class Lodging {
 		this.l_place = l_place;
 		this.l_num = l_num;
 		this.l_addr = l_addr;
+		this.l_thum = l_thum;
 	}
 	
 	public String getL_id() {
@@ -38,6 +40,12 @@ public class Lodging {
 	}
 	public void setL_addr(String l_addr) {
 		this.l_addr = l_addr;
+	}
+	public String getL_thum() {
+		return l_thum;
+	}
+	public void setL_thum(String l_thum) {
+		this.l_thum = l_thum;
 	}
 
 }
