@@ -1,7 +1,8 @@
 package busantravel.ui;
 
-import javax.swing.*;
+import busantravel.model.TravelPlan;
 import java.awt.*;
+import javax.swing.*;
 
 public class TripSchedulePanel extends JPanel {
     private TravelPlannerApp mainApp;
@@ -12,7 +13,7 @@ public class TripSchedulePanel extends JPanel {
         add(new JLabel("TripSchedulePanel: Select a trip to see details."), BorderLayout.CENTER);
     }
 
-    public void loadTripRoom(TripRoom room) {
+    public void loadTripRoom(TravelPlan plan) {
         removeAll();
         setBackground(Color.WHITE);
         setLayout(new BorderLayout(10, 10));
@@ -23,11 +24,11 @@ public class TripSchedulePanel extends JPanel {
         topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
         topPanel.setOpaque(false);
 
-        JLabel titleLabel = new JLabel(room.getTitle());
+        JLabel titleLabel = new JLabel(plan.getPlan_title());
         titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 22));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel dateLabel = new JLabel(room.getStartDate() + " - " + room.getEndDate());
+        JLabel dateLabel = new JLabel(plan.getPlan_period_start() + " - " + plan.getPlan_period_end());
         dateLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
         dateLabel.setForeground(Color.GRAY);
         dateLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -41,7 +42,7 @@ public class TripSchedulePanel extends JPanel {
         // 중앙: 참여 코드
         JPanel centerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         centerPanel.setOpaque(false);
-        JLabel codeLabel = new JLabel("참여 코드: " + room.getRoomCode());
+        JLabel codeLabel = new JLabel("참여 코드: " + plan.getPlan_id());
         codeLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 16));
         centerPanel.add(codeLabel);
 
@@ -53,7 +54,7 @@ public class TripSchedulePanel extends JPanel {
         planButton.setBackground(new Color(222, 146, 124));
         planButton.setForeground(Color.WHITE);
         planButton.setFocusPainted(false);
-        planButton.addActionListener(e -> mainApp.switchToPlanTrip(room));
+        planButton.addActionListener(e -> mainApp.switchToPlanTrip(plan));
 
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         bottomPanel.setOpaque(false);

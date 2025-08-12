@@ -1,8 +1,7 @@
 package busantravel.ui;
 
-import com.toedter.calendar.JDateChooser;
-
 import javax.swing.*;
+import com.toedter.calendar.JDateChooser;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -12,6 +11,7 @@ public class CreateTripDialog extends JDialog {
     private JTextField titleField;
     private JDateChooser startDateChooser;
     private JDateChooser endDateChooser;
+    private boolean confirmed = false;
 
     public CreateTripDialog(JFrame parent) {
         super(parent, "여행 일정 만들기", true);
@@ -36,28 +36,21 @@ public class CreateTripDialog extends JDialog {
         JButton cancelBtn = new JButton("취소");
 
         createBtn.addActionListener(e -> {
-            String title = titleField.getText().trim();
-            Date startDate = startDateChooser.getDate();
-            Date endDate = endDateChooser.getDate();
-
-            if (title.isEmpty() || startDate == null || endDate == null) {
-                JOptionPane.showMessageDialog(this, "모든 항목을 입력해주세요.", "입력 오류", JOptionPane.WARNING_MESSAGE);
+            if (titleField.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "여행 제목을 입력하세요.");
                 return;
             }
-            if (endDate.before(startDate)) {
-                JOptionPane.showMessageDialog(this, "종료 날짜는 시작 날짜 이후여야 합니다.", "날짜 오류", JOptionPane.WARNING_MESSAGE);
+            Date start = startDateChooser.getDate();
+            Date end = endDateChooser.getDate();
+            if (start == null || end == null) {
+                JOptionPane.showMessageDialog(this, "날짜를 선택하세요.");
                 return;
             }
-
-            LocalDate startLocalDate = startDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-            LocalDate endLocalDate = endDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-
-            TripRoomManager manager = TripRoomManager.getInstance();
-            String roomCode = manager.generateUniqueRoomCode();
-            TripRoom newRoom = new TripRoom(title, startLocalDate, endLocalDate, roomCode);
-            manager.addRoom(newRoom);
-
-            JOptionPane.showMessageDialog(this, "방이 생성되었습니다! 방 코드: " + roomCode);
+            if (end.before(start)) {
+                JOptionPane.showMessageDialog(this, "종료 날짜는 시작 날짜 이후여야 합니다.");
+                return;
+            }
+            confirmed = true;
             dispose();
         });
 
@@ -65,5 +58,23 @@ public class CreateTripDialog extends JDialog {
 
         add(createBtn);
         add(cancelBtn);
+    }
+    
+    public boolean isConfirmed() {
+        return confirmed;
+    }
+
+    public String getTitleInput() {
+        return titleField.getText().trim();
+    }
+
+    public LocalDate getStartDate() {
+        Date date = startDateChooser.getDate();
+        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    }
+
+    public LocalDate getEndDate() {
+        Date date = endDateChooser.getDate();
+        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 }

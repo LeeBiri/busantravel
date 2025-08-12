@@ -3,17 +3,17 @@ package busantravel.model;
 import java.time.LocalDateTime;
 
 public class ScheduledPlace {
-	private String checklist_id; //계획 ID
+	private String plan_id; //계획 ID
 	private String p_id; //여행지 번호
 	private String p_type; //여행지 구분
 	private LocalDateTime scheduled_date; //방문 예정 일자
 	private LocalDateTime expected_dutarion; //예상 체류 시간
 	private int visit_order; //방문 예정 순서
 	
-	public ScheduledPlace(String checklist_id, String p_id, String p_type, LocalDateTime scheduled_date,
+	public ScheduledPlace(String plan_id, String p_id, String p_type, LocalDateTime scheduled_date,
 			LocalDateTime expected_dutarion, int visit_order) {
 		super();
-		this.checklist_id = checklist_id;
+		this.plan_id = plan_id;
 		this.p_id = p_id;
 		this.p_type = p_type;
 		this.scheduled_date = scheduled_date;
@@ -21,11 +21,11 @@ public class ScheduledPlace {
 		this.visit_order = visit_order;
 	}
 	
-	public String getChecklist_id() {
-		return checklist_id;
+	public String getplan_id() {
+		return plan_id;
 	}
-	public void setChecklist_id(String checklist_id) {
-		this.checklist_id = checklist_id;
+	public void setplan_id(String plan_id) {
+		this.plan_id = plan_id;
 	}
 	public String getP_id() {
 		return p_id;

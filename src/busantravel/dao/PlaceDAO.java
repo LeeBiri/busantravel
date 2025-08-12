@@ -50,7 +50,7 @@ public class PlaceDAO {
                                 removeHtmlTags(rs.getString("t_intro")),
                                 rs.getString("t_num"),
                                 rs.getString("t_tra"),
-                                rs.getString("t_rest"),
+                                rs.getString("t_infor"),
                                 rs.getString("t_addr"),
                                 rs.getString("t_thum")
                         );
@@ -62,7 +62,7 @@ public class PlaceDAO {
                                 rs.getString("r_place"),
                                 removeHtmlTags(rs.getString("r_intro")),
                                 rs.getString("r_num"),
-                                rs.getString("r_rest"),
+                                rs.getString("r__infor"),
                                 rs.getString("r_addr"),
                                 rs.getString("r_thum")
                         );
@@ -87,7 +87,7 @@ public class PlaceDAO {
                                 removeHtmlTags(rs.getString("f_intro")),
                                 rs.getString("f_plan"),
                                 rs.getString("f_tra"),
-                                rs.getString("f_plan"), // f_rest -> f_plan
+                                rs.getString("f_infor"), // f_rest -> f_plan
                                 rs.getString("f_addr"),
                                 rs.getString("f_thum")
                         );

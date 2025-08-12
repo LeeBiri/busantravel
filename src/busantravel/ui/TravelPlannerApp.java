@@ -1,10 +1,11 @@
 package busantravel.ui;
 
-import javax.swing.*;
+import busantravel.model.TravelPlan;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.URL;
+import javax.swing.*;
 
 public class TravelPlannerApp {
     private JFrame frame;
@@ -176,12 +177,12 @@ public class TravelPlannerApp {
         frame.setVisible(true);
     }
 
-    public void switchToPlanTrip(TripRoom room) {
+    public void switchToPlanTrip(TravelPlan plan) {
         if (planTripPanel != null) {
             contentPanel.remove(planTripPanel);
         }
         
-        planTripPanel = new PlanTripPanel(room.getStartDate(), room.getEndDate(), this, room.getTitle());
+        planTripPanel = new PlanTripPanel(plan.getPlan_period_start(), plan.getPlan_period_end(), this, plan.getPlan_title());
         contentPanel.add(planTripPanel, "plan"); 
 
         currentTab = "plan";
@@ -195,7 +196,7 @@ public class TravelPlannerApp {
         updateContent();
         updateTopPanelTitle();
         updateNavButtonStyles();
-        schedulePanel.refreshRoomLists();
+        //여행계획 새로고침
     }
 
     private void updateContent() {
@@ -206,7 +207,7 @@ public class TravelPlannerApp {
         searchButton.setVisible(isHomeTab);
 
         if ("schedule".equals(currentTab)) {
-            // schedulePanel.refreshRoomLists();
+            schedulePanel.controller.refreshRoomLists();
         }
     }
 
@@ -264,6 +265,7 @@ public class TravelPlannerApp {
             currentTitleLabel.setText(getTabText(currentTab));
         }
     }
+    
 
     private JPanel createPlaceholderPanel(String text) {
         JPanel panel = new JPanel(new GridBagLayout());
@@ -271,4 +273,7 @@ public class TravelPlannerApp {
         panel.setBackground(Color.WHITE);
         return panel;
     }
+    
+    
+    
 }
