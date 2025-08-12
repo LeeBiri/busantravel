@@ -13,12 +13,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.InputStream;
 import java.awt.event.ActionListener;
 import java.net.URL;
 import java.util.List;
 
 public class PlaceCard extends JPanel {
     private PlaceDAO placeDAO;
+    private Font jalnanFont;
     private TmapApiHandler tmapApiHandler;
     private StaticMapGenerator staticMapGenerator;
     private int currentZoom = 14;
@@ -29,11 +31,29 @@ public class PlaceCard extends JPanel {
         LIST
     }
 
+    private void loadFont() {
+        try {
+            InputStream is = getClass().getResourceAsStream("/busantravel/resources/Jalnan2TTF.ttf");
+            if (is != null) {
+                jalnanFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(16f); // 기본 크기 16으로 설정
+                GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+                ge.registerFont(jalnanFont);
+            } else {
+                System.err.println("폰트 파일을 찾을 수 없습니다! 기본 폰트 사용.");
+                jalnanFont = new Font("맑은 고딕", Font.PLAIN, 14);
+            }
+        } catch (Exception e) {
+            System.err.println("폰트 로드 중 예외 발생: " + e.getMessage());
+            e.printStackTrace();
+            jalnanFont = new Font("맑은 고딕", Font.PLAIN, 14);
+        }
+    }
+
     public PlaceCard(JFrame frame, String placeName, String category, String thumbnail, ViewType viewType) {
         this.placeDAO = new PlaceDAO();
         this.tmapApiHandler = new TmapApiHandler(API_KEY);
         this.staticMapGenerator = new StaticMapGenerator(API_KEY);
-
+        loadFont(); // 폰트 로드
         if (viewType == ViewType.GRID) {
             setupGridView(frame, placeName, category, thumbnail);
         } else {
@@ -76,7 +96,7 @@ public class PlaceCard extends JPanel {
         }
 
         JLabel nameLabel = new JLabel(placeName, JLabel.CENTER);
-        nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+        nameLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
         nameLabel.setBorder(BorderFactory.createEmptyBorder(8, 5, 8, 5));
         nameLabel.setBackground(new Color(245, 245, 245));
         nameLabel.setOpaque(true);
@@ -137,7 +157,7 @@ public class PlaceCard extends JPanel {
         infoPanel.setBackground(Color.WHITE);
 
         JLabel nameLabel = new JLabel(placeName);
-        nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 18));
+        nameLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 18f));
         nameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JTextArea descriptionArea = new JTextArea("설명 로딩 중...");
@@ -234,8 +254,8 @@ public class PlaceCard extends JPanel {
             rightPanel.setBackground(Color.WHITE);
 
             JLabel titleLabel = new JLabel(placeName);
-            titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 24));
-            titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            titleLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 26f));
+            titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
             
             rightPanel.add(titleLabel);
             rightPanel.add(Box.createVerticalStrut(20));
@@ -335,7 +355,7 @@ public class PlaceCard extends JPanel {
             rightPanel.setBackground(Color.WHITE);
 
             JLabel titleLabel = new JLabel(placeName);
-            titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 24));
+            titleLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 26f));
             rightPanel.add(titleLabel, BorderLayout.NORTH);
 
             JPanel infoAndMapPanel = new JPanel();

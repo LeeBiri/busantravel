@@ -4,10 +4,12 @@ import busantravel.model.TravelPlan;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.InputStream;
 import java.net.URL;
 import javax.swing.*;
 
 public class TravelPlannerApp {
+    private Font jalnanFont; // 폰트 필드 추가
     private JFrame frame;
     private JPanel mainPanel;
     private JPanel contentPanel;
@@ -30,7 +32,26 @@ public class TravelPlannerApp {
         SwingUtilities.invokeLater(() -> new TravelPlannerApp().initialize());
     }
 
+    private void loadFont() {
+        try {
+            InputStream is = getClass().getResourceAsStream("/busantravel/resources/Jalnan2TTF.ttf");
+            if (is != null) {
+                jalnanFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(14f); // 기본 크기 14로 설정
+                GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+                ge.registerFont(jalnanFont);
+            } else {
+                System.err.println("폰트 파일을 찾을 수 없습니다! 기본 폰트 사용.");
+                jalnanFont = new Font("맑은 고딕", Font.PLAIN, 14);
+            }
+        } catch (Exception e) {
+            System.err.println("폰트 로드 중 예외 발생: " + e.getMessage());
+            e.printStackTrace();
+            jalnanFont = new Font("맑은 고딕", Font.PLAIN, 14);
+        }
+    }
+
     public void initialize() {
+        loadFont(); // 폰트 로드
         frame = new JFrame("부산 여행 플래너");
         frame.setSize(1500, 1000); // 화면 크기 확장
         frame.setMinimumSize(new Dimension(1000, 700)); // 최소 크기 유지
@@ -58,12 +79,12 @@ public class TravelPlannerApp {
             } else {
                 System.err.println("로고 이미지 파일을 찾을 수 없습니다! 기본 텍스트 로고 사용.");
                 logoLabel = new JLabel("<html><font color='#222222'>부산</font><font color='#DE927C'>어때</font></html>");
-                logoLabel.setFont(new Font("맑은 고딕", Font.BOLD, 26));
+                logoLabel.setFont(jalnanFont.deriveFont(Font.BOLD, 26f));
             }
         } catch (Exception e) {
             System.err.println("로고 이미지 로드 중 예외 발생: " + e.getMessage());
             logoLabel = new JLabel("<html><font color='#222222'>부산</font><font color='#DE927C'>어때</font></html>");
-            logoLabel.setFont(new Font("맑은 고딕", Font.BOLD, 26));
+            logoLabel.setFont(jalnanFont.deriveFont(Font.BOLD, 26f));
         }
 
         logoLabel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 10)); // 로고 내부 패딩
@@ -84,23 +105,23 @@ public class TravelPlannerApp {
 
         // 동적 타이틀
         currentTitleLabel = new JLabel("", SwingConstants.CENTER);
-        currentTitleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 24));
+        currentTitleLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 30f));
         currentTitleLabel.setForeground(new Color(50, 50, 50));
         topAreaPanel.add(currentTitleLabel, BorderLayout.CENTER);
 
         // 검색 및 인증 패널
-        JPanel searchAndAuthPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        JPanel searchAndAuthPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         searchAndAuthPanel.setBackground(Color.WHITE);
 
         // 검색 UI
         searchField = new JTextField(15);
         searchButton = new JButton("검색");
-        searchButton.setPreferredSize(new Dimension(70, 25));
+        searchButton.setPreferredSize(new Dimension(80, 25));
         searchButton.setForeground(Color.WHITE);
         searchButton.setBackground(new Color(180, 90, 70));
         searchButton.setFocusPainted(false);
         searchButton.setBorderPainted(false);
-        searchButton.setFont(new Font("맑은 고딕", Font.BOLD, 11));
+        searchButton.setFont(jalnanFont.deriveFont(Font.PLAIN, 11f));
         
         searchButton.addActionListener(e -> {
             String query = searchField.getText();
@@ -126,8 +147,8 @@ public class TravelPlannerApp {
         loginButton.setForeground(new Color(50, 50, 50));
         signUpButton.setBackground(new Color(240, 240, 240));
         signUpButton.setForeground(new Color(50, 50, 50));
-        loginButton.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
-        signUpButton.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+        loginButton.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
+        signUpButton.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
         loginButton.setFocusPainted(false);
         signUpButton.setFocusPainted(false);
 
@@ -224,7 +245,7 @@ public class TravelPlannerApp {
         button.setBackground(new Color(222, 146, 124));
         button.setFocusPainted(false);
         button.setBorderPainted(false);
-        button.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+        button.setFont(jalnanFont.deriveFont(Font.BOLD, 14f));
 
         button.addActionListener(e -> {
             currentTab = tabName;
