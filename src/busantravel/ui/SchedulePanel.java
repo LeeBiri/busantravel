@@ -1,26 +1,26 @@
 package busantravel.ui;
 
+import busantravel.controller.PlanController;
+import busantravel.model.TravelPlan;
+
+import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
-import java.awt.*;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 public class SchedulePanel extends JPanel {
-    private JFrame parentFrame;
-    private TravelPlannerApp mainApp; // TravelPlannerApp 참조 (화면 전환을 위해 필요)
+    private JFrame parentFrame;  // 원래 화면 전환, 다이얼로그 표시 등에 사용
+    private TravelPlannerApp mainApp; // 원래 다른 화면으로 전환할 때 사용
     private JPanel upcomingPanel;
     private JPanel pastPanel;
+    PlanController controller;
 
-    // SchedulePanel 생성자: JFrame과 TravelPlannerApp 참조를 인자로 받음
     public SchedulePanel(JFrame parentFrame, TravelPlannerApp mainApp) {
         this.parentFrame = parentFrame;
-        this.mainApp = mainApp; // mainApp 참조 저장
+        this.mainApp = mainApp;
+        this.controller = new PlanController(parentFrame, this, "aaa");
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
-
+        
         // 좌측 버튼 패널
         JPanel leftPanel = new JPanel();
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
@@ -30,32 +30,14 @@ public class SchedulePanel extends JPanel {
         JButton createTripBtn = new JButton("여행 일정 만들기");
         JButton enterCodeBtn = new JButton("참여 코드 입력");
 
-        createTripBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
-        enterCodeBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
-
         Dimension btnSize = new Dimension(180, 50);
         createTripBtn.setMaximumSize(btnSize);
-        createTripBtn.setPreferredSize(btnSize);
         enterCodeBtn.setMaximumSize(btnSize);
-        enterCodeBtn.setPreferredSize(btnSize);
 
         createTripBtn.setBackground(new Color(222, 146, 124));
         createTripBtn.setForeground(Color.WHITE);
-        createTripBtn.setFocusPainted(false);
         enterCodeBtn.setBackground(new Color(222, 146, 124));
         enterCodeBtn.setForeground(Color.WHITE);
-        enterCodeBtn.setFocusPainted(false);
-
-        createTripBtn.addActionListener(e -> {
-            CreateTripDialog dialog = new CreateTripDialog(parentFrame);
-            dialog.setVisible(true);
-            refreshRoomLists();
-        });
-
-        enterCodeBtn.addActionListener(e -> {
-            EnterCodeDialog dialog = new EnterCodeDialog(parentFrame, this);
-            dialog.setVisible(true);
-        });
 
         leftPanel.add(createTripBtn);
         leftPanel.add(Box.createVerticalStrut(15));
@@ -63,109 +45,88 @@ public class SchedulePanel extends JPanel {
 
         add(leftPanel, BorderLayout.WEST);
 
-        // 오른쪽 전체 패널
-        JPanel rightPanel = new JPanel(new BorderLayout());
-        rightPanel.setBackground(Color.WHITE);
-        rightPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); // 상하좌우 패딩은 유지
-        rightPanel.setOpaque(false);
+        createTripBtn.addActionListener(e -> controller.handleCreateTrip());
+        enterCodeBtn.addActionListener(e -> controller.handleEnterCode());
 
-        // 다가오는 여행 패널
+     // ❶ 오른쪽: ‘고정폭 섹션’을 가운데 놓기 위한 래퍼
+        JPanel centerWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        centerWrapper.setBackground(Color.WHITE);
+
+        // ❷ 실제 섹션(고정 폭)
+        int SECTION_WIDTH = 540; // 스샷처럼 적당히 좁게
+        JPanel section = new JPanel();
+        section.setLayout(new BoxLayout(section, BoxLayout.Y_AXIS));
+        section.setBackground(Color.WHITE);
+        section.setPreferredSize(new Dimension(SECTION_WIDTH, 680)); // 높이는 상황에 맞게
+        section.setMaximumSize(new Dimension(SECTION_WIDTH, Integer.MAX_VALUE));
+        section.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+
+        // ❸ "다가오는 여행" 컨테이너
         upcomingPanel = new JPanel();
         upcomingPanel.setLayout(new BoxLayout(upcomingPanel, BoxLayout.Y_AXIS));
         upcomingPanel.setBackground(Color.WHITE);
-        // 핑크색 TitledBorder 유지
         upcomingPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(222, 146, 124)),
                 "다가오는 여행",
-                TitledBorder.LEFT,
-                TitledBorder.TOP,
-                new Font("맑은 고딕", Font.BOLD, 18),
+                TitledBorder.LEFT, TitledBorder.TOP,
+                new Font("맑은 고딕", Font.BOLD, 16),
                 new Color(222, 146, 124)
         ));
 
-        // 지난 여행 패널
+        // ❹ "지난 여행" 컨테이너
         pastPanel = new JPanel();
         pastPanel.setLayout(new BoxLayout(pastPanel, BoxLayout.Y_AXIS));
         pastPanel.setBackground(Color.WHITE);
-        // 핑크색 TitledBorder 유지
         pastPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(222, 146, 124)),
                 "지난 여행",
-                TitledBorder.LEFT,
-                TitledBorder.TOP,
-                new Font("맑은 고딕", Font.BOLD, 18),
+                TitledBorder.LEFT, TitledBorder.TOP,
+                new Font("맑은 고딕", Font.BOLD, 16),
                 new Color(222, 146, 124)
         ));
 
-        // 스크롤 가능한 스크롤패널 (크기 확장 및 테두리 제거)
+        // ❺ 섹션에 스크롤 달아서 추가
         JScrollPane upcomingScroll = new JScrollPane(upcomingPanel);
-        upcomingScroll.setPreferredSize(new Dimension(400, 350));
-        upcomingScroll.getVerticalScrollBar().setUnitIncrement(16);
-        upcomingScroll.setBorder(BorderFactory.createEmptyBorder()); // JScrollPane 자체의 테두리 제거
+        upcomingScroll.setBorder(null);
+        upcomingScroll.setPreferredSize(new Dimension(SECTION_WIDTH, 280));
+        upcomingScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
         JScrollPane pastScroll = new JScrollPane(pastPanel);
-        pastScroll.setPreferredSize(new Dimension(400, 350));
-        pastScroll.getVerticalScrollBar().setUnitIncrement(16);
-        pastScroll.setBorder(BorderFactory.createEmptyBorder()); // JScrollPane 자체의 테두리 제거
+        pastScroll.setBorder(null);
+        pastScroll.setPreferredSize(new Dimension(SECTION_WIDTH, 280));
+        pastScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
-        // 여행 목록 세로 배치 패널
-        JPanel listPanel = new JPanel();
-        listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
-        listPanel.add(upcomingScroll);
-        listPanel.add(Box.createVerticalStrut(20)); // 스크롤 패널 사이 간격
-        listPanel.add(pastScroll);
-        listPanel.setOpaque(false);
-        listPanel.setBorder(BorderFactory.createEmptyBorder()); // listPanel의 테두리 제거
+        section.add(upcomingScroll);
+        section.add(Box.createVerticalStrut(20));
+        section.add(pastScroll);
 
-        rightPanel.add(listPanel, BorderLayout.CENTER);
+        centerWrapper.add(section);
 
-        rightPanel.setBorder(BorderFactory.createEmptyBorder()); // rightPanel의 테두리 제거
-
-        // 중앙 정렬을 위한 래퍼 패널
-        JPanel centerWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        centerWrapper.setBackground(Color.WHITE);
-        centerWrapper.setOpaque(true);
-        centerWrapper.add(rightPanel);
-        centerWrapper.setBorder(BorderFactory.createEmptyBorder()); // centerWrapper의 테두리 제거
-
-        // 최상위 스크롤 패널로 전체 감싸기
-        JScrollPane mainScrollPane = new JScrollPane(centerWrapper);
-        mainScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        mainScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-        mainScrollPane.getVerticalScrollBar().setUnitIncrement(20);
-        mainScrollPane.setBorder(BorderFactory.createEmptyBorder()); // mainScrollPane의 테두리 제거
-
-        add(mainScrollPane, BorderLayout.CENTER);
-
-        refreshRoomLists();
+        // 가운데 래퍼를 CENTER에 붙이기
+        add(centerWrapper, BorderLayout.CENTER);
     }
 
-    public void refreshRoomLists() {
+    public void renderPlans(java.util.List<TravelPlan> upcoming, java.util.List<TravelPlan> past) {
         upcomingPanel.removeAll();
         pastPanel.removeAll();
 
-        TripRoomManager manager = TripRoomManager.getInstance();
-        Map<String, TripRoom> rooms = manager.getAllRooms();
-
-        LocalDate today = LocalDate.now();
-
-        List<TripRoom> upcoming = new ArrayList<>();
-        List<TripRoom> past = new ArrayList<>();
-
-        for (TripRoom room : rooms.values()) {
-            // 종료일이 오늘과 같거나 이전이면 지난 여행으로 분류
-            if (room.getEndDate().isBefore(today) || room.getEndDate().isEqual(today)) {
-                past.add(room);
-            } else {
-                upcoming.add(room);
+        // 다가오는 여행
+        for (int i = 0; i < upcoming.size(); i++) {
+            JPanel card = createPlanCard(upcoming.get(i), true);
+            if (i == upcoming.size() - 1) {
+                // 마지막 항목은 가로선 제거
+                card.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
             }
+            upcomingPanel.add(card);
         }
 
-        for (TripRoom room : upcoming) {
-            upcomingPanel.add(createRoomCard(room, true));
-        }
-        for (TripRoom room : past) {
-            pastPanel.add(createRoomCard(room, false));
+        // 지난 여행
+        for (int i = 0; i < past.size(); i++) {
+            JPanel card = createPlanCard(past.get(i), false);
+            if (i == past.size() - 1) {
+                card.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+            }
+            pastPanel.add(card);
         }
 
         upcomingPanel.revalidate();
@@ -174,80 +135,92 @@ public class SchedulePanel extends JPanel {
         pastPanel.repaint();
     }
 
-    private JPanel createRoomCard(TripRoom room, boolean isUpcoming) {
-        JPanel container = new JPanel();
-        container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
-        container.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(230, 230, 230)));
-        container.setBackground(Color.WHITE);
+    private JPanel createPlanCard(TravelPlan plan, boolean isUpcoming) {
+        int CARD_WIDTH = 480;
 
         JPanel card = new JPanel(new BorderLayout());
         card.setBackground(Color.WHITE);
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
+        card.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(220, 220, 220)));
+        card.setPreferredSize(new Dimension(CARD_WIDTH, 100));
+        card.setMaximumSize(new Dimension(CARD_WIDTH, 100));
+        card.setAlignmentX(Component.CENTER_ALIGNMENT); // 중앙 정렬
 
-        Color circleColor = room.getEndDate().isBefore(LocalDate.now()) ? new Color(255, 223, 200) : new Color(173, 216, 230);
-        JPanel circle = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
+        // 왼쪽 묶음
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10)); // ← 여백 넓힘
+        left.setBackground(Color.WHITE);
+
+        JPanel iconPanel = new JPanel() {
+            @Override protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                g.setColor(circleColor);
-                g.fillOval(0, 0, 40, 40);
+                g.setColor(new Color(210, 225, 238));
+                g.fillOval(6, 6, 26, 26);
             }
         };
-        circle.setPreferredSize(new Dimension(40, 40));
-        circle.setOpaque(false);
+        iconPanel.setOpaque(false);
+        iconPanel.setPreferredSize(new Dimension(40, 40));
 
         JPanel textPanel = new JPanel();
         textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
         textPanel.setBackground(Color.WHITE);
-        textPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        textPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0)); // 내부 여백
 
-        JLabel titleLabel = new JLabel(room.getTitle());
-        titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+        JLabel title = new JLabel(plan.getPlan_title());
+        title.setFont(new Font("맑은 고딕", Font.BOLD, 14));
 
-        JLabel dateLabel = new JLabel(room.getStartDate() + " - " + room.getEndDate());
-        dateLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
-        dateLabel.setForeground(Color.GRAY);
+        String dateRange = plan.getPlan_period_start().toLocalDate() + " - " +
+                           plan.getPlan_period_end().toLocalDate();
+        JLabel date = new JLabel(dateRange);
+        date.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+        date.setForeground(Color.GRAY);
 
-        JLabel codeLabel = new JLabel("방 코드 : " + room.getRoomCode());
-        codeLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
-        codeLabel.setForeground(Color.GRAY);
+        JLabel code = new JLabel("방 코드 : " + plan.getPlan_id());
+        code.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+        code.setForeground(new Color(90, 90, 90));
 
-        textPanel.add(titleLabel);
-        textPanel.add(dateLabel);
-        textPanel.add(codeLabel);
+        textPanel.add(title);
+        textPanel.add(Box.createVerticalStrut(2));
+        textPanel.add(date);
+        textPanel.add(code);
 
-        JPanel leftContents = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        leftContents.setOpaque(false);
-        leftContents.add(circle);
-        leftContents.add(textPanel);
-
-        card.add(leftContents, BorderLayout.WEST);
-        container.add(card);
+        left.add(iconPanel);
+        left.add(textPanel);
+        card.add(left, BorderLayout.CENTER);
 
         if (isUpcoming) {
-            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
-            buttonPanel.setBackground(Color.WHITE);
+            JPanel btns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 10));
+            btns.setBackground(Color.WHITE);
 
-            JButton planButton = new JButton("일정 계획하기");
-            planButton.setFont(new Font("맑은 고딕", Font.BOLD, 12));
-            planButton.setBackground(new Color(222, 146, 124));
-            planButton.setForeground(Color.WHITE);
-            planButton.setFocusPainted(false);
-            planButton.addActionListener(e -> mainApp.switchToPlanTrip(room));
+            JButton planBtn = new JButton("일정 계획하기");
+            planBtn.setBackground(new Color(222, 146, 124));
+            planBtn.setForeground(Color.WHITE);
+            planBtn.setFocusPainted(false);
 
-            JButton checklistButton = new JButton("체크리스트");
-            checklistButton.setFont(new Font("맑은 고딕", Font.BOLD, 12));
-            checklistButton.setBackground(new Color(100, 150, 240));
-            checklistButton.setForeground(Color.WHITE);
-            checklistButton.setFocusPainted(false);
-            checklistButton.addActionListener(e -> JOptionPane.showMessageDialog(parentFrame, "체크리스트 기능은 준비 중입니다."));
+            planBtn.addActionListener(e -> {
+                PlanTripPanel tripPanel = new PlanTripPanel(
+                    plan.getPlan_period_start(),
+                    plan.getPlan_period_end(),
+                    mainApp,
+                    plan.getPlan_title()
+                );
 
-            buttonPanel.add(planButton);
-            buttonPanel.add(checklistButton);
-            container.add(buttonPanel);
+                JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(SchedulePanel.this);
+                frame.setContentPane(tripPanel);
+                frame.revalidate();
+                frame.repaint();
+            });
+
+
+            JButton checklistBtn = new JButton("체크리스트");
+            checklistBtn.setBackground(new Color(100, 150, 240));
+            checklistBtn.setForeground(Color.WHITE);
+
+            btns.add(planBtn);
+            btns.add(checklistBtn);
+
+            card.add(btns, BorderLayout.EAST);
         }
 
-        return container;
+        return card;
     }
 
 }
