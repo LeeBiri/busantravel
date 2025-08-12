@@ -87,5 +87,11 @@ public class Examples {
         } else {
             System.out.println("장소 정보가 없어 지도를 표시할 수 없습니다.");
         }
+
+        System.out.println("\n============================================\n");
+
+        // --- 5. Tmap 경로 API를 사용하여 그린 지도를 HTML 파일로 확인 ---
+        System.out.println("--- 5. Tmap 경로 API 지도 예제 ---");
+        MapViewer.showHtmlFile("doc/tmap_route_example.html");
     }
 }

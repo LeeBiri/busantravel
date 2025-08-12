@@ -10,9 +10,12 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import javax.imageio.ImageIO;
+import java.awt.Desktop;
+import java.io.File;
+import java.io.IOException;
 
 /**
- * 이미지 URL을 받아 GUI 창(JFrame)에 해당 이미지를 표시하는 클래스입니다.
+ * 이미지 URL을 받아 GUI 창(JFrame)에 해당 이미지를 표시하거나 HTML 파일을 기본 브라우저에서 여는 클래스입니다.
  */
 public class MapViewer {
 
@@ -69,5 +72,25 @@ public class MapViewer {
             frame.setLocationRelativeTo(null); // 창을 화면 중앙에 위치시킵니다.
             frame.setVisible(true); // 창을 화면에 보이게 합니다.
         });
+    }
+
+    /**
+     * 지정된 경로의 HTML 파일을 시스템의 기본 웹 브라우저에서 엽니다.
+     *
+     * @param filePath 열고자 하는 HTML 파일의 경로
+     */
+    public static void showHtmlFile(String filePath) {
+        File htmlFile = new File(filePath);
+        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+            try {
+                Desktop.getDesktop().browse(htmlFile.toURI());
+                System.out.println("\n" + filePath + " 파일을 기본 브라우저에서 열었습니다.");
+            } catch (IOException e) {
+                System.err.println("오류: 파일을 여는 중 문제가 발생했습니다.");
+                e.printStackTrace();
+            }
+        } else {
+            System.err.println("오류: 데스크탑 환경이 지원되지 않아 브라우저를 열 수 없습니다.");
+        }
     }
 }
