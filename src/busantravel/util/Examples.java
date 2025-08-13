@@ -16,7 +16,7 @@ public class Examples {
         System.out.println("--- 1. 장소 자동 완성 ---");
         String searchInput = "롯데월드";
         List<AutocompletePrediction> predictions = apiHandler.getAutocompletePredictions(searchInput, tmapApiKey);
-        if (!predictions.isEmpty()) {
+        if (predictions != null && !predictions.isEmpty()) {
             System.out.println("'" + searchInput + "'에 대한 예상 검색어:");
             for (AutocompletePrediction p : predictions) {
                 System.out.println(" - " + p.getDescription());
@@ -79,13 +79,13 @@ public class Examples {
         if (placeInfo != null) {
             StaticMapGenerator mapGenerator = new StaticMapGenerator(tmapApiKey);
 
-            // 여러 좌표 생성
             List<Coordinate> coordinates = new ArrayList<>();
-            coordinates.add(new Coordinate(placeInfo.getLatitude(), placeInfo.getLongitude())); // 해운대해수욕장
-            coordinates.add(new Coordinate(35.159545, 129.160369)); // 광안리해수욕장
-            coordinates.add(new Coordinate(35.091128, 129.032331)); // 태종대
+            coordinates.add(new Coordinate(placeInfo.getLatitude(), placeInfo.getLongitude()));
+            coordinates.add(new Coordinate(35.159545, 129.160369));
+            coordinates.add(new Coordinate(35.091128, 129.032331));
 
             String mapUrl = mapGenerator.generateMapWithMultiplePinsUrl(coordinates, 540, 480, 10);
+            
             if (mapUrl != null) {
                 System.out.println("생성된 지도 URL: " + mapUrl); // URL 출력 추가
                 MapViewer.showMap(mapUrl, tmapApiKey);
