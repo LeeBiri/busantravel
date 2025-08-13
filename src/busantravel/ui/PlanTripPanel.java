@@ -148,6 +148,7 @@ public class PlanTripPanel extends JPanel {
         saveBtn.addActionListener(e -> {
         if (mainApp != null) {
             ScheduledPlaceService.insertSchedule(scheduledPlaces);
+            JOptionPane.showMessageDialog(this, "저장되었습니다.", "알림", JOptionPane.INFORMATION_MESSAGE);
             if (onBack != null) onBack.run();
         }});
 
@@ -370,18 +371,34 @@ public class PlanTripPanel extends JPanel {
         plus.setBackground(ColorConstants.ACCENT);
         plus.setFocusPainted(false);
         plus.setBorder(new LineBorder(ACCENT_DARK, 1, true));
-        plus.addActionListener(e -> {
-            LocalDate d = getSelectedDate();
-            LocalDateTime visit = LocalDateTime.of(d, LocalTime.NOON);
-            ScheduledPlace sp = new ScheduledPlace(
-                    planId,
-                    pd.id, pd.type,
-                    visit, visit.plusHours(2),
-                    nextOrder(d)
-            );
-            scheduledPlaces.add(sp);
-            refreshSelectedList();
-        });
+       plus.addActionListener(e -> {
+        LocalDate d = getSelectedDate();
+        LocalDateTime visit = LocalDateTime.of(d, LocalTime.NOON);
+
+        // 해당 날짜에 이미 들어있는 곳인지 검사
+        boolean alreadyAdded = scheduledPlaces.stream().anyMatch(sp ->
+            sp.getP_id().equals(pd.id) &&
+            sp.getP_type().equals(pd.type) &&
+            sp.getScheduled_date() != null &&
+            sp.getScheduled_date().toLocalDate().equals(d)
+        );
+
+        if (alreadyAdded) {
+            JOptionPane.showMessageDialog(this, "이미 추가된 장소입니다.", "알림", JOptionPane.INFORMATION_MESSAGE);
+            return; //ㄴㄴ추가
+        }
+
+        // 중복 없으면 추가
+        ScheduledPlace sp = new ScheduledPlace(
+            planId,
+            pd.id, pd.type,
+            visit, visit.plusHours(2),
+            nextOrder(d)
+        );
+        scheduledPlaces.add(sp);
+        refreshSelectedList();
+    });
+
         JPanel btnWrap = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, (ROW_HEIGHT-36)/2));
         btnWrap.setOpaque(false);
         btnWrap.add(plus);
