@@ -181,8 +181,8 @@ public class TravelPlannerApp {
         if (planTripPanel != null) {
             contentPanel.remove(planTripPanel);
         }
-        
-        planTripPanel = new PlanTripPanel(plan.getPlan_period_start(), plan.getPlan_period_end(), this, plan.getPlan_title());
+        Runnable onBack = () -> this.goToScheduleTab();
+        planTripPanel = new PlanTripPanel(plan.getPlan_period_start(), plan.getPlan_period_end(), this, plan.getPlan_title(), plan.getPlan_id(), onBack);
         contentPanel.add(planTripPanel, "plan"); 
 
         currentTab = "plan";
@@ -192,6 +192,7 @@ public class TravelPlannerApp {
     }
     
     public void goToScheduleTab() {
+    	System.out.println("[App] goToScheduleTab app@" + System.identityHashCode(this));
         currentTab = "schedule";
         updateContent();
         updateTopPanelTitle();

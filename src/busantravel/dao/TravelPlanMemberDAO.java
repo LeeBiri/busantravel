@@ -13,13 +13,12 @@ public class TravelPlanMemberDAO {
     public static void insert(String planId, String memberId, String role) {
         Connection con = null;
         PreparedStatement pstmt = null;
-        String sql = "INSERT INTO travel_plan_member (plan_id, m_id, role) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO travel_plan_member (plan_id, m_id) VALUES (?, ?)";
         try {
             con = pool.getConnection();
             pstmt = con.prepareStatement(sql);
             pstmt.setString(1, planId);
             pstmt.setString(2, memberId);
-            pstmt.setString(3, role);
             pstmt.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
