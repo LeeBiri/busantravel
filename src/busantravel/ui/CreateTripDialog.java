@@ -7,12 +7,21 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 
+/**
+ * 새로운 여행 일정을 생성하기 위한 모달 대화상자 클래스입니다.
+ * 사용자로부터 여행 제목, 시작 날짜, 종료 날짜를 입력받습니다.
+ */
 public class CreateTripDialog extends JDialog {
     private JTextField titleField;
     private JDateChooser startDateChooser;
     private JDateChooser endDateChooser;
     private boolean confirmed = false;
 
+    /**
+     * CreateTripDialog의 새 인스턴스를 생성합니다.
+     *
+     * @param parent 부모 JFrame 객체. 대화상자는 이 프레임에 종속됩니다.
+     */
     public CreateTripDialog(JFrame parent) {
         super(parent, "여행 일정 만들기", true);
         setSize(400, 300);
@@ -60,19 +69,39 @@ public class CreateTripDialog extends JDialog {
         add(cancelBtn);
     }
     
+    /**
+     * 사용자가 '만들기' 버튼을 눌러 입력을 확정했는지 여부를 반환합니다.
+     *
+     * @return 사용자가 입력을 확정했다면 true, 그렇지 않으면 false.
+     */
     public boolean isConfirmed() {
         return confirmed;
     }
 
+    /**
+     * 사용자가 입력한 여행 제목을 반환합니다.
+     *
+     * @return 공백이 제거된 여행 제목 문자열.
+     */
     public String getTitleInput() {
         return titleField.getText().trim();
     }
 
+    /**
+     * 사용자가 선택한 시작 날짜를 LocalDate 객체로 반환합니다.
+     *
+     * @return 선택된 시작 날짜.
+     */
     public LocalDate getStartDate() {
         Date date = startDateChooser.getDate();
         return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
+    /**
+     * 사용자가 선택한 종료 날짜를 LocalDate 객체로 반환합니다.
+     *
+     * @return 선택된 종료 날짜.
+     */
     public LocalDate getEndDate() {
         Date date = endDateChooser.getDate();
         return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();

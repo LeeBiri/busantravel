@@ -3,7 +3,16 @@ package busantravel.ui;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * 장소 관련 데이터를 제공하는 서비스 클래스입니다.
+ * 현재는 테스트 및 초기 개발을 위한 더미 데이터 목록을 제공하는 역할을 합니다.
+ */
 public class PlaceService {
+    /**
+     * UI 테스트 및 프로토타이핑을 위한 더미 장소 데이터 목록을 반환합니다.
+     *
+     * @return {@link Place} 객체의 리스트.
+     */
     public static List<Place> getDummyPlaces() {
         return Arrays.asList(
                 new Place("/busantravel/images/haeundae.jpg", "해운대해수욕장", "관광지", "해운대구 중제1동"),

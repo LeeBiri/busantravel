@@ -1,5 +1,6 @@
 package busantravel.util;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Examples {
@@ -15,7 +16,7 @@ public class Examples {
         System.out.println("--- 1. 장소 자동 완성 ---");
         String searchInput = "롯데월드";
         List<AutocompletePrediction> predictions = apiHandler.getAutocompletePredictions(searchInput, tmapApiKey);
-        if (!predictions.isEmpty()) {
+        if (predictions != null && !predictions.isEmpty()) {
             System.out.println("'" + searchInput + "'에 대한 예상 검색어:");
             for (AutocompletePrediction p : predictions) {
                 System.out.println(" - " + p.getDescription());
@@ -73,13 +74,20 @@ public class Examples {
 
         System.out.println("\n============================================\n");
 
-        // --- 4. 핀이 표시된 Static Map을 GUI 창에 표시 ---
-        System.out.println("--- 4. 핀이 표시된 Static Map 표시 ---");
+        // --- 4. 여러 핀이 표시된 Static Map을 GUI 창에 표시 ---
+        System.out.println("--- 4. 여러 핀이 표시된 Static Map 표시 ---");
         if (placeInfo != null) {
             StaticMapGenerator mapGenerator = new StaticMapGenerator(tmapApiKey);
-            Coordinate pinCoordinate = new Coordinate(placeInfo.getLatitude(), placeInfo.getLongitude());
-            String mapUrl = mapGenerator.generateMapWithPinUrl(pinCoordinate, 540, 480, 15);
+
+            List<Coordinate> coordinates = new ArrayList<>();
+            coordinates.add(new Coordinate(placeInfo.getLatitude(), placeInfo.getLongitude()));
+            coordinates.add(new Coordinate(35.159545, 129.160369));
+            coordinates.add(new Coordinate(35.091128, 129.032331));
+
+            String mapUrl = mapGenerator.generateMapWithMultiplePinsUrl(coordinates, 540, 480, 10);
+            
             if (mapUrl != null) {
+                System.out.println("생성된 지도 URL: " + mapUrl); // URL 출력 추가
                 MapViewer.showMap(mapUrl, tmapApiKey);
             } else {
                 System.out.println("지도 URL 생성에 실패했습니다.");
@@ -87,5 +95,11 @@ public class Examples {
         } else {
             System.out.println("장소 정보가 없어 지도를 표시할 수 없습니다.");
         }
+
+        System.out.println("\n============================================\n");
+
+        // --- 5. Tmap 경로 API를 사용하여 그린 지도를 HTML 파일로 확인 (비활성화) ---
+        // System.out.println("--- 5. Tmap 경로 API 지도 예제 ---");
+        // MapViewer.showHtmlFile("doc/tmap_route_example.html");
     }
 }

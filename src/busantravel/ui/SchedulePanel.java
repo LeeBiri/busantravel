@@ -5,15 +5,27 @@ import busantravel.model.TravelPlan;
 
 import java.awt.*;
 import javax.swing.*;
+import busantravel.ui.ColorConstants;
 import javax.swing.border.TitledBorder;
 
+/**
+ * 사용자의 여행 일정 목록을 관리하고 표시하는 패널입니다.
+ * '다가오는 여행'과 '지난 여행'으로 구분하여 보여주며,
+ * 새로운 여행을 생성하거나 참여 코드로 기존 여행에 참여하는 기능을 제공합니다.
+ */
 public class SchedulePanel extends JPanel {
-    private JFrame parentFrame;  // 원래 화면 전환, 다이얼로그 표시 등에 사용
-    private TravelPlannerApp mainApp; // 원래 다른 화면으로 전환할 때 사용
-    private JPanel upcomingPanel;
-    private JPanel pastPanel;
-    PlanController controller;
+    private JFrame parentFrame;  // 다이얼로그 표시 등에 사용되는 부모 프레임
+    private TravelPlannerApp mainApp; // 화면 전환을 위한 메인 애플리케이션 참조
+    private JPanel upcomingPanel; // 다가오는 여행 목록을 표시하는 패널
+    private JPanel pastPanel; // 지난 여행 목록을 표시하는 패널
+    PlanController controller; // 여행 생성 및 참여 관련 로직을 처리하는 컨트롤러
 
+    /**
+     * SchedulePanel의 새 인스턴스를 생성합니다.
+     *
+     * @param parentFrame 부모 JFrame 객체.
+     * @param mainApp     메인 애플리케이션(TravelPlannerApp)의 참조.
+     */
     public SchedulePanel(JFrame parentFrame, TravelPlannerApp mainApp) {
         this.parentFrame = parentFrame;
         this.mainApp = mainApp;
@@ -34,9 +46,9 @@ public class SchedulePanel extends JPanel {
         createTripBtn.setMaximumSize(btnSize);
         enterCodeBtn.setMaximumSize(btnSize);
 
-        createTripBtn.setBackground(new Color(222, 146, 124));
+        createTripBtn.setBackground(ColorConstants.ACCENT);
         createTripBtn.setForeground(Color.WHITE);
-        enterCodeBtn.setBackground(new Color(222, 146, 124));
+        enterCodeBtn.setBackground(ColorConstants.ACCENT);
         enterCodeBtn.setForeground(Color.WHITE);
 
         leftPanel.add(createTripBtn);
@@ -66,11 +78,11 @@ public class SchedulePanel extends JPanel {
         upcomingPanel.setLayout(new BoxLayout(upcomingPanel, BoxLayout.Y_AXIS));
         upcomingPanel.setBackground(Color.WHITE);
         upcomingPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(222, 146, 124)),
+                BorderFactory.createLineBorder(ColorConstants.ACCENT),
                 "다가오는 여행",
                 TitledBorder.LEFT, TitledBorder.TOP,
                 new Font("맑은 고딕", Font.BOLD, 16),
-                new Color(222, 146, 124)
+                ColorConstants.ACCENT
         ));
 
         // ❹ "지난 여행" 컨테이너
@@ -78,11 +90,11 @@ public class SchedulePanel extends JPanel {
         pastPanel.setLayout(new BoxLayout(pastPanel, BoxLayout.Y_AXIS));
         pastPanel.setBackground(Color.WHITE);
         pastPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(222, 146, 124)),
+                BorderFactory.createLineBorder(ColorConstants.ACCENT),
                 "지난 여행",
                 TitledBorder.LEFT, TitledBorder.TOP,
                 new Font("맑은 고딕", Font.BOLD, 16),
-                new Color(222, 146, 124)
+                ColorConstants.ACCENT
         ));
 
         // ❺ 섹션에 스크롤 달아서 추가
@@ -106,6 +118,13 @@ public class SchedulePanel extends JPanel {
         add(centerWrapper, BorderLayout.CENTER);
     }
 
+    /**
+     * 다가오는 여행과 지난 여행 목록을 받아와 화면에 렌더링합니다.
+     * 각 목록에 대해 카드 형태의 UI를 생성하여 패널에 추가합니다.
+     *
+     * @param upcoming 다가오는 여행 계획 목록
+     * @param past     지난 여행 계획 목록
+     */
     public void renderPlans(java.util.List<TravelPlan> upcoming, java.util.List<TravelPlan> past) {
         upcomingPanel.removeAll();
         pastPanel.removeAll();
@@ -135,6 +154,13 @@ public class SchedulePanel extends JPanel {
         pastPanel.repaint();
     }
 
+    /**
+     * 개별 여행 계획을 표시하는 카드 UI를 생성합니다.
+     *
+     * @param plan       표시할 여행 계획 정보 (TravelPlan 객체)
+     * @param isUpcoming 다가오는 여행인지 여부 (true일 경우 '일정 계획하기' 등 버튼 추가)
+     * @return 생성된 카드 JPanel 객체
+     */
     private JPanel createPlanCard(TravelPlan plan, boolean isUpcoming) {
         int CARD_WIDTH = 480;
 
@@ -191,13 +217,14 @@ public class SchedulePanel extends JPanel {
             btns.setBackground(Color.WHITE);
 
             JButton planBtn = new JButton("일정 계획하기");
-            planBtn.setBackground(new Color(222, 146, 124));
+            planBtn.setBackground(ColorConstants.ACCENT);
             planBtn.setForeground(Color.WHITE);
             planBtn.setFocusPainted(false);
-            Runnable onBack = () -> mainApp.goToScheduleTab();
 
             planBtn.addActionListener(e -> {
-                mainApp.switchToPlanTrip(plan);
+                if (mainApp != null) {
+                    mainApp.switchToPlanTrip(plan);
+                }
             });
 
 

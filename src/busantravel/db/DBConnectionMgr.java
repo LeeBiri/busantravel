@@ -48,13 +48,14 @@ public class DBConnectionMgr {
     private boolean initialized = false;
     private int _openConnections = 50;
     private static DBConnectionMgr instance = null;
+    private static boolean isDbConnected = false;
 
     private DBConnectionMgr() {}
 
-    /** Use this method to set the maximum number of open connections before
-     unused connections are closed.
+    /**
+     * DBConnectionMgr의 싱글턴 인스턴스를 반환합니다.
+     * @return DBConnectionMgr 인스턴스
      */
-
     public static DBConnectionMgr getInstance() {
         if (instance == null) {
             synchronized (DBConnectionMgr.class) {
@@ -67,23 +68,55 @@ public class DBConnectionMgr {
         return instance;
     }
 
+    /**
+     * 데이터베이스 연결 상태를 확인합니다.
+     * @return 연결되었으면 true, 그렇지 않으면 false
+     */
+    public static boolean isDbConnected() {
+        // 인스턴스를 통해 초기 연결 시도를 유도하고 상태를 반환
+        if (instance == null) {
+            getInstance(); // 초기화 시도
+        }
+        // 첫 연결 시도
+        try (Connection conn = getInstance().getConnection()) {
+            isDbConnected = conn != null && !conn.isClosed();
+        } catch (Exception e) {
+            isDbConnected = false;
+        }
+        return isDbConnected;
+    }
+
+    /**
+     * 최대 유휴 연결 수를 설정합니다.
+     * @param count 최대 유휴 연결 수
+     */
     public void setOpenConnectionCount(int count) {
         _openConnections = count;
     }
 
-
+    /**
+     * 트레이스 메시지 출력을 활성화/비활성화합니다.
+     * @param enable 활성화하려면 true
+     */
     public void setEnableTrace(boolean enable) {
         _traceOn = enable;
     }
 
 
-    /** Returns a Vector of java.sql.Connection objects */
+    /**
+     * 현재 연결 풀의 모든 연결 객체를 담은 Vector를 반환합니다.
+     * @return 연결 객체 Vector
+     */
     public Vector getConnectionList() {
         return connections;
     }
 
 
-    /** Opens specified "count" of connections and adds them to the existing pool */
+    /**
+     * 지정된 수만큼의 연결을 미리 생성하여 풀에 추가합니다.
+     * @param count 생성할 연결 수
+     * @throws SQLException SQL 예외 발생 시
+     */
     public synchronized void setInitOpenConnections(int count)
             throws SQLException {
         Connection c = null;
@@ -99,13 +132,20 @@ public class DBConnectionMgr {
     }
 
 
-    /** Returns a count of open connections */
+    /**
+     * 현재 풀에 있는 총 연결 수를 반환합니다.
+     * @return 총 연결 수
+     */
     public int getConnectionCount() {
         return connections.size();
     }
 
 
-    /** Returns an unused existing or new connection.  */
+    /**
+     * 사용 가능한 연결을 풀에서 가져옵니다. 없으면 새로 생성합니다.
+     * @return 사용 가능한 Connection 객체
+     * @throws Exception 연결 생성 또는 가져오기 실패 시
+     */
     public synchronized Connection getConnection()
             throws Exception {
         if (!initialized) {
@@ -162,7 +202,10 @@ public class DBConnectionMgr {
     }
 
 
-    /** Marks a flag in the ConnectionObject to indicate this connection is no longer in use */
+    /**
+     * 사용이 끝난 연결을 풀에 반환합니다.
+     * @param c 반환할 Connection 객체
+     */
     public synchronized void freeConnection(Connection c) {
         if (c == null)
             return;
@@ -184,6 +227,12 @@ public class DBConnectionMgr {
         }
     }
 
+    /**
+     * Connection, PreparedStatement, ResultSet을 모두 닫고 연결을 풀에 반환합니다.
+     * @param c Connection 객체
+     * @param p PreparedStatement 객체
+     * @param r ResultSet 객체
+     */
     public void freeConnection(Connection c, PreparedStatement p, ResultSet r) {
         try {
             if (r != null) r.close();
@@ -194,6 +243,12 @@ public class DBConnectionMgr {
         }
     }
 
+    /**
+     * Connection, Statement, ResultSet을 모두 닫고 연결을 풀에 반환합니다.
+     * @param c Connection 객체
+     * @param s Statement 객체
+     * @param r ResultSet 객체
+     */
     public void freeConnection(Connection c, Statement s, ResultSet r) {
         try {
             if (r != null) r.close();
@@ -204,6 +259,11 @@ public class DBConnectionMgr {
         }
     }
 
+    /**
+     * Connection, PreparedStatement를 닫고 연결을 풀에 반환합니다.
+     * @param c Connection 객체
+     * @param p PreparedStatement 객체
+     */
     public void freeConnection(Connection c, PreparedStatement p) {
         try {
             if (p != null) p.close();
@@ -213,6 +273,11 @@ public class DBConnectionMgr {
         }
     }
 
+    /**
+     * Connection, Statement를 닫고 연결을 풀에 반환합니다.
+     * @param c Connection 객체
+     * @param s Statement 객체
+     */
     public void freeConnection(Connection c, Statement s) {
         try {
             if (s != null) s.close();
@@ -223,7 +288,10 @@ public class DBConnectionMgr {
     }
 
 
-    /** Marks a flag in the ConnectionObject to indicate this connection is no longer in use */
+    /**
+     * 연결을 풀에서 제거하고 실제로 닫습니다.
+     * @param c 제거할 Connection 객체
+     */
     public synchronized void removeConnection(Connection c) {
         if (c == null)
             return;
@@ -261,11 +329,13 @@ public class DBConnectionMgr {
             props.put("password", _password);
 
             con = DriverManager.getConnection(_url, props);
+            isDbConnected = true; // 연결 성공
         } catch (Throwable t) {
+            isDbConnected = false; // 연결 실패
         	System.err.println("DBConnectionMgr: DB 연결 실패");
         	System.err.println("URL: " + _url);
         	System.err.println("User: " + _user);
-        	t.printStackTrace();
+        	// t.printStackTrace(); // 실패 시 스택 트레이스 생략
             throw new SQLException(t.getMessage());
         }
 

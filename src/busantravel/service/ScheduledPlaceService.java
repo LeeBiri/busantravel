@@ -5,20 +5,61 @@ import java.util.List;
 import busantravel.dao.ScheduledPlaceDAO;
 import busantravel.model.ScheduledPlace;
 
+/**
+ * 여행 일정(ScheduledPlace) 관련 비즈니스 로직을 처리하는 서비스 클래스입니다.
+ * 이 클래스는 DAO(Data Access Object)를 사용하여 데이터베이스와 상호작용하며,
+ * UI 계층에 필요한 데이터를 제공하거나 데이터 변경을 요청합니다.
+ */
 public class ScheduledPlaceService {
-	
-	
-	public static void insertSchedule(List<ScheduledPlace> scheduledPlaces) {
-		for (ScheduledPlace scheduledPlace : scheduledPlaces) {
-			ScheduledPlaceDAO.insertSchedule(scheduledPlace);
-		}
-	}
-	
-	public static List<ScheduledPlace> getSchedulesByPlanId(String planId) {
-		return ScheduledPlaceDAO.searchByPlanId(planId);
-	}
-	
-	public static void deleteSchedule(ScheduledPlace schedule) {
-		ScheduledPlaceDAO.deleteSchedule(schedule);
-	}
+
+    private static final ScheduledPlaceDAO scheduledPlaceDAO = new ScheduledPlaceDAO();
+
+    /**
+     * 특정 여행 계획(plan)에 속한 모든 예정된 장소 목록을 가져옵니다.
+     *
+     * @param planId 조회할 여행 계획의 ID
+     * @return 해당 여행 계획에 포함된 ScheduledPlace 객체의 리스트
+     */
+    public static List<ScheduledPlace> getSchedulesByPlanId(String planId) {
+        return scheduledPlaceDAO.findSchedulesByPlanId(planId);
+    }
+
+    /**
+     * 새로운 여행 일정을 데이터베이스에 추가합니다.
+     *
+     * @param schedule 추가할 ScheduledPlace 객체
+     */
+    public static void insertSchedule(ScheduledPlace schedule) {
+        scheduledPlaceDAO.insertSchedule(schedule);
+    }
+
+    /**
+     * 여러 개의 새로운 여행 일정을 한 번에 데이터베이스에 추가합니다.
+     *
+     * @param schedules 추가할 ScheduledPlace 객체들의 리스트
+     */
+    public static void insertSchedule(List<ScheduledPlace> schedules) {
+        for (ScheduledPlace schedule : schedules) {
+            // 참고: 실제 프로덕션 환경에서는 단일 트랜잭션으로 묶어 처리하는 것이 더 효율적입니다.
+            scheduledPlaceDAO.insertSchedule(schedule);
+        }
+    }
+
+    /**
+     * 기존 여행 일정을 데이터베이스에서 업데이트합니다.
+     *
+     * @param schedule 업데이트할 정보가 담긴 ScheduledPlace 객체
+     */
+    public static void updateSchedule(ScheduledPlace schedule) {
+        scheduledPlaceDAO.updateSchedule(schedule);
+    }
+
+    /**
+     * 기존 여행 일정을 데이터베이스에서 삭제합니다.
+     *
+     * @param schedule 삭제할 ScheduledPlace 객체
+     */
+    public static void deleteSchedule(ScheduledPlace schedule) {
+        scheduledPlaceDAO.deleteSchedule(schedule);
+    }
 }

@@ -4,15 +4,30 @@ import busantravel.model.TravelPlan;
 import java.awt.*;
 import javax.swing.*;
 
+/**
+ * 선택된 특정 여행 계획의 개요를 표시하는 패널입니다.
+ * 여행 제목, 기간, 참여 코드를 보여주며, '일정 계획하기' 버튼을 통해
+ * 상세 계획 화면(PlanTripPanel)으로 전환하는 기능을 제공합니다.
+ */
 public class TripSchedulePanel extends JPanel {
     private TravelPlannerApp mainApp;
 
+    /**
+     * TripSchedulePanel의 새 인스턴스를 생성합니다.
+     *
+     * @param mainApp 화면 전환을 위한 메인 애플리케이션(TravelPlannerApp)의 참조
+     */
     public TripSchedulePanel(TravelPlannerApp mainApp) {
         this.mainApp = mainApp;
         setLayout(new BorderLayout());
         add(new JLabel("TripSchedulePanel: Select a trip to see details."), BorderLayout.CENTER);
     }
 
+    /**
+     * 특정 여행 계획의 정보를 받아와 패널의 내용을 업데이트하고 다시 그립니다.
+     *
+     * @param plan 화면에 표시할 여행 계획(TravelPlan) 객체
+     */
     public void loadTripRoom(TravelPlan plan) {
         removeAll();
         setBackground(Color.WHITE);

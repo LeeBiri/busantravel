@@ -2,16 +2,30 @@ package busantravel.ui;
 
 import javax.swing.*;
 import java.awt.*;
+import busantravel.ui.ColorConstants;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+/**
+ * 사용자 회원가입을 위한 대화상자를 생성하고 관리하는 클래스입니다.
+ * 이름, 아이디, 비밀번호, 이메일 등 가입에 필요한 정보를 입력받습니다.
+ */
 public class SignUpDialog {
     private JFrame parent;
 
+    /**
+     * SignUpDialog의 새 인스턴스를 생성합니다.
+     *
+     * @param parent 부모 JFrame 객체. 대화상자는 이 프레임에 종속됩니다.
+     */
     public SignUpDialog(JFrame parent) {
         this.parent = parent;
     }
 
+    /**
+     * 회원가입 대화상자를 화면에 표시합니다.
+     * UI 컴포넌트를 초기화하고, 이벤트 리스너를 설정한 후 대화상자를 보이게 합니다.
+     */
     public void showDialog() {
         JDialog signUpDialog = new JDialog(parent, "회원가입", true);
         signUpDialog.setSize(450, 350); // 크기 조정
@@ -69,7 +83,7 @@ public class SignUpDialog {
         JButton cancelBtn = new JButton("취소");
 
         // 가입하기/취소 버튼 스타일
-        signUpBtn.setBackground(new Color(222, 146, 124));
+        signUpBtn.setBackground(ColorConstants.ACCENT);
         signUpBtn.setForeground(Color.WHITE);
         signUpBtn.setFocusPainted(false);
         cancelBtn.setBackground(new Color(240, 240, 240));
