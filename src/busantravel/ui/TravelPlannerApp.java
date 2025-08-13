@@ -245,7 +245,7 @@ public class TravelPlannerApp {
         button.setBackground(new Color(222, 146, 124));
         button.setFocusPainted(false);
         button.setBorderPainted(false);
-        button.setFont(jalnanFont.deriveFont(Font.BOLD, 14f));
+        button.setFont(jalnanFont.deriveFont(Font.PLAIN, 18f));
 
         button.addActionListener(e -> {
             currentTab = tabName;

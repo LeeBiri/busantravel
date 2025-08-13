@@ -31,29 +31,11 @@ public class PlaceCard extends JPanel {
         LIST
     }
 
-    private void loadFont() {
-        try {
-            InputStream is = getClass().getResourceAsStream("/busantravel/resources/Jalnan2TTF.ttf");
-            if (is != null) {
-                jalnanFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(16f); // 기본 크기 16으로 설정
-                GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-                ge.registerFont(jalnanFont);
-            } else {
-                System.err.println("폰트 파일을 찾을 수 없습니다! 기본 폰트 사용.");
-                jalnanFont = new Font("맑은 고딕", Font.PLAIN, 14);
-            }
-        } catch (Exception e) {
-            System.err.println("폰트 로드 중 예외 발생: " + e.getMessage());
-            e.printStackTrace();
-            jalnanFont = new Font("맑은 고딕", Font.PLAIN, 14);
-        }
-    }
-
-    public PlaceCard(JFrame frame, String placeName, String category, String thumbnail, ViewType viewType) {
+    public PlaceCard(JFrame frame, String placeName, String category, String thumbnail, ViewType viewType, Font customFont) {
         this.placeDAO = new PlaceDAO();
         this.tmapApiHandler = new TmapApiHandler(API_KEY);
         this.staticMapGenerator = new StaticMapGenerator(API_KEY);
-        loadFont(); // 폰트 로드
+        this.jalnanFont = customFont; // 외부에서 폰트 받아오기
         if (viewType == ViewType.GRID) {
             setupGridView(frame, placeName, category, thumbnail);
         } else {

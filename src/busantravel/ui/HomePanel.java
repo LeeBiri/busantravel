@@ -8,24 +8,47 @@ import busantravel.model.Tourist;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 public class HomePanel extends JPanel {
     private JPanel gridPanel;
     private JFrame frame;
+    private Font jalnanFont;
     private JScrollPane scrollPane;
     private Map<String, JButton> categoryButtons = new HashMap<>(); // 카테고리별 버튼 저장
     private String selectedCategory = "관광지"; // 기본 선택 카테고리
     private PlaceDAO placeDAO;
+
+    private void loadFont() {
+        try {
+            InputStream is = getClass().getResourceAsStream("/busantravel/resources/JalnanGothicTTF.ttf");
+            if (is != null) {
+                jalnanFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(16f);
+                GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+                ge.registerFont(jalnanFont);
+            } else {
+                System.err.println("폰트 파일을 찾을 수 없습니다! 기본 폰트 사용.");
+                jalnanFont = new Font("맑은 고딕", Font.PLAIN, 14);
+            }
+        } catch (Exception e) {
+            System.err.println("폰트 로드 중 예외 발생: " + e.getMessage());
+            e.printStackTrace();
+            jalnanFont = new Font("맑은 고딕", Font.PLAIN, 14);
+        }
+    }
+
 
     public HomePanel(JFrame frame) {
         this.placeDAO = new PlaceDAO();
         this.frame = frame;
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
-
+        loadFont();
+        setFont(jalnanFont);
         // --- 상단 카테고리 버튼 바 ---
         JPanel topCategoryPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         topCategoryPanel.setBackground(new Color(250, 250, 250));
@@ -38,7 +61,7 @@ public class HomePanel extends JPanel {
             btn.setForeground(Color.WHITE);
             btn.setFocusPainted(false);
             btn.setBorderPainted(false);
-            btn.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+            btn.setFont(new Font(jalnanFont.getName(), Font.PLAIN, 14));
             btn.addActionListener(e -> {
                 selectedCategory = category;
                 updateCategoryButtonColors();
@@ -121,7 +144,7 @@ public class HomePanel extends JPanel {
                     placeName = ((Festival) place).getF_name();
                     thumbnail = ((Festival) place).getF_thum();
                 }
-                contentPanel.add(new PlaceCard(frame, placeName, category, thumbnail, viewType));
+                contentPanel.add(new PlaceCard(frame, placeName, category, thumbnail, viewType, jalnanFont));
             }
             
             if (viewType == PlaceCard.ViewType.LIST) {
@@ -176,7 +199,7 @@ public class HomePanel extends JPanel {
                     category = "축제";
                     thumbnail = ((Festival) place).getF_thum();
                 }
-                gridPanel.add(new PlaceCard(frame, placeName, category, thumbnail, PlaceCard.ViewType.GRID));
+                gridPanel.add(new PlaceCard(frame, placeName, category, thumbnail, PlaceCard.ViewType.GRID, jalnanFont));
             }
         }
 
