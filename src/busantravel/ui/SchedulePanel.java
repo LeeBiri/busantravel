@@ -222,17 +222,9 @@ public class SchedulePanel extends JPanel {
             planBtn.setFocusPainted(false);
 
             planBtn.addActionListener(e -> {
-                PlanTripPanel tripPanel = new PlanTripPanel(
-                    plan.getPlan_period_start(),
-                    plan.getPlan_period_end(),
-                    mainApp,
-                    plan.getPlan_title()
-                );
-
-                JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(SchedulePanel.this);
-                frame.setContentPane(tripPanel);
-                frame.revalidate();
-                frame.repaint();
+                if (mainApp != null) {
+                    mainApp.switchToPlanTrip(plan);
+                }
             });
 
 

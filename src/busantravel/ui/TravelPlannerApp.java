@@ -214,8 +214,18 @@ public class TravelPlannerApp {
             contentPanel.remove(planTripPanel);
         }
         
-        planTripPanel = new PlanTripPanel(plan.getPlan_period_start(), plan.getPlan_period_end(), this, plan.getPlan_title());
-        contentPanel.add(planTripPanel, "plan"); 
+        // '뒤로가기' 시 호출될 콜백 정의
+        Runnable onBackCallback = this::goToScheduleTab;
+
+        planTripPanel = new PlanTripPanel(
+                plan.getPlan_period_start(),
+                plan.getPlan_period_end(),
+                this,
+                plan.getPlan_title(),
+                plan.getPlan_id(), // planId 전달
+                onBackCallback     // onBack 콜백 전달
+        );
+        contentPanel.add(planTripPanel, "plan");
 
         currentTab = "plan";
         updateContent();
