@@ -3,7 +3,6 @@ package busantravel.model;
 import java.time.LocalDateTime;
 
 public class ScheduledPlace {
-    private int schedule_id; // 일정 장소 ID (PK)
     private String plan_id; //계획 ID
     private String p_id; //여행지 번호
     private String p_type; //여행지 구분
@@ -20,26 +19,6 @@ public class ScheduledPlace {
         this.scheduled_date = scheduled_date;
         this.expected_dutarion = expected_dutarion;
         this.visit_order = visit_order;
-    }
-
-    // DB 조회 결과를 모델 객체로 변환 시 사용할 생성자
-    public ScheduledPlace(int schedule_id, String plan_id, String p_id, String p_type, LocalDateTime scheduled_date,
-            LocalDateTime expected_dutarion, int visit_order) {
-        this.schedule_id = schedule_id;
-        this.plan_id = plan_id;
-        this.p_id = p_id;
-        this.p_type = p_type;
-        this.scheduled_date = scheduled_date;
-        this.expected_dutarion = expected_dutarion;
-        this.visit_order = visit_order;
-    }
-
-    public int getSchedule_id() {
-        return schedule_id;
-    }
-
-    public void setSchedule_id(int schedule_id) {
-        this.schedule_id = schedule_id;
     }
 
     public String getplan_id() {

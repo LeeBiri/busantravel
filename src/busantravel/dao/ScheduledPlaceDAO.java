@@ -40,13 +40,14 @@ public class ScheduledPlaceDAO {
     }
 
     public void updateSchedule(ScheduledPlace schedule) {
-        String sql = "UPDATE scheduled_place SET scheduled_date = ?, expected_duration = ?, visit_order = ? WHERE schedule_id = ?";
+        String sql = "UPDATE scheduled_place SET scheduled_date = ?, expected_duration = ?, visit_order = ? WHERE plan_id = ? AND p_id = ?";
         try (Connection con = pool.getConnection();
              PreparedStatement pstmt = con.prepareStatement(sql)) {
             pstmt.setTimestamp(1, Timestamp.valueOf(schedule.getScheduled_date()));
             pstmt.setTimestamp(2, Timestamp.valueOf(schedule.getExpected_dutarion()));
             pstmt.setInt(3, schedule.getVisit_order());
-            pstmt.setInt(4, schedule.getSchedule_id());
+            pstmt.setString(4, schedule.getplan_id());
+            pstmt.setString(5, schedule.getP_id());
             pstmt.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
@@ -54,10 +55,11 @@ public class ScheduledPlaceDAO {
     }
 
     public void deleteSchedule(ScheduledPlace schedule) {
-        String sql = "DELETE FROM scheduled_place WHERE schedule_id = ?";
+        String sql = "DELETE FROM scheduled_place WHERE plan_id = ? AND p_id = ?";
         try (Connection con = pool.getConnection();
              PreparedStatement pstmt = con.prepareStatement(sql)) {
-            pstmt.setInt(1, schedule.getSchedule_id());
+            pstmt.setString(1, schedule.getplan_id());
+            pstmt.setString(2, schedule.getP_id());
             pstmt.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
@@ -72,13 +74,12 @@ public class ScheduledPlaceDAO {
             pstmt.setString(1, planId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    int scheduleId = rs.getInt("schedule_id");
                     String pId = rs.getString("p_id");
                     String pType = rs.getString("p_type");
                     LocalDateTime scheduledDate = rs.getTimestamp("scheduled_date").toLocalDateTime();
                     LocalDateTime expectedDuration = rs.getTimestamp("expected_duration").toLocalDateTime();
                     int visitOrder = rs.getInt("visit_order");
-                    schedules.add(new ScheduledPlace(scheduleId, planId, pId, pType, scheduledDate, expectedDuration, visitOrder));
+                    schedules.add(new ScheduledPlace(planId, pId, pType, scheduledDate, expectedDuration, visitOrder));
                 }
             }
         } catch (Exception e) {
