@@ -122,8 +122,8 @@ public class SchedulePanel extends JPanel {
      * 다가오는 여행과 지난 여행 목록을 받아와 화면에 렌더링합니다.
      * 각 목록에 대해 카드 형태의 UI를 생성하여 패널에 추가합니다.
      *
-     * @param upcoming 다가오는 여행 계획 목록 (List<TravelPlan>)
-     * @param past     지난 여행 계획 목록 (List<TravelPlan>)
+     * @param upcoming 다가오는 여행 계획 목록
+     * @param past     지난 여행 계획 목록
      */
     public void renderPlans(java.util.List<TravelPlan> upcoming, java.util.List<TravelPlan> past) {
         upcomingPanel.removeAll();
