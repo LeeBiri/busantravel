@@ -25,6 +25,12 @@ public class HomePanel extends JPanel {
     private PlaceDAO placeDAO;
     private JTextField searchField;
     private JButton searchButton;
+    private JPanel paginationPanel; // 페이지네이션 패널
+
+    private int currentPage = 1;
+    private int pageSize = 24;
+    private int totalPages = 1;
+    private String currentSearchQuery = null; // 현재 검색어 저장
 
     private void loadFont() {
         try {
@@ -75,9 +81,8 @@ public class HomePanel extends JPanel {
             btn.setBorderPainted(false);
             btn.setFont(new Font(jalnanFont.getName(), Font.PLAIN, 14));
             btn.addActionListener(e -> {
-                selectedCategory = category;
                 updateCategoryButtonColors();
-                loadPlaces(category);
+                loadPlaces(category, 1);
             });
             categoryButtons.put(category, btn);
             categoryButtonsPanel.add(btn);
@@ -91,14 +96,14 @@ public class HomePanel extends JPanel {
         searchPanel.setOpaque(false);
         searchPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30)); // 높이 고정 (마진 축소)
 
-        searchField = new JTextField(15); // 너비 조정
+        searchField = new JTextField(20); // 너비 조정
         searchField.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
         
         // 엔터키 리스너
         searchField.addActionListener(e -> searchButton.doClick());
 
         searchButton = new RoundedButton("검색"); // 둥근 버튼으로 변경
-        searchButton.setPreferredSize(new Dimension(80, 30));
+        searchButton.setPreferredSize(new Dimension(70, 25));
         searchButton.setForeground(Color.WHITE);
         searchButton.setBackground(ColorConstants.ACCENT); // 악센트 컬러로 변경
         searchButton.setFocusPainted(false);
@@ -129,8 +134,13 @@ public class HomePanel extends JPanel {
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.setBorder(null);
 
+        // --- 페이지네이션 패널 ---
+        paginationPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        paginationPanel.setBackground(Color.WHITE);
+
         add(topBarPanel, BorderLayout.NORTH); // 상단 바 패널 추가
         add(scrollPane, BorderLayout.CENTER);
+        add(paginationPanel, BorderLayout.SOUTH); // 페이지네이션 패널 추가
 
         // 초기 버튼 색상 및 장소 로드
         updateCategoryButtonColors();
@@ -151,6 +161,14 @@ public class HomePanel extends JPanel {
 
     // 장소 데이터 로드
     private void loadPlaces(String category) {
+        loadPlaces(category, 1);
+    }
+
+    private void loadPlaces(String category, int page) {
+        this.selectedCategory = category;
+        this.currentPage = page;
+        this.currentSearchQuery = null; // 카테고리 로드 시 검색어 초기화
+
         gridPanel.removeAll();
         
         // 카테고리에 따라 레이아웃 변경
@@ -160,7 +178,10 @@ public class HomePanel extends JPanel {
             gridPanel.setLayout(new GridLayout(0, 4, 30, 30));
         }
 
-        List<Object> places = placeDAO.getPlacesByCategory(category);
+        int totalItems = placeDAO.getTotalPlaceCount(category);
+        totalPages = (int) Math.ceil((double) totalItems / pageSize);
+
+        List<Object> places = placeDAO.getPlacesByCategory(category, currentPage, pageSize);
 
         if (places.isEmpty()) {
             gridPanel.add(new JLabel("데이터가 없습니다."));
@@ -213,14 +234,21 @@ public class HomePanel extends JPanel {
         gridPanel.revalidate();
         gridPanel.repaint();
         SwingUtilities.invokeLater(() -> scrollPane.getVerticalScrollBar().setValue(0));
+        updatePagination();
     }
 
     // 검색어로 장소 데이터 로드
-    private void loadPlacesBySearch(String query) {
+    private void loadPlacesBySearch(String query, int page) {
+        this.currentSearchQuery = query;
+        this.currentPage = page;
+
         gridPanel.removeAll();
         gridPanel.setLayout(new GridLayout(0, 4, 30, 30)); // 검색 결과는 항상 그리드
         
-        List<Object> places = placeDAO.searchPlaces(query);
+        int totalItems = placeDAO.getTotalSearchCount(query);
+        totalPages = (int) Math.ceil((double) totalItems / pageSize);
+
+        List<Object> places = placeDAO.searchPlaces(query, currentPage, pageSize);
 
         if (places.isEmpty()) {
             gridPanel.add(new JLabel("검색 결과가 없습니다."));
@@ -254,11 +282,125 @@ public class HomePanel extends JPanel {
         gridPanel.revalidate();
         gridPanel.repaint();
         SwingUtilities.invokeLater(() -> scrollPane.getVerticalScrollBar().setValue(0));
+        updatePagination();
     }
 
     // 검색을 트리거하는 메서드
     public void performSearch(String query) {
-        loadPlacesBySearch(query);
+        loadPlacesBySearch(query, 1);
+    }
+
+    // 페이지네이션 UI 업데이트
+    private void updatePagination() {
+        paginationPanel.removeAll();
+        paginationPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
+
+
+        if (totalPages <= 1) {
+            paginationPanel.revalidate();
+            paginationPanel.repaint();
+            return;
+        }
+
+        // 이전 버튼
+        JButton prevButton = createStyledButton("<");
+        if (currentPage > 1) {
+            prevButton.addActionListener(e -> {
+                if (currentSearchQuery != null) {
+                    loadPlacesBySearch(currentSearchQuery, currentPage - 1);
+                } else {
+                    loadPlaces(selectedCategory, currentPage - 1);
+                }
+            });
+        } else {
+            prevButton.setEnabled(false);
+            prevButton.setBackground(Color.LIGHT_GRAY);
+        }
+        paginationPanel.add(prevButton);
+        paginationPanel.add(Box.createHorizontalStrut(5));
+
+
+        // 페이지 번호 버튼
+        int startPage = Math.max(1, currentPage - 2);
+        int endPage = Math.min(totalPages, currentPage + 2);
+
+        if(totalPages > 5 && currentPage > 3) {
+            JButton firstButton = createStyledButton("1");
+            firstButton.addActionListener(e -> {
+                if (currentSearchQuery != null) loadPlacesBySearch(currentSearchQuery, 1);
+                else loadPlaces(selectedCategory, 1);
+            });
+            paginationPanel.add(firstButton);
+            paginationPanel.add(Box.createHorizontalStrut(5));
+            if(currentPage > 4) {
+                 paginationPanel.add(new JLabel("..."));
+                 paginationPanel.add(Box.createHorizontalStrut(5));
+            }
+        }
+
+
+        for (int i = startPage; i <= endPage; i++) {
+            JButton pageButton = createStyledButton(String.valueOf(i));
+            final int pageNum = i;
+            if (i == currentPage) {
+                pageButton.setBackground(ColorConstants.SELECTED); // 현재 페이지 강조
+            }
+            pageButton.addActionListener(e -> {
+                if (currentSearchQuery != null) {
+                    loadPlacesBySearch(currentSearchQuery, pageNum);
+                } else {
+                    loadPlaces(selectedCategory, pageNum);
+                }
+            });
+            paginationPanel.add(pageButton);
+            paginationPanel.add(Box.createHorizontalStrut(5));
+        }
+
+        if(totalPages > 5 && currentPage < totalPages - 2) {
+            if(currentPage < totalPages - 3) {
+                paginationPanel.add(new JLabel("..."));
+                paginationPanel.add(Box.createHorizontalStrut(5));
+            }
+            JButton lastButton = createStyledButton(String.valueOf(totalPages));
+            lastButton.addActionListener(e -> {
+                if (currentSearchQuery != null) loadPlacesBySearch(currentSearchQuery, totalPages);
+                else loadPlaces(selectedCategory, totalPages);
+            });
+            paginationPanel.add(lastButton);
+            paginationPanel.add(Box.createHorizontalStrut(5));
+        }
+
+
+        // 다음 버튼
+        JButton nextButton = createStyledButton(">");
+        if (currentPage < totalPages) {
+            nextButton.addActionListener(e -> {
+                if (currentSearchQuery != null) {
+                    loadPlacesBySearch(currentSearchQuery, currentPage + 1);
+                } else {
+                    loadPlaces(selectedCategory, currentPage + 1);
+                }
+            });
+        } else {
+            nextButton.setEnabled(false);
+            nextButton.setBackground(Color.LIGHT_GRAY);
+        }
+        paginationPanel.add(nextButton);
+
+
+        paginationPanel.revalidate();
+        paginationPanel.repaint();
+    }
+
+    private JButton createStyledButton(String text) {
+        JButton button = new JButton(text);
+        button.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
+        button.setBackground(ColorConstants.ACCENT);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        //button.setBorderPainted(false);
+        return button;
     }
 
     // 둥근 버튼을 위한 커스텀 클래스

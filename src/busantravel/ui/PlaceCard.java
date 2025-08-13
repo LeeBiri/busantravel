@@ -360,8 +360,12 @@ public class PlaceCard extends JPanel {
             mapLabel.setPreferredSize(new Dimension(800, 400));
             mapPanel.add(mapLabel, BorderLayout.CENTER);
 
-            JButton zoomInButton = new JButton("+");
-            JButton zoomOutButton = new JButton("-");
+            JButton zoomInButton = new RoundedButton("+");
+            setupZoomButton(zoomInButton);
+            
+            JButton zoomOutButton = new RoundedButton("-");
+            setupZoomButton(zoomOutButton);
+
             JPanel zoomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
             zoomPanel.setBackground(Color.WHITE);
             zoomPanel.add(zoomInButton);
@@ -505,5 +509,57 @@ public class PlaceCard extends JPanel {
         label.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
         label.setAlignmentX(Component.LEFT_ALIGNMENT);
         return label;
+    }
+    
+    private void setupZoomButton(JButton button) {
+        button.setPreferredSize(new Dimension(40, 40));
+        button.setFont(new Font("맑은 고딕", Font.BOLD, 15));
+        button.setForeground(Color.WHITE);
+        button.setBackground(ColorConstants.ACCENT);
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+    }
+
+    // 둥근 버튼을 위한 커스텀 클래스
+    class RoundedButton extends JButton {
+        public RoundedButton(String text) {
+            super(text);
+            setContentAreaFilled(false);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            if (getModel().isArmed()) {
+                g2.setColor(getBackground().darker());
+            } else if (getModel().isRollover()) {
+                g2.setColor(getBackground().brighter());
+            } else {
+                g2.setColor(getBackground());
+            }
+            
+            g2.fillOval(0, 0, getWidth(), getHeight());
+
+            // 텍스트를 직접 중앙에 그리기
+            g2.setColor(getForeground());
+            FontMetrics fm = g2.getFontMetrics();
+            int stringWidth = fm.stringWidth(getText());
+            int stringAscent = fm.getAscent();
+            int stringDescent = fm.getDescent();
+            int x = (getWidth() - stringWidth) / 2;
+            int y = (getHeight() - stringAscent - stringDescent) / 2 + stringAscent;
+            g2.drawString(getText(), x, y);
+            
+            g2.dispose();
+        }
+
+        @Override
+        public Dimension getPreferredSize() {
+            Dimension size = super.getPreferredSize();
+            size.width = size.height = Math.max(size.width, size.height);
+            return size;
+        }
     }
 }
