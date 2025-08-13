@@ -9,28 +9,40 @@ import java.io.InputStream;
 import java.net.URL;
 import javax.swing.*;
 
+/**
+ * 부산 여행 플래너 애플리케이션의 메인 클래스입니다.
+ * 애플리케이션의 전체적인 UI 프레임, 상단 바, 네비게이션, 컨텐츠 패널을 초기화하고 관리합니다.
+ * 화면 전환 로직을 담당합니다.
+ */
 public class TravelPlannerApp {
-    private Font jalnanFont; // 폰트 필드 추가
-    private JFrame frame;
-    private JPanel mainPanel;
+    private Font jalnanFont; // 애플리케이션 전역에서 사용될 커스텀 폰트
+    private JFrame frame; // 메인 프레임
+    private JPanel mainPanel; // 모든 컴포넌트를 담는 메인 패널
     private JPanel contentPanel;
-    private CardLayout contentCardLayout;
-    private JPanel navigationPanel;
-    private JLabel currentTitleLabel;
-    private JLabel logoLabel;
+    private CardLayout contentCardLayout; // 화면 전환을 위한 CardLayout
+    private JPanel navigationPanel; // 하단 네비게이션 버튼을 담는 패널
+    private JLabel currentTitleLabel; // 현재 화면의 제목을 표시하는 레이블
+    private JLabel logoLabel; // 상단 로고 레이블
 
-    private SchedulePanel schedulePanel;
-    private HomePanel homePanel;
-    private JPanel savedPanel; // 임시
-    private JPanel reviewPanel; // 임시
-    private PlanTripPanel planTripPanel; // PlanTripPanel 인스턴스
+    private SchedulePanel schedulePanel; // '일정' 탭 패널
+    private HomePanel homePanel; // '여행 홈' 탭 패널
+    private JPanel savedPanel; // '저장' 탭을 위한 임시 패널
+    private JPanel reviewPanel; // '후기' 탭을 위한 임시 패널
+    private PlanTripPanel planTripPanel; // '여행 계획' 패널 인스턴스
 
-    private String currentTab = "home"; // 초기 탭 설정
+    private String currentTab = "home"; // 현재 활성화된 탭을 식별하는 문자열
 
+    /**
+     * 애플리케이션의 메인 진입점입니다.
+     * @param args 커맨드 라인 인수 (사용되지 않음)
+     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new TravelPlannerApp().initialize());
     }
 
+    /**
+     * 애플리케이션에서 사용할 커스텀 폰트를 로드합니다.
+     */
     private void loadFont() {
         try {
             InputStream is = getClass().getResourceAsStream("/busantravel/resources/Jalnan2TTF.ttf");
@@ -49,6 +61,9 @@ public class TravelPlannerApp {
         }
     }
 
+    /**
+     * 애플리케이션의 모든 UI 컴포넌트를 초기화하고 메인 프레임을 설정합니다.
+     */
     public void initialize() {
         loadFont(); // 폰트 로드
         frame = new JFrame("부산 여행 플래너");
@@ -189,6 +204,11 @@ public class TravelPlannerApp {
         frame.setVisible(true);
     }
 
+    /**
+     * 특정 여행 계획을 편집하기 위해 '여행 계획' 패널(PlanTripPanel)로 전환합니다.
+     *
+     * @param plan 사용자가 편집할 여행 계획(TravelPlan) 객체
+     */
     public void switchToPlanTrip(TravelPlan plan) {
         if (planTripPanel != null) {
             contentPanel.remove(planTripPanel);
@@ -203,6 +223,10 @@ public class TravelPlannerApp {
         updateNavButtonStyles();
     }
     
+    /**
+     * '일정' 탭으로 화면을 전환합니다.
+     * 주로 PlanTripPanel에서 '뒤로가기'를 눌렀을 때 호출됩니다.
+     */
     public void goToScheduleTab() {
         currentTab = "schedule";
         updateContent();
@@ -211,6 +235,9 @@ public class TravelPlannerApp {
         //여행계획 새로고침
     }
 
+    /**
+     * 현재 선택된 탭(`currentTab`)에 따라 메인 컨텐츠 패널의 내용을 업데이트(전환)합니다.
+     */
     private void updateContent() {
         contentCardLayout.show(contentPanel, currentTab);
 
@@ -225,6 +252,9 @@ public class TravelPlannerApp {
         }
     }
 
+    /**
+     * 하단 네비게이션 바에 버튼들을 생성하고 추가합니다.
+     */
     private void initNavigationButtons() {
         navigationPanel.add(createNavButton("여행 홈", "home"));
         navigationPanel.add(createNavButton("일정", "schedule"));
@@ -232,6 +262,13 @@ public class TravelPlannerApp {
         navigationPanel.add(createNavButton("후기", "review"));
     }
 
+    /**
+     * 네비게이션 바에 사용될 개별 버튼을 생성합니다.
+     *
+     * @param text    버튼에 표시될 텍스트
+     * @param tabName 버튼 클릭 시 전환될 탭의 이름
+     * @return 생성된 JButton 객체
+     */
     private JButton createNavButton(String text, String tabName) {
         JButton button = new JButton(text);
         button.setForeground(Color.WHITE);
@@ -249,6 +286,9 @@ public class TravelPlannerApp {
         return button;
     }
 
+    /**
+     * 현재 활성화된 탭에 따라 네비게이션 버튼들의 스타일(배경색 등)을 업데이트합니다.
+     */
     private void updateNavButtonStyles() {
         for (Component comp : navigationPanel.getComponents()) {
             if (comp instanceof JButton) {
@@ -262,6 +302,12 @@ public class TravelPlannerApp {
         }
     }
 
+    /**
+     * 탭 이름(영문)에 해당하는 한글 텍스트를 반환합니다.
+     *
+     * @param tabName 탭의 고유 이름 (e.g., "home", "schedule")
+     * @return 해당 탭의 한글 이름
+     */
     private String getTabText(String tabName) {
         switch (tabName) {
             case "home": return "여행 홈";
@@ -272,6 +318,9 @@ public class TravelPlannerApp {
         }
     }
 
+    /**
+     * 현재 활성화된 탭에 맞춰 상단 패널의 제목을 업데이트합니다.
+     */
     private void updateTopPanelTitle() {
         if ("plan".equals(currentTab) && planTripPanel != null) {
             currentTitleLabel.setText(planTripPanel.getTripTitle() + " 계획"); 
@@ -281,6 +330,12 @@ public class TravelPlannerApp {
     }
     
 
+    /**
+     * 아직 구현되지 않은 화면을 위한 임시 플레이스홀더 패널을 생성합니다.
+     *
+     * @param text 패널 중앙에 표시될 텍스트
+     * @return 생성된 JPanel 객체
+     */
     private JPanel createPlaceholderPanel(String text) {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.add(new JLabel(text, SwingConstants.CENTER));

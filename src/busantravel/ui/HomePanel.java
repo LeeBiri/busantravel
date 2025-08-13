@@ -14,24 +14,32 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
+/**
+ * 애플리케이션의 메인 화면을 구성하는 패널 클래스입니다.
+ * 관광지, 맛집, 숙소, 축제 등 다양한 장소 정보를 카테고리별로 보여주며,
+ * 검색 기능과 페이지네이션을 통해 사용자가 정보를 쉽게 탐색할 수 있도록 합니다.
+ */
 public class HomePanel extends JPanel {
-    private JPanel gridPanel;
-    private JFrame frame;
+    private JPanel gridPanel; // 장소 카드를 표시하는 그리드 패널
+    private JFrame frame; // 상위 프레임
     private Font jalnanFont;
-    private JScrollPane scrollPane;
+    private JScrollPane scrollPane; // gridPanel을 담는 스크롤 패널
     private Map<String, JButton> categoryButtons = new HashMap<>(); // 카테고리별 버튼 저장
     private String selectedCategory = "관광지"; // 기본 선택 카테고리
-    private PlaceDAO placeDAO;
-    private JTextField searchField;
-    private JButton searchButton;
-    private JPanel paginationPanel; // 페이지네이션 패널
+    private PlaceDAO placeDAO; // 데이터 접근 객체
+    private JTextField searchField; // 검색어 입력 필드
+    private JButton searchButton; // 검색 실행 버튼
+    private JPanel paginationPanel; // 페이지네이션 UI를 담는 패널
 
-    private int currentPage = 1;
-    private int pageSize = 24;
-    private int totalPages = 1;
+    private int currentPage = 1; // 현재 페이지 번호
+    private int pageSize = 24; // 한 페이지에 보여줄 항목 수
+    private int totalPages = 1; // 전체 페이지 수
     private String currentSearchQuery = null; // 현재 검색어 저장
 
+    /**
+     * 애플리케이션에서 사용할 커스텀 폰트를 로드합니다.
+     * 폰트 파일을 찾지 못할 경우, 기본 시스템 폰트를 사용합니다.
+     */
     private void loadFont() {
         try {
             InputStream is = getClass().getResourceAsStream("/busantravel/resources/JalnanGothicTTF.ttf");
@@ -51,6 +59,12 @@ public class HomePanel extends JPanel {
     }
 
 
+    /**
+     * HomePanel의 새 인스턴스를 생성합니다.
+     * UI 컴포넌트를 초기화하고 레이아웃을 설정하며, 초기 데이터를 로드합니다.
+     *
+     * @param frame 상위 JFrame 객체.
+     */
     public HomePanel(JFrame frame) {
         this.placeDAO = new PlaceDAO();
         this.frame = frame;
@@ -147,7 +161,10 @@ public class HomePanel extends JPanel {
         loadPlaces(selectedCategory);
     }
 
-    // 선택된 카테고리 버튼 색상 업데이트
+    /**
+     * 현재 선택된 카테고리에 따라 버튼의 배경색을 업데이트하여
+     * 시각적으로 선택 상태를 표시합니다.
+     */
     private void updateCategoryButtonColors() {
         for (String category : categoryButtons.keySet()) {
             JButton btn = categoryButtons.get(category);
@@ -159,11 +176,21 @@ public class HomePanel extends JPanel {
         }
     }
 
-    // 장소 데이터 로드
+    /**
+     * 지정된 카테고리의 장소 목록을 첫 페이지부터 로드합니다.
+     *
+     * @param category 로드할 장소의 카테고리 ("관광지", "맛집" 등).
+     */
     private void loadPlaces(String category) {
         loadPlaces(category, 1);
     }
 
+    /**
+     * 지정된 카테고리와 페이지 번호에 해당하는 장소 목록을 데이터베이스에서 가져와 화면에 표시합니다.
+     *
+     * @param category 로드할 장소의 카테고리.
+     * @param page     로드할 페이지 번호.
+     */
     private void loadPlaces(String category, int page) {
         this.selectedCategory = category;
         this.currentPage = page;
@@ -237,7 +264,12 @@ public class HomePanel extends JPanel {
         updatePagination();
     }
 
-    // 검색어로 장소 데이터 로드
+    /**
+     * 검색어를 기반으로 장소 데이터를 찾아 지정된 페이지의 결과를 화면에 표시합니다.
+     *
+     * @param query 검색할 문자열.
+     * @param page  로드할 페이지 번호.
+     */
     private void loadPlacesBySearch(String query, int page) {
         this.currentSearchQuery = query;
         this.currentPage = page;
@@ -285,12 +317,19 @@ public class HomePanel extends JPanel {
         updatePagination();
     }
 
-    // 검색을 트리거하는 메서드
+    /**
+     * 검색 필드에 입력된 검색어로 검색을 실행합니다.
+     *
+     * @param query 사용자가 입력한 검색어.
+     */
     public void performSearch(String query) {
         loadPlacesBySearch(query, 1);
     }
 
-    // 페이지네이션 UI 업데이트
+    /**
+     * 현재 페이지 상태(총 페이지 수, 현재 페이지 번호)에 맞춰 페이지네이션 UI를 동적으로 생성하고 업데이트합니다.
+     * 페이지 버튼, 이전/다음 버튼 등을 포함합니다.
+     */
     private void updatePagination() {
         paginationPanel.removeAll();
         paginationPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
@@ -392,6 +431,12 @@ public class HomePanel extends JPanel {
         paginationPanel.repaint();
     }
 
+    /**
+     * 페이지네이션 바에 사용될 스타일이 적용된 JButton을 생성합니다.
+     *
+     * @param text 버튼에 표시될 텍스트.
+     * @return 스타일이 적용된 JButton 객체.
+     */
     private JButton createStyledButton(String text) {
         JButton button = new JButton(text);
         button.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
@@ -403,8 +448,15 @@ public class HomePanel extends JPanel {
         return button;
     }
 
-    // 둥근 버튼을 위한 커스텀 클래스
+    /**
+     * 모서리가 둥근 버튼을 생성하기 위한 커스텀 JButton 클래스입니다.
+     */
     class RoundedButton extends JButton {
+        /**
+         * RoundedButton의 새 인스턴스를 생성합니다.
+         *
+         * @param text 버튼에 표시될 텍스트.
+         */
         public RoundedButton(String text) {
             super(text);
             setContentAreaFilled(false); // 기본 배경 채우기 비활성화

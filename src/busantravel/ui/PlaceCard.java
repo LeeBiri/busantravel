@@ -19,6 +19,11 @@ import java.awt.event.ActionListener;
 import java.net.URL;
 import java.util.List;
 
+/**
+ * 개별 여행 장소를 시각적으로 표현하는 카드 형태의 UI 컴포넌트입니다.
+ * 그리드 뷰 또는 리스트 뷰 두 가지 형태로 표시될 수 있으며,
+ * 클릭 시 해당 장소의 상세 정보 다이얼로그를 엽니다.
+ */
 public class PlaceCard extends JPanel {
     private PlaceDAO placeDAO;
     private Font jalnanFont;
@@ -27,11 +32,26 @@ public class PlaceCard extends JPanel {
     private int currentZoom = 14;
     private static final String API_KEY = "h5baCQSfp37eFmXohbwx23t7n1KLSIcn3RyFtMcg"; // TMAP API Key
 
+    /**
+     * 카드의 표시 형식을 정의하는 열거형입니다.
+     */
     public enum ViewType {
+        /** 그리드 형식 (정사각형 카드) */
         GRID,
+        /** 리스트 형식 (가로로 긴 카드) */
         LIST
     }
 
+    /**
+     * PlaceCard의 새 인스턴스를 생성합니다.
+     *
+     * @param frame      상위 JFrame 객체.
+     * @param placeName  표시할 장소의 이름.
+     * @param category   장소의 카테고리.
+     * @param thumbnail  장소의 썸네일 이미지 URL.
+     * @param viewType   카드의 뷰 타입 (GRID 또는 LIST).
+     * @param customFont 카드에 적용할 커스텀 폰트.
+     */
     public PlaceCard(JFrame frame, String placeName, String category, String thumbnail, ViewType viewType, Font customFont) {
         this.placeDAO = new PlaceDAO();
         this.tmapApiHandler = new TmapApiHandler(API_KEY);
@@ -44,6 +64,14 @@ public class PlaceCard extends JPanel {
         }
     }
     
+    /**
+     * 카드를 그리드 뷰 형식으로 설정합니다.
+     *
+     * @param frame     상위 JFrame 객체.
+     * @param placeName 장소 이름.
+     * @param category  장소 카테고리.
+     * @param thumbnail 썸네일 이미지 URL.
+     */
     private void setupGridView(JFrame frame, String placeName, String category, String thumbnail) {
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
@@ -96,6 +124,14 @@ public class PlaceCard extends JPanel {
         });
     }
 
+    /**
+     * 카드를 리스트 뷰 형식으로 설정합니다.
+     *
+     * @param frame     상위 JFrame 객체.
+     * @param placeName 장소 이름.
+     * @param category  장소 카테고리.
+     * @param thumbnail 썸네일 이미지 URL.
+     */
     private void setupListView(JFrame frame, String placeName, String category, String thumbnail) {
         setLayout(new BorderLayout(15, 10));
         setBorder(BorderFactory.createCompoundBorder(
@@ -174,6 +210,13 @@ public class PlaceCard extends JPanel {
         });
     }
 
+    /**
+     * 장소의 상세 정보를 보여주는 다이얼로그를 생성하고 표시합니다.
+     *
+     * @param frame     상위 JFrame 객체.
+     * @param placeName 상세 정보를 표시할 장소의 이름.
+     * @param category  장소의 카테고리.
+     */
     private void showPlaceDetailDialog(JFrame frame, String placeName, String category) {
         JDialog detailDialog = new JDialog(frame, placeName + " 상세 정보", true);
         detailDialog.setSize(1180, 850);
@@ -438,6 +481,15 @@ public class PlaceCard extends JPanel {
         detailDialog.setVisible(true);
     }
 
+    /**
+     * TMAP API를 사용하여 생성된 정적 지도를 비동기적으로 업데이트합니다.
+     *
+     * @param mapLabel   지도를 표시할 JLabel.
+     * @param coordinate 지도의 중심 좌표.
+     * @param zoom       지도의 확대/축소 레벨.
+     * @param width      지도 이미지의 너비.
+     * @param height     지도 이미지의 높이.
+     */
     private void updateMap(JLabel mapLabel, Coordinate coordinate, int zoom, int width, int height) {
         new SwingWorker<ImageIcon, Void>() {
             @Override
@@ -472,6 +524,16 @@ public class PlaceCard extends JPanel {
         }.execute();
     }
 
+    /**
+     * 지정된 URL에서 이미지를 비동기적으로 로드하여 이미지 패널에 설정합니다.
+     *
+     * @param imagePanel 이미지를 표시할 ScaledImagePanel.
+     * @param imagePath  이미지의 URL.
+     * @param placeName  장소 이름 (캐시 키로 사용될 수 있음).
+     * @param width      이미지의 너비.
+     * @param height     이미지의 높이.
+     * @param isList     리스트 뷰인지 여부.
+     */
     private void loadImage(ScaledImagePanel imagePanel, String imagePath, String placeName, int width, int height, boolean isList) {
         new SwingWorker<Image, Void>() {
             @Override
@@ -500,10 +562,25 @@ public class PlaceCard extends JPanel {
         }.execute();
     }
 
+    /**
+     * Google 이미지 로딩을 처리하던 메서드 (현재는 TMAP API 사용으로 비활성화됨).
+     *
+     * @param imagePanel 이미지를 표시할 ScaledImagePanel.
+     * @param placeName  장소 이름.
+     * @param width      이미지 너비.
+     * @param height     이미지 높이.
+     * @param isList     리스트 뷰인지 여부.
+     */
     private void loadGoogleImage(ScaledImagePanel imagePanel, String placeName, int width, int height, boolean isList) {
         // TMAP API로는 대체할 수 없으므로, 이 메소드는 비워두거나 기본 이미지를 설정합니다.
     }
 
+    /**
+     * HTML을 지원하는 JLabel을 생성하여 자동 줄바꿈을 처리합니다.
+     *
+     * @param text 표시할 텍스트.
+     * @return 생성된 JLabel 객체.
+     */
     private JLabel createLabel(String text) {
         JLabel label = new JLabel("<html><body style='width: 300px'>" + text + "</body></html>");
         label.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
@@ -511,6 +588,11 @@ public class PlaceCard extends JPanel {
         return label;
     }
     
+    /**
+     * 지도의 확대/축소 버튼 스타일을 설정합니다.
+     *
+     * @param button 스타일을 적용할 JButton 객체.
+     */
     private void setupZoomButton(JButton button) {
         button.setPreferredSize(new Dimension(40, 40));
         button.setFont(new Font("맑은 고딕", Font.BOLD, 15));
@@ -520,8 +602,15 @@ public class PlaceCard extends JPanel {
         button.setBorderPainted(false);
     }
 
-    // 둥근 버튼을 위한 커스텀 클래스
+    /**
+     * 원형의 둥근 버튼을 생성하기 위한 커스텀 JButton 클래스입니다.
+     */
     class RoundedButton extends JButton {
+        /**
+         * RoundedButton의 새 인스턴스를 생성합니다.
+         *
+         * @param text 버튼에 표시될 텍스트.
+         */
         public RoundedButton(String text) {
             super(text);
             setContentAreaFilled(false);
