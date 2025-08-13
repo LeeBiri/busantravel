@@ -23,6 +23,7 @@ import javax.swing.ImageIcon;
 import javax.swing.border.LineBorder;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
+import busantravel.ui.ColorConstants;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -55,7 +56,6 @@ public class PlanTripPanel extends JPanel {
     private String selectedCategory = "저장";
 
     // 스타일 상수
-    private static final Color ACCENT = new Color(222,146,124);
     private static final Color ACCENT_DARK = new Color(200,110,90);
     private static final Color PANEL_BORDER = new Color(228, 180, 160);
     private static final Color DIVIDER = new Color(235, 224, 218);
@@ -294,7 +294,7 @@ public class PlanTripPanel extends JPanel {
         plus.setPreferredSize(new Dimension(36, 36));
         plus.setFont(new Font("맑은 고딕", Font.BOLD, 20));
         plus.setForeground(Color.WHITE);
-        plus.setBackground(ACCENT);
+        plus.setBackground(ColorConstants.ACCENT);
         plus.setFocusPainted(false);
         plus.setBorder(new LineBorder(ACCENT_DARK, 1, true));
         plus.addActionListener(e -> {
@@ -459,7 +459,7 @@ public class PlanTripPanel extends JPanel {
     private void styleCategoryChip(JButton b, boolean selected) {
         b.setFocusPainted(false);
         b.setBorder(new LineBorder(selected ? ACCENT_DARK : PANEL_BORDER, 1, true));
-        b.setBackground(selected ? ACCENT : Color.WHITE);
+        b.setBackground(selected ? ColorConstants.ACCENT : Color.WHITE);
         b.setForeground(selected ? Color.WHITE : new Color(90, 80, 70));
         b.setFont(new Font("맑은 고딕", Font.BOLD, 13));
         b.setPreferredSize(new Dimension(64, 30));
@@ -475,7 +475,7 @@ public class PlanTripPanel extends JPanel {
 
     private void styleSolidButton(JButton b) {
         b.setFocusPainted(false);
-        b.setBackground(ACCENT);
+        b.setBackground(ColorConstants.ACCENT);
         b.setForeground(Color.WHITE);
         b.setBorder(new LineBorder(ACCENT_DARK, 1, true));
         b.setFont(new Font("맑은 고딕", Font.BOLD, 13));

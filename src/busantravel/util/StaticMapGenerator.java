@@ -44,7 +44,7 @@ public class StaticMapGenerator {
         urlBuilder.append("&latitude=").append(coordinate.getLatitude());
         
         // markers 파라미터 형식 변경
-        String markersValue = String.format("pin-m(%f,%f)", coordinate.getLongitude(), coordinate.getLatitude());
+        String markersValue = String.format("pin-m@F4313F(%f,%f)viewSize:0.3", coordinate.getLongitude(), coordinate.getLatitude());
         urlBuilder.append("&markers=").append(markersValue);
 
         return urlBuilder.toString();

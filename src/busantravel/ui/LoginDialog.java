@@ -5,6 +5,7 @@ import javax.swing.*;
 import busantravel.controller.LoginController;
 
 import java.awt.*;
+import busantravel.ui.ColorConstants;
 
 public class LoginDialog {
     private JFrame parent;
@@ -44,7 +45,7 @@ public class LoginDialog {
         cancelBtn = new JButton("취소");
 
         // 버튼 스타일 설정
-        loginBtn.setBackground(new Color(222, 146, 124));
+        loginBtn.setBackground(ColorConstants.ACCENT);
         loginBtn.setForeground(Color.WHITE);
         loginBtn.setFocusPainted(false);
         cancelBtn.setBackground(new Color(240, 240, 240));

@@ -11,6 +11,7 @@ import busantravel.util.TmapApiHandler;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import busantravel.ui.ColorConstants;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.InputStream;
@@ -52,12 +53,8 @@ public class PlaceCard extends JPanel {
         setMinimumSize(new Dimension(180, 180));
         setMaximumSize(new Dimension(180, 180));
 
-        JLabel imageLabel = new JLabel();
-        imageLabel.setBackground(new Color(230, 240, 250));
-        imageLabel.setOpaque(true);
-        imageLabel.setPreferredSize(new Dimension(180, 120));
-        imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        imageLabel.setVerticalAlignment(SwingConstants.CENTER);
+        ScaledImagePanel imagePanel = new ScaledImagePanel();
+        imagePanel.setPreferredSize(new Dimension(180, 120));
 
         String imageUrl = thumbnail;
         ImageIcon cachedImage = null;
@@ -67,14 +64,11 @@ public class PlaceCard extends JPanel {
         }
 
         if (cachedImage != null) {
-            Image scaledImage = cachedImage.getImage().getScaledInstance(180, 120, Image.SCALE_SMOOTH);
-            imageLabel.setIcon(new ImageIcon(scaledImage));
+            imagePanel.setImage(cachedImage.getImage());
         } else if (imageUrl != null && !imageUrl.isEmpty() && imageUrl.startsWith("http")) {
-            loadImage(imageLabel, imageUrl, placeName, 180, 120, false);
+            loadImage(imagePanel, imageUrl, placeName, 180, 120, false);
         } else {
-            // TMAP에서는 장소 이름만으로 이미지를 가져오는 직접적인 API가 없으므로,
-            // 이미지가 없는 경우 기본 아이콘이나 문구를 표시합니다.
-            imageLabel.setText("이미지 없음");
+            // 이미지가 없는 경우
         }
 
         JLabel nameLabel = new JLabel(placeName, JLabel.CENTER);
@@ -83,7 +77,7 @@ public class PlaceCard extends JPanel {
         nameLabel.setBackground(new Color(245, 245, 245));
         nameLabel.setOpaque(true);
 
-        add(imageLabel, BorderLayout.CENTER);
+        add(imagePanel, BorderLayout.CENTER);
         add(nameLabel, BorderLayout.SOUTH);
 
         addMouseListener(new MouseAdapter() {
@@ -93,7 +87,7 @@ public class PlaceCard extends JPanel {
             }
             @Override
             public void mouseEntered(MouseEvent e) {
-                setBorder(BorderFactory.createLineBorder(new Color(222, 146, 124), 2));
+                setBorder(BorderFactory.createLineBorder(ColorConstants.ACCENT, 2));
             }
             @Override
             public void mouseExited(MouseEvent e) {
@@ -111,12 +105,8 @@ public class PlaceCard extends JPanel {
         setBackground(Color.WHITE);
         setMaximumSize(new Dimension(Integer.MAX_VALUE, 140));
 
-        JLabel imageLabel = new JLabel();
-        imageLabel.setPreferredSize(new Dimension(120, 120));
-        imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        imageLabel.setVerticalAlignment(SwingConstants.CENTER);
-        imageLabel.setBackground(new Color(230, 240, 250));
-        imageLabel.setOpaque(true);
+        ScaledImagePanel imagePanel = new ScaledImagePanel();
+        imagePanel.setPreferredSize(new Dimension(120, 120));
 
         String imageUrl = thumbnail;
         ImageIcon cachedImage = null;
@@ -126,13 +116,13 @@ public class PlaceCard extends JPanel {
         }
 
         if (cachedImage != null) {
-            imageLabel.setIcon(new ImageIcon(cachedImage.getImage().getScaledInstance(120, 120, Image.SCALE_SMOOTH)));
+            imagePanel.setImage(cachedImage.getImage());
         } else if (imageUrl != null && !imageUrl.isEmpty() && imageUrl.startsWith("http")) {
-            loadImage(imageLabel, imageUrl, placeName, 120, 120, true);
+            loadImage(imagePanel, imageUrl, placeName, 120, 120, true);
         } else {
-            imageLabel.setText("이미지 없음");
+            // 이미지가 없는 경우
         }
-        add(imageLabel, BorderLayout.WEST);
+        add(imagePanel, BorderLayout.WEST);
 
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
@@ -203,17 +193,13 @@ public class PlaceCard extends JPanel {
             leftPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
             leftPanel.setBackground(Color.WHITE);
 
-            JLabel imageLabel = new JLabel();
-            imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-            imageLabel.setVerticalAlignment(SwingConstants.CENTER);
-            imageLabel.setPreferredSize(new Dimension(560, 420));
-            imageLabel.setBackground(new Color(230, 240, 250));
-            imageLabel.setOpaque(true);
+            ScaledImagePanel imagePanel = new ScaledImagePanel();
+            imagePanel.setPreferredSize(new Dimension(560, 420));
             
             if (detailInfo.getImagePath() != null && !detailInfo.getImagePath().isEmpty()) {
-                loadImage(imageLabel, detailInfo.getImagePath(), placeName, 560, 420, false);
+                loadImage(imagePanel, detailInfo.getImagePath(), placeName, 560, 420, false);
             } else {
-                imageLabel.setText("이미지 없음");
+                // 이미지가 없는 경우
             }
 
             JTextArea descriptionArea = new JTextArea(detailInfo.getDescription());
@@ -227,7 +213,7 @@ public class PlaceCard extends JPanel {
             JScrollPane descriptionScrollPane = new JScrollPane(descriptionArea);
             descriptionScrollPane.setPreferredSize(new Dimension(560, 200));
 
-            leftPanel.add(imageLabel, BorderLayout.CENTER);
+            leftPanel.add(imagePanel, BorderLayout.CENTER);
             leftPanel.add(descriptionScrollPane, BorderLayout.SOUTH);
 
             JPanel rightPanel = new JPanel();
@@ -304,17 +290,13 @@ public class PlaceCard extends JPanel {
             leftPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
             leftPanel.setBackground(Color.WHITE);
 
-            JLabel imageLabel = new JLabel();
-            imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-            imageLabel.setVerticalAlignment(SwingConstants.CENTER);
-            imageLabel.setPreferredSize(new Dimension(560, 420));
-            imageLabel.setBackground(new Color(230, 240, 250));
-            imageLabel.setOpaque(true);
+            ScaledImagePanel imagePanel = new ScaledImagePanel();
+            imagePanel.setPreferredSize(new Dimension(560, 420));
 
             if (detailInfo.getImagePath() != null && !detailInfo.getImagePath().isEmpty()) {
-                loadImage(imageLabel, detailInfo.getImagePath(), placeName, 560, 420, false);
+                loadImage(imagePanel, detailInfo.getImagePath(), placeName, 560, 420, false);
             } else {
-                imageLabel.setText("이미지 없음");
+                // 이미지가 없는 경우
             }
 
             JTextArea descriptionArea = new JTextArea(detailInfo.getDescription());
@@ -328,7 +310,7 @@ public class PlaceCard extends JPanel {
             JScrollPane descriptionScrollPane = new JScrollPane(descriptionArea);
             descriptionScrollPane.setPreferredSize(new Dimension(560, 200));
 
-            leftPanel.add(imageLabel, BorderLayout.CENTER);
+            leftPanel.add(imagePanel, BorderLayout.CENTER);
             leftPanel.add(descriptionScrollPane, BorderLayout.SOUTH);
 
             // Right Panel for Details, Map, and Actions
@@ -427,7 +409,7 @@ public class PlaceCard extends JPanel {
             rightPanel.add(infoAndMapPanel, BorderLayout.CENTER);
 
             JButton saveBtn = new JButton("저장하기");
-            saveBtn.setBackground(new Color(222, 146, 124));
+            saveBtn.setBackground(ColorConstants.ACCENT);
             saveBtn.setForeground(Color.WHITE);
             saveBtn.setFocusPainted(false);
             saveBtn.setBorderPainted(false);
@@ -486,43 +468,36 @@ public class PlaceCard extends JPanel {
         }.execute();
     }
 
-    private void loadImage(JLabel label, String imagePath, String placeName, int width, int height, boolean isList) {
-        new SwingWorker<ImageIcon, Void>() {
+    private void loadImage(ScaledImagePanel imagePanel, String imagePath, String placeName, int width, int height, boolean isList) {
+        new SwingWorker<Image, Void>() {
             @Override
-            protected ImageIcon doInBackground() throws Exception {
+            protected Image doInBackground() throws Exception {
                 URL url = new URL(imagePath);
                 Image image = ImageIO.read(url);
                 if (image != null) {
-                    Image scaledImage = image.getScaledInstance(width, height, Image.SCALE_SMOOTH);
-                    ImageIcon imageIcon = new ImageIcon(scaledImage);
                     if (!isList) {
                         ImageCache.getInstance().putImage(imagePath, new ImageIcon(image));
                     }
-                    return imageIcon;
                 }
-                return null;
+                return image;
             }
 
             @Override
             protected void done() {
                 try {
-                    ImageIcon imageIcon = get();
-                    if (imageIcon != null) {
-                        label.setIcon(imageIcon);
-                    } else {
-                        label.setText("이미지 없음");
+                    Image image = get();
+                    if (image != null) {
+                        imagePanel.setImage(image);
                     }
                 } catch (Exception e) {
-                    label.setText("이미지 로드 실패");
                     e.printStackTrace();
                 }
             }
         }.execute();
     }
 
-    private void loadGoogleImage(JLabel label, String placeName, int width, int height, boolean isList) {
+    private void loadGoogleImage(ScaledImagePanel imagePanel, String placeName, int width, int height, boolean isList) {
         // TMAP API로는 대체할 수 없으므로, 이 메소드는 비워두거나 기본 이미지를 설정합니다.
-        label.setText("이미지 없음");
     }
 
     private JLabel createLabel(String text) {

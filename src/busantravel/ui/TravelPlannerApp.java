@@ -2,6 +2,7 @@ package busantravel.ui;
 
 import busantravel.model.TravelPlan;
 import java.awt.*;
+import busantravel.ui.ColorConstants;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.InputStream;
@@ -17,8 +18,6 @@ public class TravelPlannerApp {
     private JPanel navigationPanel;
     private JLabel currentTitleLabel;
     private JLabel logoLabel;
-    private JTextField searchField; // 검색 필드 추가
-    private JButton searchButton; // 검색 버튼 추가
 
     private SchedulePanel schedulePanel;
     private HomePanel homePanel;
@@ -61,9 +60,10 @@ public class TravelPlannerApp {
         mainPanel = new JPanel(new BorderLayout());
 
         // 상단 패널
-        JPanel topAreaPanel = new JPanel(new BorderLayout());
+        JPanel topAreaPanel = new JPanel(new GridBagLayout());
         topAreaPanel.setBackground(Color.WHITE);
-        topAreaPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0)); // 상단/하단 패딩 조정
+        topAreaPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+        GridBagConstraints gbc = new GridBagConstraints();
 
         // 로고 이미지 로드 및 스케일링
         try {
@@ -100,42 +100,27 @@ public class TravelPlannerApp {
                 updateNavButtonStyles();
             }
         });
-
-        topAreaPanel.add(logoLabel, BorderLayout.WEST);
+        
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0; // 로고는 가중치 없음
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.WEST;
+        topAreaPanel.add(logoLabel, gbc);
 
         // 동적 타이틀
         currentTitleLabel = new JLabel("", SwingConstants.CENTER);
         currentTitleLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 30f));
         currentTitleLabel.setForeground(new Color(50, 50, 50));
-        topAreaPanel.add(currentTitleLabel, BorderLayout.CENTER);
+        
+        gbc.gridx = 1;
+        gbc.weightx = 1; // 제목이 남은 공간을 모두 차지하도록 설정
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        topAreaPanel.add(currentTitleLabel, gbc);
 
         // 검색 및 인증 패널
         JPanel searchAndAuthPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         searchAndAuthPanel.setBackground(Color.WHITE);
-
-        // 검색 UI
-        searchField = new JTextField(15);
-        searchButton = new JButton("검색");
-        searchButton.setPreferredSize(new Dimension(80, 25));
-        searchButton.setForeground(Color.WHITE);
-        searchButton.setBackground(new Color(180, 90, 70));
-        searchButton.setFocusPainted(false);
-        searchButton.setBorderPainted(false);
-        searchButton.setFont(jalnanFont.deriveFont(Font.PLAIN, 11f));
-        
-        searchButton.addActionListener(e -> {
-            String query = searchField.getText();
-            if (homePanel != null) {
-                homePanel.performSearch(query.trim());
-            }
-            currentTab = "home"; // 검색 후 홈 탭으로 이동
-            updateContent(); // 홈 탭으로 전환
-            updateTopPanelTitle();
-            updateNavButtonStyles();
-        });
-
-        searchAndAuthPanel.add(searchField);
-        searchAndAuthPanel.add(searchButton);
 
         // 로그인/회원가입 버튼
         JPanel authButtonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
@@ -159,7 +144,12 @@ public class TravelPlannerApp {
         authButtonsPanel.add(signUpButton);
         searchAndAuthPanel.add(authButtonsPanel);
         searchAndAuthPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 20));
-        topAreaPanel.add(searchAndAuthPanel, BorderLayout.EAST);
+        
+        gbc.gridx = 2;
+        gbc.weightx = 0; // 검색/인증 패널은 가중치 없음
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.EAST;
+        topAreaPanel.add(searchAndAuthPanel, gbc);
 
         mainPanel.add(topAreaPanel, BorderLayout.NORTH);
 
@@ -167,6 +157,7 @@ public class TravelPlannerApp {
         contentCardLayout = new CardLayout();
         contentPanel = new JPanel(contentCardLayout);
         contentPanel.setBackground(Color.WHITE); // 전체 배경색
+
 
         // 모든 패널 인스턴스를 미리 생성하고 contentPanel에 추가
         homePanel = new HomePanel(frame);
@@ -183,7 +174,7 @@ public class TravelPlannerApp {
 
         // 네비게이션 바
         navigationPanel = new JPanel(new GridLayout(1, 4));
-        navigationPanel.setBackground(new Color(222, 146, 124));
+        navigationPanel.setBackground(ColorConstants.ACCENT);
         navigationPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
         initNavigationButtons();
 
@@ -222,11 +213,13 @@ public class TravelPlannerApp {
 
     private void updateContent() {
         contentCardLayout.show(contentPanel, currentTab);
-        
-        boolean isHomeTab = "home".equals(currentTab);
-        searchField.setVisible(isHomeTab);
-        searchButton.setVisible(isHomeTab);
 
+        if ("home".equals(currentTab)) {
+            contentPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, ColorConstants.ACCENT)); // 홈: 하단 선만
+        } else {
+            contentPanel.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 0, ColorConstants.ACCENT)); // 나머지: 상하단 선
+        }
+        
         if ("schedule".equals(currentTab)) {
             schedulePanel.controller.refreshRoomLists();
         }
@@ -242,7 +235,7 @@ public class TravelPlannerApp {
     private JButton createNavButton(String text, String tabName) {
         JButton button = new JButton(text);
         button.setForeground(Color.WHITE);
-        button.setBackground(new Color(222, 146, 124));
+        button.setBackground(ColorConstants.ACCENT);
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setFont(jalnanFont.deriveFont(Font.PLAIN, 18f));
@@ -261,9 +254,9 @@ public class TravelPlannerApp {
             if (comp instanceof JButton) {
                 JButton btn = (JButton) comp;
                 if (!"plan".equals(currentTab)) {
-                    btn.setBackground(btn.getText().equals(getTabText(currentTab)) ? new Color(180, 90, 70) : new Color(222, 146, 124));
+                    btn.setBackground(btn.getText().equals(getTabText(currentTab)) ? ColorConstants.SELECTED : ColorConstants.ACCENT);
                 } else {
-                    btn.setBackground(new Color(222, 146, 124));
+                    btn.setBackground(ColorConstants.ACCENT);
                 }
             }
         }

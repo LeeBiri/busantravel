@@ -2,6 +2,7 @@ package busantravel.ui;
 
 import javax.swing.*;
 import java.awt.*;
+import busantravel.ui.ColorConstants;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -69,7 +70,7 @@ public class SignUpDialog {
         JButton cancelBtn = new JButton("취소");
 
         // 가입하기/취소 버튼 스타일
-        signUpBtn.setBackground(new Color(222, 146, 124));
+        signUpBtn.setBackground(ColorConstants.ACCENT);
         signUpBtn.setForeground(Color.WHITE);
         signUpBtn.setFocusPainted(false);
         cancelBtn.setBackground(new Color(240, 240, 240));

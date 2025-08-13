@@ -5,6 +5,7 @@ import busantravel.model.TravelPlan;
 
 import java.awt.*;
 import javax.swing.*;
+import busantravel.ui.ColorConstants;
 import javax.swing.border.TitledBorder;
 
 public class SchedulePanel extends JPanel {
@@ -34,9 +35,9 @@ public class SchedulePanel extends JPanel {
         createTripBtn.setMaximumSize(btnSize);
         enterCodeBtn.setMaximumSize(btnSize);
 
-        createTripBtn.setBackground(new Color(222, 146, 124));
+        createTripBtn.setBackground(ColorConstants.ACCENT);
         createTripBtn.setForeground(Color.WHITE);
-        enterCodeBtn.setBackground(new Color(222, 146, 124));
+        enterCodeBtn.setBackground(ColorConstants.ACCENT);
         enterCodeBtn.setForeground(Color.WHITE);
 
         leftPanel.add(createTripBtn);
@@ -66,11 +67,11 @@ public class SchedulePanel extends JPanel {
         upcomingPanel.setLayout(new BoxLayout(upcomingPanel, BoxLayout.Y_AXIS));
         upcomingPanel.setBackground(Color.WHITE);
         upcomingPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(222, 146, 124)),
+                BorderFactory.createLineBorder(ColorConstants.ACCENT),
                 "다가오는 여행",
                 TitledBorder.LEFT, TitledBorder.TOP,
                 new Font("맑은 고딕", Font.BOLD, 16),
-                new Color(222, 146, 124)
+                ColorConstants.ACCENT
         ));
 
         // ❹ "지난 여행" 컨테이너
@@ -78,11 +79,11 @@ public class SchedulePanel extends JPanel {
         pastPanel.setLayout(new BoxLayout(pastPanel, BoxLayout.Y_AXIS));
         pastPanel.setBackground(Color.WHITE);
         pastPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(222, 146, 124)),
+                BorderFactory.createLineBorder(ColorConstants.ACCENT),
                 "지난 여행",
                 TitledBorder.LEFT, TitledBorder.TOP,
                 new Font("맑은 고딕", Font.BOLD, 16),
-                new Color(222, 146, 124)
+                ColorConstants.ACCENT
         ));
 
         // ❺ 섹션에 스크롤 달아서 추가
@@ -191,7 +192,7 @@ public class SchedulePanel extends JPanel {
             btns.setBackground(Color.WHITE);
 
             JButton planBtn = new JButton("일정 계획하기");
-            planBtn.setBackground(new Color(222, 146, 124));
+            planBtn.setBackground(ColorConstants.ACCENT);
             planBtn.setForeground(Color.WHITE);
             planBtn.setFocusPainted(false);
 
