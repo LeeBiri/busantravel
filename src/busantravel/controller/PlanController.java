@@ -1,10 +1,14 @@
 package busantravel.controller;
 
+import busantravel.model.ScheduledPlace;
 import busantravel.model.TravelPlan;
+import busantravel.service.ScheduledPlaceService;
 import busantravel.service.TravelPlanService;
 import busantravel.ui.CreateTripDialog;
 import busantravel.ui.EnterCodeDialog;
 import busantravel.ui.SchedulePanel;
+import busantravel.ui.TravelPlannerApp;
+import busantravel.ui.TravelPlannerApp;
 
 import javax.swing.*;
 
@@ -13,16 +17,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PlanController {
-    private final JFrame parentFrame;
-    private final SchedulePanel schedulePanel;
-    private final String currentUserId; // 로그인 사용자 ID
+    private JFrame parentFrame;
+    private SchedulePanel schedulePanel;
+    private String currentUserId; // 로그인 사용자 ID
 
     public PlanController(JFrame parentFrame, SchedulePanel schedulePanel, String currentUserId) {
         this.parentFrame = parentFrame;
         this.schedulePanel = schedulePanel;
         this.currentUserId = currentUserId;
     }
-
+    
     public void handleCreateTrip() {
         CreateTripDialog dialog = new CreateTripDialog(parentFrame);
         dialog.setVisible(true);
@@ -65,4 +69,7 @@ public class PlanController {
         schedulePanel.renderPlans(upcoming, past);
     }
 
+    public void handleSavePlan(List<ScheduledPlace> scheduledPlaces, TravelPlannerApp mainApp) {
+
+    }
 }
