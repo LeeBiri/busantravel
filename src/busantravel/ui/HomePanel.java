@@ -95,7 +95,6 @@ public class HomePanel extends JPanel {
             btn.setBorderPainted(false);
             btn.setFont(new Font(jalnanFont.getName(), Font.PLAIN, 14));
             btn.addActionListener(e -> {
-                updateCategoryButtonColors();
                 loadPlaces(category, 1);
             });
             categoryButtons.put(category, btn);
@@ -193,15 +192,18 @@ public class HomePanel extends JPanel {
      */
     private void loadPlaces(String category, int page) {
         this.selectedCategory = category;
+        updateCategoryButtonColors();
         this.currentPage = page;
         this.currentSearchQuery = null; // 카테고리 로드 시 검색어 초기화
 
         gridPanel.removeAll();
         
-        // 카테고리에 따라 레이아웃 변경
+        // 카테고리에 따라 페이지 크기 및 레이아웃 변경
         if (category.equals("맛집") || category.equals("숙소")) {
+            this.pageSize = 10;
             gridPanel.setLayout(new BoxLayout(gridPanel, BoxLayout.Y_AXIS));
         } else {
+            this.pageSize = 24;
             gridPanel.setLayout(new GridLayout(0, 4, 30, 30));
         }
 
@@ -273,6 +275,7 @@ public class HomePanel extends JPanel {
     private void loadPlacesBySearch(String query, int page) {
         this.currentSearchQuery = query;
         this.currentPage = page;
+        this.pageSize = 24; // 검색 결과는 항상 24개씩 표시
 
         gridPanel.removeAll();
         gridPanel.setLayout(new GridLayout(0, 4, 30, 30)); // 검색 결과는 항상 그리드
