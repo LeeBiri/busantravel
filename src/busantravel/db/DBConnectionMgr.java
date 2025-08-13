@@ -48,6 +48,7 @@ public class DBConnectionMgr {
     private boolean initialized = false;
     private int _openConnections = 50;
     private static DBConnectionMgr instance = null;
+    private static boolean isDbConnected = false;
 
     private DBConnectionMgr() {}
 
@@ -65,6 +66,20 @@ public class DBConnectionMgr {
         }
 
         return instance;
+    }
+
+    public static boolean isDbConnected() {
+        // 인스턴스를 통해 초기 연결 시도를 유도하고 상태를 반환
+        if (instance == null) {
+            getInstance(); // 초기화 시도
+        }
+        // 첫 연결 시도
+        try (Connection conn = getInstance().getConnection()) {
+            isDbConnected = conn != null && !conn.isClosed();
+        } catch (Exception e) {
+            isDbConnected = false;
+        }
+        return isDbConnected;
     }
 
     public void setOpenConnectionCount(int count) {
@@ -261,11 +276,13 @@ public class DBConnectionMgr {
             props.put("password", _password);
 
             con = DriverManager.getConnection(_url, props);
+            isDbConnected = true; // 연결 성공
         } catch (Throwable t) {
+            isDbConnected = false; // 연결 실패
         	System.err.println("DBConnectionMgr: DB 연결 실패");
         	System.err.println("URL: " + _url);
         	System.err.println("User: " + _user);
-        	t.printStackTrace();
+        	// t.printStackTrace(); // 실패 시 스택 트레이스 생략
             throw new SQLException(t.getMessage());
         }
 
