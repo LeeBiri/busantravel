@@ -727,7 +727,22 @@ public class PlanTripPanel extends JPanel {
             try { ImageIO.write(toBufferedImage(image), "png", imageFile); }
             catch (IOException e) { e.printStackTrace(); }
         }
-        private String getFileName(String key) { return key.replaceAll("[^a-zA-Z0-9.-]", "_") + ".png"; }
+        private String getFileName(String key) {
+            try {
+                java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+                byte[] hash = digest.digest(key.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                StringBuilder hexString = new StringBuilder();
+                for (byte b : hash) {
+                    String hex = Integer.toHexString(0xff & b);
+                    if (hex.length() == 1) hexString.append('0');
+                    hexString.append(hex);
+                }
+                return hexString.toString() + ".png";
+            } catch (java.security.NoSuchAlgorithmException e) {
+                // SHA-256을 사용할 수 없는 경우 이전 방식으로 대체
+                return key.replaceAll("[^a-zA-Z0-9.-]", "_") + ".png";
+            }
+        }
         private static BufferedImage toBufferedImage(Image img) {
             if (img instanceof BufferedImage) return (BufferedImage) img;
             BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
