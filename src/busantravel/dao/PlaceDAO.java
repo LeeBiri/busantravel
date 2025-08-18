@@ -142,15 +142,14 @@ public class PlaceDAO {
         return totalCount;
     }
 
-    public List<Object> searchPlaces(String query) {
-        return searchPlaces(query, 1, Integer.MAX_VALUE);
+    public List<Object> searchPlaces(String query, String category) {
+        return searchPlaces(query, category, 1, Integer.MAX_VALUE);
     }
 
-    public List<Object> searchPlaces(String query, int page, int pageSize) {
+    public List<Object> searchPlaces(String query, String category, int page, int pageSize) {
         if (!DBConnectionMgr.isDbConnected()) {
             List<Object> dummyPlaces = new ArrayList<>();
-            dummyPlaces.addAll(getDummyPlaces("관광지"));
-            dummyPlaces.addAll(getDummyPlaces("맛집"));
+            dummyPlaces.addAll(getDummyPlaces(category));
             return dummyPlaces;
         }
         List<Object> places = new ArrayList<>();
@@ -158,16 +157,10 @@ public class PlaceDAO {
         PreparedStatement pstmt = null;
         ResultSet rs = null;
 
-        // 모든 카테고리를 UNION ALL로 묶어 하나의 쿼리로 처리
-        String sql = "SELECT *, '관광지' as category FROM tourist WHERE t_place LIKE ? " +
-                     "UNION ALL " +
-                     "SELECT *, '맛집' as category FROM restaurant WHERE r_place LIKE ? " +
-                     "UNION ALL " +
-                     "SELECT *, '숙소' as category FROM stay WHERE l_place LIKE ? " +
-                     "UNION ALL " +
-                     "SELECT *, '축제' as category FROM festival WHERE f_name LIKE ? " +
-                     "LIMIT ? OFFSET ?";
+        String tableName = getTableName(category);
+        String placeColumnName = getPlaceColumnName(category);
 
+        String sql = "SELECT * FROM " + tableName + " WHERE " + placeColumnName + " LIKE ? LIMIT ? OFFSET ?";
         int offset = (page - 1) * pageSize;
 
         try {
@@ -175,26 +168,22 @@ public class PlaceDAO {
             pstmt = con.prepareStatement(sql);
             String likeQuery = "%" + query + "%";
             pstmt.setString(1, likeQuery);
-            pstmt.setString(2, likeQuery);
-            pstmt.setString(3, likeQuery);
-            pstmt.setString(4, likeQuery);
-            pstmt.setInt(5, pageSize);
-            pstmt.setInt(6, offset);
+            pstmt.setInt(2, pageSize);
+            pstmt.setInt(3, offset);
             rs = pstmt.executeQuery();
 
             while (rs.next()) {
-                String category = rs.getString("category");
-                switch (category) {
-                    case "관광지":
+                switch (tableName) {
+                    case "tourist":
                         places.add(new Tourist(rs.getString("t_id"), rs.getString("t_place"), removeHtmlTags(rs.getString("t_intro")), rs.getString("t_num"), rs.getString("t_tra"), rs.getString("t_infor"), rs.getString("t_addr"), rs.getString("t_thum")));
                         break;
-                    case "맛집":
-                        places.add(new Restaurant(rs.getString("r_id"), rs.getString("r_place"), removeHtmlTags(rs.getString("r_intro")), rs.getString("r_num"), rs.getString("r_infor"), rs.getString("r_addr"), rs.getString("r_thum"), null));
+                    case "restaurant":
+                        places.add(new Restaurant(rs.getString("r_id"), rs.getString("r_place"), removeHtmlTags(rs.getString("r_intro")), rs.getString("r_num"), rs.getString("r_infor"), rs.getString("r_addr"), rs.getString("r_thum"), rs.getString("r_menu")));
                         break;
-                    case "숙소":
+                    case "stay":
                         places.add(new Lodging(rs.getString("l_id"), rs.getString("l_place"), removeHtmlTags(rs.getString("l_intro")), rs.getString("l_num"), rs.getString("l_tra"), rs.getString("l_infor"), rs.getString("l_addr"), rs.getString("l_thum")));
                         break;
-                    case "축제":
+                    case "festival":
                         places.add(new Festival(rs.getString("f_id"), rs.getString("f_name"), removeHtmlTags(rs.getString("f_intro")), rs.getString("f_plan"), rs.getString("f_tra"), rs.getString("f_infor"), rs.getString("f_addr"), rs.getString("f_thum")));
                         break;
                 }
@@ -207,34 +196,25 @@ public class PlaceDAO {
         return places;
     }
 
-    public int getTotalSearchCount(String query) {
+    public int getTotalSearchCount(String query, String category) {
         if (!DBConnectionMgr.isDbConnected()) {
-            return 2; // 더미 데이터 개수
+            return getDummyPlaces(category).size();
         }
         Connection con = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         int totalCount = 0;
 
-        // 각 테이블의 검색 결과 수를 합산
-        String sql = "SELECT SUM(count) FROM (" +
-                     "SELECT COUNT(*) as count FROM tourist WHERE t_place LIKE ? " +
-                     "UNION ALL " +
-                     "SELECT COUNT(*) as count FROM restaurant WHERE r_place LIKE ? " +
-                     "UNION ALL " +
-                     "SELECT COUNT(*) as count FROM stay WHERE l_place LIKE ? " +
-                     "UNION ALL " +
-                     "SELECT COUNT(*) as count FROM festival WHERE f_name LIKE ?" +
-                     ") as total";
+        String tableName = getTableName(category);
+        String placeColumnName = getPlaceColumnName(category);
+
+        String sql = "SELECT COUNT(*) FROM " + tableName + " WHERE " + placeColumnName + " LIKE ?";
 
         try {
             con = pool.getConnection();
             pstmt = con.prepareStatement(sql);
             String likeQuery = "%" + query + "%";
             pstmt.setString(1, likeQuery);
-            pstmt.setString(2, likeQuery);
-            pstmt.setString(3, likeQuery);
-            pstmt.setString(4, likeQuery);
             rs = pstmt.executeQuery();
             if (rs.next()) {
                 totalCount = rs.getInt(1);

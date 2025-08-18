@@ -275,42 +275,68 @@ public class HomePanel extends JPanel {
     private void loadPlacesBySearch(String query, int page) {
         this.currentSearchQuery = query;
         this.currentPage = page;
-        this.pageSize = 24; // 검색 결과는 항상 24개씩 표시
 
         gridPanel.removeAll();
-        gridPanel.setLayout(new GridLayout(0, 4, 30, 30)); // 검색 결과는 항상 그리드
-        
-        int totalItems = placeDAO.getTotalSearchCount(query);
+
+        // 선택된 카테고리에 따라 레이아웃 및 페이지 크기 결정
+        PlaceCard.ViewType viewType;
+        if (selectedCategory.equals("맛집") || selectedCategory.equals("숙소")) {
+            this.pageSize = 10;
+            gridPanel.setLayout(new BoxLayout(gridPanel, BoxLayout.Y_AXIS));
+            viewType = PlaceCard.ViewType.LIST;
+        } else {
+            this.pageSize = 24;
+            gridPanel.setLayout(new GridLayout(0, 4, 30, 30));
+            viewType = PlaceCard.ViewType.GRID;
+        }
+
+        int totalItems = placeDAO.getTotalSearchCount(query, selectedCategory);
         totalPages = (int) Math.ceil((double) totalItems / pageSize);
 
-        List<Object> places = placeDAO.searchPlaces(query, currentPage, pageSize);
+        List<Object> places = placeDAO.searchPlaces(query, selectedCategory, currentPage, pageSize);
 
         if (places.isEmpty()) {
             gridPanel.add(new JLabel("검색 결과가 없습니다."));
         } else {
+            JPanel contentPanel = new JPanel();
+            if(viewType == PlaceCard.ViewType.LIST) {
+                contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+                contentPanel.setBackground(Color.WHITE);
+            } else {
+                contentPanel.setLayout(new GridLayout(0, 4, 30, 30));
+                contentPanel.setBackground(Color.WHITE);
+            }
+
             for (Object place : places) {
                 String placeName = "";
-                String category = ""; // 검색 결과는 카테고리가 혼합될 수 있으므로, PlaceCard에 전달할 카테고리 필요
                 String thumbnail = "";
-
                 if (place instanceof Tourist) {
                     placeName = ((Tourist) place).getT_place();
-                    category = "관광지";
                     thumbnail = ((Tourist) place).getT_thum();
                 } else if (place instanceof Restaurant) {
                     placeName = ((Restaurant) place).getR_place();
-                    category = "맛집";
                     thumbnail = ((Restaurant) place).getR_thum();
                 } else if (place instanceof Lodging) {
                     placeName = ((Lodging) place).getL_place();
-                    category = "숙소";
                     thumbnail = ((Lodging) place).getL_thum();
                 } else if (place instanceof Festival) {
                     placeName = ((Festival) place).getF_name();
-                    category = "축제";
                     thumbnail = ((Festival) place).getF_thum();
                 }
-                gridPanel.add(new PlaceCard(frame, placeName, category, thumbnail, PlaceCard.ViewType.GRID, jalnanFont));
+                contentPanel.add(new PlaceCard(frame, placeName, selectedCategory, thumbnail, viewType, jalnanFont));
+            }
+
+            if (viewType == PlaceCard.ViewType.LIST) {
+                JPanel wrapper = new JPanel(new BorderLayout());
+                wrapper.setBackground(Color.WHITE);
+                wrapper.add(contentPanel, BorderLayout.NORTH);
+                gridPanel.setLayout(new BorderLayout());
+                gridPanel.add(wrapper, BorderLayout.CENTER);
+            } else {
+                // 기존 gridPanel에 직접 추가하기 위해 contentPanel의 컴포넌트들을 옮김
+                for(Component comp : contentPanel.getComponents()){
+                    gridPanel.add(comp);
+                }
             }
         }
 
