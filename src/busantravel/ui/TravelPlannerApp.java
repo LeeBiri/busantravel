@@ -2,7 +2,6 @@ package busantravel.ui;
 
 import busantravel.model.TravelPlan;
 import java.awt.*;
-import busantravel.ui.ColorConstants;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.InputStream;
@@ -26,7 +25,7 @@ public class TravelPlannerApp {
 
     private SchedulePanel schedulePanel; // '일정' 탭 패널
     private HomePanel homePanel; // '여행 홈' 탭 패널
-    private JPanel savedPanel; // '저장' 탭을 위한 임시 패널
+    private MainBannerPanel mainBannerPanel; // '저장' 버튼 클릭 시 보여줄 MainBannerPanel
     private JPanel reviewPanel; // '후기' 탭을 위한 임시 패널
     private PlanTripPanel planTripPanel; // '여행 계획' 패널 인스턴스
 
@@ -177,12 +176,12 @@ public class TravelPlannerApp {
         // 모든 패널 인스턴스를 미리 생성하고 contentPanel에 추가
         homePanel = new HomePanel(frame);
         schedulePanel = new SchedulePanel(frame, this); // SchedulePanel에 TravelPlannerApp 인스턴스 (this) 전달
-        savedPanel = createPlaceholderPanel("저장된 장소 화면 (추후 구현)");
+        mainBannerPanel = new MainBannerPanel(); // MainBannerPanel 객체 생성
         reviewPanel = createPlaceholderPanel("후기 화면 (추후 구현)");
 
         contentPanel.add(homePanel, "home");
         contentPanel.add(schedulePanel, "schedule");
-        contentPanel.add(savedPanel, "saved");
+        contentPanel.add(mainBannerPanel, "saved");
         contentPanel.add(reviewPanel, "review");
 
         mainPanel.add(contentPanel, BorderLayout.CENTER);
