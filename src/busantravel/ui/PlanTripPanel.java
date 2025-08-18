@@ -7,11 +7,6 @@ import busantravel.model.Restaurant;
 import busantravel.model.ScheduledPlace;
 import busantravel.model.Tourist;
 import busantravel.service.ScheduledPlaceService;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import javax.swing.border.LineBorder;
-import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -24,9 +19,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.TextStyle;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import javax.swing.border.LineBorder;
+import javax.swing.border.MatteBorder;
 
 /**
  * 사용자가 여행 일정을 계획하는 주 UI 패널입니다.
