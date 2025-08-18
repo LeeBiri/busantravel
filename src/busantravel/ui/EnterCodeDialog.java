@@ -10,6 +10,9 @@ public class EnterCodeDialog extends JDialog {
     private JTextField codeField;
     private SchedulePanel schedulePanel;
 
+
+    
+
     /**
      * EnterCodeDialog의 새 인스턴스를 생성합니다.
      *
