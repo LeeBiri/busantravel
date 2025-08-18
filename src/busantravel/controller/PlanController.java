@@ -43,6 +43,8 @@ public class PlanController {
     }
 
 
+    
+
     public void handleEnterCode() {
         EnterCodeDialog dialog = new EnterCodeDialog(parentFrame, schedulePanel);
         dialog.setVisible(true);
