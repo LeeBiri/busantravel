@@ -296,7 +296,7 @@ public class PlaceDAO {
                             removeHtmlTags(rs.getString("f_intro")),
                             rs.getString("f_thum"), // festival 썸네일 컬럼을 f_thum으로 변경
                             rs.getString("f_tra"),
-                            rs.getString("f_infor"), // restDay for festival is f_plan
+                            rs.getString("f_plan"), // f_infor -> f_plan 으로 변경
                             rs.getString("f_addr")
                     );
                 }
