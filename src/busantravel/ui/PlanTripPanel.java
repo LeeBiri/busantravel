@@ -57,6 +57,9 @@ public class PlanTripPanel extends JPanel {
     private final Map<String, String> placeThumbIndex = new HashMap<>();
 
     private String selectedCategory = "저장"; // 현재 선택된 카테고리
+    private int currentPage = 1;
+    private static final int ITEMS_PER_PAGE = 20;
+    private JPanel paginationControls;
 
     private static final Color ACCENT_DARK = new Color(200,110,90);
     private static final Color PANEL_BORDER = new Color(228, 180, 160);
@@ -206,7 +209,12 @@ public class PlanTripPanel extends JPanel {
         for (String c : new String[]{"저장","관광지","맛집","숙소"}) {
             JButton b = new JButton(c);
             styleCategoryChip(b, c.equals(selectedCategory));
-            b.addActionListener(e -> { selectedCategory = c; updateCategoryBarStyles(); loadPlacesFor(selectedCategory);});
+            b.addActionListener(e -> {
+                currentPage = 1;
+                selectedCategory = c;
+                updateCategoryBarStyles();
+                loadPlacesFor(selectedCategory);
+            });
             categoryBar.add(b);
         }
         leftHeader.add(categoryBar);
@@ -220,6 +228,10 @@ public class PlanTripPanel extends JPanel {
         styleScroll(leftScroll);
         leftScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         left.add(leftScroll, BorderLayout.CENTER);
+
+        paginationControls = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        paginationControls.setOpaque(false);
+        left.add(paginationControls, BorderLayout.SOUTH);
 
         gbc.gridx = 0; gbc.weightx = 0.30;
         grid.add(left, gbc);
@@ -328,9 +340,25 @@ public class PlanTripPanel extends JPanel {
             currentCategoryPlaces = placeDAO.getPlacesByCategory(category);
         }
 
-        for (Object obj : currentCategoryPlaces) {
-            placeListPanel.add(buildListRow(obj));
+        int totalItems = currentCategoryPlaces.size();
+        int totalPages = (int) Math.ceil((double) totalItems / ITEMS_PER_PAGE);
+        if (totalPages == 0) totalPages = 1;
+
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        int start = (currentPage - 1) * ITEMS_PER_PAGE;
+        int end = Math.min(start + ITEMS_PER_PAGE, totalItems);
+
+        if (start < totalItems) {
+            List<Object> placesToShow = currentCategoryPlaces.subList(start, end);
+            for (Object obj : placesToShow) {
+                placeListPanel.add(buildListRow(obj));
+            }
         }
+
+        updatePaginationControls(totalPages);
+
         placeListPanel.revalidate();
         placeListPanel.repaint();
     }
@@ -753,6 +781,56 @@ public class PlanTripPanel extends JPanel {
         b.setPreferredSize(new Dimension(96, 34));
     }
 
+    private void stylePaginationButton(JButton b) {
+        b.setFocusPainted(false);
+        b.setBackground(ColorConstants.ACCENT);
+        b.setForeground(Color.WHITE);
+        b.setBorder(new LineBorder(ACCENT_DARK, 1, true));
+        b.setFont(jalnanFont.deriveFont(Font.BOLD, 13f));
+        b.setPreferredSize(new Dimension(40, 30));
+    }
+
+    private void updatePaginationControls(int totalPages) {
+        paginationControls.removeAll();
+
+        if (totalPages <= 1) {
+            paginationControls.revalidate();
+            paginationControls.repaint();
+            return;
+        }
+
+        JButton prev = new JButton("<");
+        stylePaginationButton(prev);
+        prev.setEnabled(currentPage > 1);
+        prev.addActionListener(e -> {
+            if (currentPage > 1) {
+                currentPage--;
+                loadPlacesFor(selectedCategory);
+            }
+        });
+
+        JLabel pageLabel = new JLabel(currentPage + " / " + totalPages);
+        pageLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 14f));
+        pageLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+
+        JButton next = new JButton(">");
+        stylePaginationButton(next);
+        next.setEnabled(currentPage < totalPages);
+        next.addActionListener(e -> {
+            if (currentPage < totalPages) {
+                currentPage++;
+                loadPlacesFor(selectedCategory);
+            }
+        });
+
+        paginationControls.add(prev);
+        paginationControls.add(pageLabel);
+        paginationControls.add(next);
+
+        paginationControls.revalidate();
+        paginationControls.repaint();
+    }
+
     /**
      * 날짜 선택 콤보박스에서 현재 선택된 날짜를 가져옵니다.
      * @return 선택된 날짜의 LocalDate 객체
@@ -821,11 +899,13 @@ public class PlanTripPanel extends JPanel {
             if (image == null) return;
             memoryCache.put(key, new ImageIcon(image));
 
-        
             File imageFile = cacheDir.resolve(getFileName(key)).toFile();
             new Thread(() -> {
                 try {
-                    ImageIO.write(toBufferedImage(image), "png", imageFile);
+                    BufferedImage bufferedImg = toBufferedImage(image);
+                    if (bufferedImg != null) {
+                        ImageIO.write(bufferedImg, "png", imageFile);
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -847,9 +927,19 @@ public class PlanTripPanel extends JPanel {
 
         private static BufferedImage toBufferedImage(Image img) {
             if (img instanceof BufferedImage) return (BufferedImage) img;
-            BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+
+            // ImageIcon's constructor waits for the image to be loaded.
+            ImageIcon icon = new ImageIcon(img);
+            int width = icon.getIconWidth();
+            int height = icon.getIconHeight();
+
+            if (width <= 0 || height <= 0) {
+                return null; // Invalid image, cannot convert
+            }
+
+            BufferedImage bimage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g = bimage.createGraphics();
-            g.drawImage(img, 0, 0, null);
+            g.drawImage(icon.getImage(), 0, 0, null);
             g.dispose();
             return bimage;
         }
