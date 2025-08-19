@@ -29,7 +29,7 @@ public class TravelPlannerApp {
     private JPanel reviewPanel; // '후기' 탭을 위한 임시 패널
     private PlanTripPanel planTripPanel; // '여행 계획' 패널 인스턴스
 
-    private String currentTab = "home"; // 현재 활성화된 탭을 식별하는 문자열
+    private String currentTab = "home"; // 현재 활성화된 탭을 식별하는 문자열 ("여행 홈"이 기본 화면)
 
     /**
      * 애플리케이션의 메인 진입점입니다.
@@ -179,9 +179,9 @@ public class TravelPlannerApp {
         mainBannerPanel = new MainBannerPanel(); // MainBannerPanel 객체 생성
         reviewPanel = createPlaceholderPanel("후기 화면 (추후 구현)");
 
-        contentPanel.add(homePanel, "home");
+        contentPanel.add(mainBannerPanel, "home"); // "저장" 패널을 "home" 식별자로 변경 (새로운 "여행 홈")
         contentPanel.add(schedulePanel, "schedule");
-        contentPanel.add(mainBannerPanel, "saved");
+        contentPanel.add(homePanel, "search"); // "여행 홈" 패널을 "search" 식별자로 변경 (새로운 "검색")
         contentPanel.add(reviewPanel, "review");
 
         mainPanel.add(contentPanel, BorderLayout.CENTER);
@@ -265,11 +265,16 @@ public class TravelPlannerApp {
 
     /**
      * 하단 네비게이션 바에 버튼들을 생성하고 추가합니다.
+     * 사용자의 요청에 따라 "저장" 탭을 맨 왼쪽으로 옮기고, "여행 홈" 탭의 이름을 "검색"으로 변경합니다.
      */
     private void initNavigationButtons() {
+        // "저장" 탭을 "여행 홈"으로 변경하고 "home" 식별자로 설정, 맨 왼쪽으로 이동
         navigationPanel.add(createNavButton("여행 홈", "home"));
+        // "여행 홈" 탭을 "검색"으로 변경하고 "search" 식별자로 설정
+        navigationPanel.add(createNavButton("검색", "search"));
+        // "일정" 탭
         navigationPanel.add(createNavButton("일정", "schedule"));
-        navigationPanel.add(createNavButton("저장", "saved"));
+        // "후기" 탭
         navigationPanel.add(createNavButton("후기", "review"));
     }
 
@@ -304,8 +309,15 @@ public class TravelPlannerApp {
         for (Component comp : navigationPanel.getComponents()) {
             if (comp instanceof JButton) {
                 JButton btn = (JButton) comp;
+                String buttonText = btn.getText();
+                String currentTabText = getTabText(currentTab);
+
                 if (!"plan".equals(currentTab)) {
-                    btn.setBackground(btn.getText().equals(getTabText(currentTab)) ? ColorConstants.SELECTED : ColorConstants.ACCENT);
+                    if (buttonText.equals(currentTabText)) {
+                        btn.setBackground(ColorConstants.SELECTED);
+                    } else {
+                        btn.setBackground(ColorConstants.ACCENT);
+                    }
                 } else {
                     btn.setBackground(ColorConstants.ACCENT);
                 }
@@ -321,9 +333,9 @@ public class TravelPlannerApp {
      */
     private String getTabText(String tabName) {
         switch (tabName) {
-            case "home": return "여행 홈";
+            case "home": return "여행 홈"; // "home" 식별자는 이제 "여행 홈"을 의미
             case "schedule": return "일정";
-            case "saved": return "저장";
+            case "search": return "검색"; // "search" 식별자는 이제 "검색"을 의미
             case "review": return "후기";
             default: return "";
         }

@@ -94,7 +94,9 @@ public class PlaceCard extends JPanel {
         textPanel.add(descriptionArea, BorderLayout.CENTER);
 
         add(textPanel, BorderLayout.CENTER);
-        addMouseListener(createMouseAdapter(frame, placeName, category));
+        MouseAdapter adapter = createMouseAdapter(frame, placeName, category);
+        addMouseListener(adapter);
+        descriptionArea.addMouseListener(adapter);
     }
 
     private void showPlaceDetailDialog(JFrame frame, String placeName, String category) {
@@ -411,24 +413,16 @@ public class PlaceCard extends JPanel {
             }
             @Override
             public void mouseEntered(MouseEvent e) {
-                if (getLayout() instanceof BorderLayout) {
-                    setBorder(BorderFactory.createLineBorder(ColorConstants.ACCENT, 2));
-                } else {
-                    setBackground(new Color(245, 245, 245));
-                    for(Component c : getComponents()){
-                        if(c instanceof JPanel) c.setBackground(new Color(245, 245, 245));
-                    }
+                setBackground(new Color(245, 245, 245));
+                for(Component c : getComponents()){
+                    if(c instanceof JPanel) c.setBackground(new Color(245, 245, 245));
                 }
             }
             @Override
             public void mouseExited(MouseEvent e) {
-                if (getLayout() instanceof BorderLayout) {
-                    setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
-                } else {
-                    setBackground(Color.WHITE);
-                    for(Component c : getComponents()){
-                        if(c instanceof JPanel) c.setBackground(Color.WHITE);
-                    }
+                setBackground(Color.WHITE);
+                for(Component c : getComponents()){
+                    if(c instanceof JPanel) c.setBackground(Color.WHITE);
                 }
             }
         };
