@@ -291,10 +291,6 @@ public class PlanTripPanel extends JPanel {
                 .filter(sp -> sp.getScheduled_date().toLocalDate().equals(sel))
                 .collect(Collectors.toList());
 
-            for (ScheduledPlace sp : toRemove) {
-                ScheduledPlaceService.deleteSchedule(sp);
-            }
-
             scheduledPlaces.removeAll(toRemove);
             refreshSelectedList();
         });
@@ -605,7 +601,6 @@ public class PlanTripPanel extends JPanel {
         JButton del = new JButton("삭제");
         styleDangerButton(del);
         del.addActionListener(e -> {
-            ScheduledPlaceService.deleteSchedule(sp);
             scheduledPlaces.remove(sp); refreshSelectedList();
             });
 
@@ -626,7 +621,6 @@ public class PlanTripPanel extends JPanel {
                 if (chosen != null) {
                     sp.setP_id(chosen.id);
                     sp.setP_type(chosen.type);
-                    ScheduledPlaceService.updateSchedule(sp);
                     placeNameIndex.put(chosen.type + ":" + chosen.id, chosen.name);
                     placeThumbIndex.put(chosen.type + ":" + chosen.id, chosen.thumbUrl);
                     refreshSelectedList();
