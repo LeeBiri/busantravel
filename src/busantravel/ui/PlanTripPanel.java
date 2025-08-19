@@ -190,7 +190,7 @@ public class PlanTripPanel extends JPanel {
         styleSolidButton(saveBtn);
         saveBtn.addActionListener(e -> {
         if (mainApp != null) {
-            // 추가, 삭제, 업데이트가 즉시 반영되므로 저장 버튼은 화면을 닫는 역할만 수행
+            ScheduledPlaceService.saveSchedulesForPlan(planId, scheduledPlaces);
             if (onBack != null) onBack.run();
         }});
 
@@ -524,8 +524,6 @@ public class PlanTripPanel extends JPanel {
                 scheduledPlaceColors.put(key, color);
             }
 
-            // DB에 즉시 저장
-            ScheduledPlaceService.insertSchedule(sp);
             scheduledPlaces.add(sp);
             refreshSelectedList();
         });

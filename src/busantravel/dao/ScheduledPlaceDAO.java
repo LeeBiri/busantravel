@@ -90,4 +90,15 @@ public class ScheduledPlaceDAO {
         }
         return schedules;
     }
+
+    public void deleteAllByPlanId(String planId) {
+        String sql = "DELETE FROM scheduled_place WHERE plan_id = ?";
+        try (Connection con = pool.getConnection();
+             PreparedStatement pstmt = con.prepareStatement(sql)) {
+            pstmt.setString(1, planId);
+            pstmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
