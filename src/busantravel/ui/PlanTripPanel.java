@@ -7,6 +7,10 @@ import busantravel.model.Restaurant;
 import busantravel.model.ScheduledPlace;
 import busantravel.model.Tourist;
 import busantravel.service.ScheduledPlaceService;
+import busantravel.util.ApiHandler;
+import busantravel.util.Coordinate;
+import busantravel.util.PlaceInfo;
+import busantravel.util.StaticMapGenerator;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -55,6 +59,11 @@ public class PlanTripPanel extends JPanel {
     private final List<ScheduledPlace> scheduledPlaces;
     private final Map<String, String> placeNameIndex = new HashMap<>();
     private final Map<String, String> placeThumbIndex = new HashMap<>();
+    private final Map<String, String> scheduledPlaceColors = new HashMap<>();
+    private JLabel mapLabel;
+    private final ApiHandler apiHandler = new ApiHandler();
+    private final StaticMapGenerator mapGenerator;
+    private static final String TMAP_API_KEY = "h5baCQSfp37eFmXohbwx23t7n1KLSIcn3RyFtMcg";
 
     private String selectedCategory = "저장"; // 현재 선택된 카테고리
     private int currentPage = 1;
@@ -72,6 +81,11 @@ public class PlanTripPanel extends JPanel {
     private static final int THUMB_H = 54;
     private static final int ROW_INNER_HPAD = 10;
     private Font jalnanFont;
+
+    private static final List<String> COLOR_PRESETS = Arrays.asList(
+        "E6194B", "3CB44B", "FFE119", "4363D8", "F58231",
+        "911EB4", "46F0F0", "F032E6", "BCF60C", "FABEBE"
+    );
 
     /**
      * PlanTripPanel의 새 인스턴스를 생성합니다.
@@ -92,6 +106,25 @@ public class PlanTripPanel extends JPanel {
         this.planId = planId;
         this.onBack = onBack;
         this.scheduledPlaces = ScheduledPlaceService.getSchedulesByPlanId(planId);
+
+        // Pre-assign colors to existing unique places
+        Set<String> uniquePlaceKeys = new LinkedHashSet<>();
+        for (ScheduledPlace sp : this.scheduledPlaces) {
+            uniquePlaceKeys.add(sp.getP_type() + ":" + sp.getP_id());
+        }
+
+        int colorIndex = 0;
+        Random rand = new Random();
+        for (String key : uniquePlaceKeys) {
+            if (colorIndex < COLOR_PRESETS.size()) {
+                scheduledPlaceColors.put(key, COLOR_PRESETS.get(colorIndex));
+            } else {
+                scheduledPlaceColors.put(key, String.format("%06X", rand.nextInt(0xFFFFFF + 1)));
+            }
+            colorIndex++;
+        }
+        
+        this.mapGenerator = new StaticMapGenerator(TMAP_API_KEY);
 
         setLayout(new BorderLayout(10, 10));
 
@@ -157,7 +190,7 @@ public class PlanTripPanel extends JPanel {
         styleSolidButton(saveBtn);
         saveBtn.addActionListener(e -> {
         if (mainApp != null) {
-            ScheduledPlaceService.insertSchedule(scheduledPlaces);
+            ScheduledPlaceService.saveSchedulesForPlan(planId, scheduledPlaces);
             if (onBack != null) onBack.run();
         }});
 
@@ -258,10 +291,6 @@ public class PlanTripPanel extends JPanel {
                 .filter(sp -> sp.getScheduled_date().toLocalDate().equals(sel))
                 .collect(Collectors.toList());
 
-            for (ScheduledPlace sp : toRemove) {
-                ScheduledPlaceService.deleteSchedule(sp);
-            }
-
             scheduledPlaces.removeAll(toRemove);
             refreshSelectedList();
         });
@@ -283,13 +312,13 @@ public class PlanTripPanel extends JPanel {
         gbc.gridx = 1; gbc.weightx = 0.34;
         grid.add(center, gbc);
 
-        // ─ Right: 지도 placeholder ─
+        // ─ Right: 지도 ─
         JPanel right = boxedColumn(null);
         right.setPreferredSize(new Dimension(520, 0));
-        JLabel mapPh = new JLabel("지도", SwingConstants.CENTER);
-        mapPh.setFont(jalnanFont.deriveFont(Font.BOLD, 20f));
-        mapPh.setForeground(new Color(150, 160, 150));
-        right.add(mapPh, BorderLayout.CENTER);
+        mapLabel = new JLabel("일정에 장소를 추가하면 지도가 표시됩니다.", SwingConstants.CENTER);
+        mapLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 14f));
+        mapLabel.setForeground(new Color(150, 160, 150));
+        right.add(mapLabel, BorderLayout.CENTER);
 
         gbc.gridx = 2; gbc.weightx = 0.36;
         grid.add(right, gbc);
@@ -476,6 +505,21 @@ public class PlanTripPanel extends JPanel {
                 visit, startTime, endTime,
                 nextOrder(d)
             );
+            
+            // 새 장소에 대해 핀에 랜덤 색상을 할당
+            String key = sp.getP_type() + ":" + sp.getP_id();
+            if (!scheduledPlaceColors.containsKey(key)) {
+                int colorIndex = scheduledPlaceColors.size();
+                String color;
+                if (colorIndex < COLOR_PRESETS.size()) {
+                    color = COLOR_PRESETS.get(colorIndex);
+                } else {
+                    Random rand = new Random();
+                    color = String.format("%06X", rand.nextInt(0xFFFFFF + 1));
+                }
+                scheduledPlaceColors.put(key, color);
+            }
+
             scheduledPlaces.add(sp);
             refreshSelectedList();
         });
@@ -511,8 +555,29 @@ public class PlanTripPanel extends JPanel {
         row.setPreferredSize(new Dimension(COLUMN_CENTER_WIDTH - 32, ROW_HEIGHT));
         row.setMaximumSize(new Dimension(COLUMN_CENTER_WIDTH - 32, ROW_HEIGHT));
 
+        JPanel westPanel = new JPanel(new BorderLayout(4, 0));
+        westPanel.setOpaque(false);
+
+        String colorHex = scheduledPlaceColors.get(key);
+
+        JPanel colorChip = new JPanel();
+        colorChip.setPreferredSize(new Dimension(12, 12));
+        if (colorHex != null) {
+            colorChip.setBackground(Color.decode("#" + colorHex));
+        } else {
+            colorChip.setBackground(Color.GRAY);
+        }
+        colorChip.setBorder(new LineBorder(Color.DARK_GRAY));
+
+        JPanel chipContainer = new JPanel(new GridBagLayout());
+        chipContainer.setOpaque(false);
+        chipContainer.add(colorChip);
+
+        westPanel.add(chipContainer, BorderLayout.WEST);
         JLabel thumb = buildThumb(thumbUrl, THUMB_W, THUMB_H);
-        row.add(thumb, BorderLayout.WEST);
+        westPanel.add(thumb, BorderLayout.CENTER);
+
+        row.add(westPanel, BorderLayout.WEST);
 
         JPanel text = new JPanel();
         text.setOpaque(false);
@@ -536,7 +601,6 @@ public class PlanTripPanel extends JPanel {
         JButton del = new JButton("삭제");
         styleDangerButton(del);
         del.addActionListener(e -> {
-            ScheduledPlaceService.deleteSchedule(sp);
             scheduledPlaces.remove(sp); refreshSelectedList();
             });
 
@@ -557,7 +621,6 @@ public class PlanTripPanel extends JPanel {
                 if (chosen != null) {
                     sp.setP_id(chosen.id);
                     sp.setP_type(chosen.type);
-                    ScheduledPlaceService.updateSchedule(sp);
                     placeNameIndex.put(chosen.type + ":" + chosen.id, chosen.name);
                     placeThumbIndex.put(chosen.type + ":" + chosen.id, chosen.thumbUrl);
                     refreshSelectedList();
@@ -590,6 +653,7 @@ public class PlanTripPanel extends JPanel {
         }
         selectedPlacePanel.revalidate();
         selectedPlacePanel.repaint();
+        updateMap();
     }
 
     /* ── Async + Cache image loader ───────────────────────── */
@@ -857,6 +921,123 @@ public class PlanTripPanel extends JPanel {
      * @return 원본 문자열 또는 빈 문자열
      */
     private static String safe(String s) { return s == null ? "" : s; }
+
+
+    //지도 추가
+    private void updateMap() {
+        LocalDate selectedDate = getSelectedDate();
+        List<ScheduledPlace> todaysPlaces = scheduledPlaces.stream()
+            .filter(sp -> sp.getScheduled_date().toLocalDate().equals(selectedDate))
+            .collect(Collectors.toList());
+
+        if (todaysPlaces.isEmpty()) {
+            mapLabel.setIcon(null);
+            mapLabel.setText("선택한 날짜에 예정된 장소가 없습니다.");
+            return;
+        }
+
+        new Thread(() -> {
+            List<Coordinate> coordinates = new ArrayList<>();
+            List<String> markerList = new ArrayList<>();
+            Random rand = new Random(); // For fallback color generation
+
+            for (ScheduledPlace sp : todaysPlaces) {
+                String placeName = placeNameIndex.get(sp.getP_type() + ":" + sp.getP_id());
+                if (placeName != null) {
+                    PlaceInfo placeInfo = apiHandler.getPlaceDetailsByName(placeName, TMAP_API_KEY);
+                    if (placeInfo != null) {
+                        Coordinate coord = new Coordinate(placeInfo.getLatitude(), placeInfo.getLongitude());
+                        coordinates.add(coord);
+
+                        String key = sp.getP_type() + ":" + sp.getP_id();
+                        String color = scheduledPlaceColors.get(key);
+                        if (color == null) {
+                            color = String.format("%06X", rand.nextInt(0xFFFFFF + 1));
+                            scheduledPlaceColors.put(key, color);
+                        }
+                        markerList.add(String.format("pin-m@%s(%f,%f)viewSize:0.3", color, coord.getLongitude(), coord.getLatitude()));
+                    }
+                }
+            }
+
+            if (!coordinates.isEmpty()) {
+                Coordinate center = calculateCenter(coordinates);
+                
+                int zoom = 11; // 기본 줌 레벨
+                if (coordinates.size() > 1) {
+                    double maxDistance = calculateMaxDistance(coordinates);
+                    if (maxDistance >= 24) {
+                        zoom = 9; // 24km 이상이면 줌 레벨 2 감소
+                    } else if (maxDistance >= 14) {
+                        zoom = 10; // 14km 이상이면 줌 레벨 1 감소
+                    }
+                }
+
+                String markersValue = String.join(",", markerList);
+                String mapUrl = mapGenerator.generateMapWithMarkers(center, markersValue, 520, mapLabel.getHeight(), zoom);
+                if (mapUrl != null) {
+                    try {
+                        ImageIcon icon = new ImageIcon(new URL(mapUrl));
+                        SwingUtilities.invokeLater(() -> {
+                            mapLabel.setText("");
+                            mapLabel.setIcon(icon);
+                        });
+                    } catch (Exception e) {
+                        SwingUtilities.invokeLater(() -> mapLabel.setText("지도 이미지를 불러올 수 없습니다."));
+                    }
+                }
+            } else {
+                SwingUtilities.invokeLater(() -> mapLabel.setText("장소의 좌표를 찾을 수 없습니다."));
+            }
+        }).start();
+    }
+
+    private double calculateDistance(Coordinate c1, Coordinate c2) {
+        final int R = 6371; // 지구 반지름 (km)
+        double lat1 = c1.getLatitude();
+        double lon1 = c1.getLongitude();
+        double lat2 = c2.getLatitude();
+        double lon2 = c2.getLongitude();
+
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        
+        return R * c;
+    }
+
+    private double calculateMaxDistance(List<Coordinate> coordinates) {
+        // 리스트에 있는 모든 핀 조합(예: 3개 핀의 경우 1-2, 1-3, 2-3) 간의 거리를 계산하여 최대 거리를 찾습니다.
+        double maxDistance = 0;
+        for (int i = 0; i < coordinates.size(); i++) {
+            for (int j = i + 1; j < coordinates.size(); j++) {
+                double distance = calculateDistance(coordinates.get(i), coordinates.get(j));
+                if (distance > maxDistance) {
+                    maxDistance = distance;
+                }
+            }
+        }
+        return maxDistance;
+    }
+
+    private Coordinate calculateCenter(List<Coordinate> coordinates) {
+        if (coordinates == null || coordinates.isEmpty()) {
+            return new Coordinate(35.1581, 129.0596); // Default to Busan center
+        }
+        if (coordinates.size() == 1) {
+            return coordinates.get(0);
+        }
+        double sumLat = 0, sumLon = 0;
+        for (Coordinate c : coordinates) {
+            sumLat += c.getLatitude();
+            sumLon += c.getLongitude();
+        }
+        return new Coordinate(sumLat / coordinates.size(), sumLon / coordinates.size());
+    }
 
     /* ImageCache (내부) */
     private static class ImageCache {
