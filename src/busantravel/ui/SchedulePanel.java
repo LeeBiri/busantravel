@@ -2,10 +2,9 @@ package busantravel.ui;
 
 import busantravel.controller.PlanController;
 import busantravel.model.TravelPlan;
-
 import java.awt.*;
+import java.io.InputStream;
 import javax.swing.*;
-import busantravel.ui.ColorConstants;
 import javax.swing.border.TitledBorder;
 
 /**
@@ -19,6 +18,7 @@ public class SchedulePanel extends JPanel {
     private JPanel upcomingPanel; // 다가오는 여행 목록을 표시하는 패널
     private JPanel pastPanel; // 지난 여행 목록을 표시하는 패널
     PlanController controller; // 여행 생성 및 참여 관련 로직을 처리하는 컨트롤러
+    private Font jalnanFont;
 
     /**
      * SchedulePanel의 새 인스턴스를 생성합니다.
@@ -32,7 +32,7 @@ public class SchedulePanel extends JPanel {
         this.controller = new PlanController(parentFrame, this, "aaa");
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
-        
+        loadFont();
         // 좌측 버튼 패널
         JPanel leftPanel = new JPanel();
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
@@ -40,7 +40,9 @@ public class SchedulePanel extends JPanel {
         leftPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         JButton createTripBtn = new JButton("여행 일정 만들기");
+        createTripBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 14f));
         JButton enterCodeBtn = new JButton("참여 코드 입력");
+        enterCodeBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 14f));
 
         Dimension btnSize = new Dimension(180, 50);
         createTripBtn.setMaximumSize(btnSize);
@@ -71,31 +73,39 @@ public class SchedulePanel extends JPanel {
         section.setBackground(Color.WHITE);
         section.setPreferredSize(new Dimension(SECTION_WIDTH, 680)); // 높이는 상황에 맞게
         section.setMaximumSize(new Dimension(SECTION_WIDTH, Integer.MAX_VALUE));
-        section.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        section.setBorder(BorderFactory.createEmptyBorder(80, 0, 0, 0));
 
         // ❸ "다가오는 여행" 컨테이너
         upcomingPanel = new JPanel();
         upcomingPanel.setLayout(new BoxLayout(upcomingPanel, BoxLayout.Y_AXIS));
         upcomingPanel.setBackground(Color.WHITE);
         upcomingPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(ColorConstants.ACCENT),
-                "다가오는 여행",
-                TitledBorder.LEFT, TitledBorder.TOP,
-                new Font("맑은 고딕", Font.BOLD, 16),
-                ColorConstants.ACCENT
-        ));
+        	    BorderFactory.createCompoundBorder(
+        	        BorderFactory.createEmptyBorder(15, 0, 0, 0), // ← 상단 여백 15px
+        	        BorderFactory.createLineBorder(ColorConstants.ACCENT)
+        	    ),
+        	    "다가오는 여행",
+        	    TitledBorder.LEFT, TitledBorder.TOP,
+        	    jalnanFont.deriveFont(Font.BOLD, 26f),
+        	    ColorConstants.ACCENT
+        	));
+
 
         // ❹ "지난 여행" 컨테이너
         pastPanel = new JPanel();
         pastPanel.setLayout(new BoxLayout(pastPanel, BoxLayout.Y_AXIS));
         pastPanel.setBackground(Color.WHITE);
         pastPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(ColorConstants.ACCENT),
-                "지난 여행",
-                TitledBorder.LEFT, TitledBorder.TOP,
-                new Font("맑은 고딕", Font.BOLD, 16),
-                ColorConstants.ACCENT
-        ));
+        	    BorderFactory.createCompoundBorder(
+        	        BorderFactory.createEmptyBorder(15, 0, 0, 0), // ← 상단 여백 15px
+        	        BorderFactory.createLineBorder(ColorConstants.ACCENT)
+        	    ),
+        	    "지난 여행",
+        	    TitledBorder.LEFT, TitledBorder.TOP,
+        	    jalnanFont.deriveFont(Font.BOLD, 26f),
+        	    ColorConstants.ACCENT
+        	));
+
 
         // ❺ 섹션에 스크롤 달아서 추가
         JScrollPane upcomingScroll = new JScrollPane(upcomingPanel);
@@ -162,6 +172,7 @@ public class SchedulePanel extends JPanel {
      * @return 생성된 카드 JPanel 객체
      */
     private JPanel createPlanCard(TravelPlan plan, boolean isUpcoming) {
+        loadFont();
         int CARD_WIDTH = 480;
 
         JPanel card = new JPanel(new BorderLayout());
@@ -188,19 +199,19 @@ public class SchedulePanel extends JPanel {
         JPanel textPanel = new JPanel();
         textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
         textPanel.setBackground(Color.WHITE);
-        textPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0)); // 내부 여백
+        textPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0)); 
 
         JLabel title = new JLabel(plan.getPlan_title());
-        title.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+        title.setFont(jalnanFont.deriveFont(Font.BOLD, 16f));
 
         String dateRange = plan.getPlan_period_start().toLocalDate() + " - " +
                            plan.getPlan_period_end().toLocalDate();
         JLabel date = new JLabel(dateRange);
-        date.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+        date.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
         date.setForeground(Color.GRAY);
 
         JLabel code = new JLabel("방 코드 : " + plan.getPlan_id());
-        code.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+        code.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
         code.setForeground(new Color(90, 90, 90));
 
         textPanel.add(title);
@@ -213,32 +224,48 @@ public class SchedulePanel extends JPanel {
         card.add(left, BorderLayout.CENTER);
 
         if (isUpcoming) {
-            JPanel btns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 10));
-            btns.setBackground(Color.WHITE);
+        	JButton arrowBtn = new JButton(">");
+        	arrowBtn.setFont(jalnanFont.deriveFont(Font.BOLD, 26f));
 
-            JButton planBtn = new JButton("일정 계획하기");
-            planBtn.setBackground(ColorConstants.ACCENT);
-            planBtn.setForeground(Color.WHITE);
-            planBtn.setFocusPainted(false);
+            arrowBtn.setPreferredSize(new Dimension(60, 100)); 
+            arrowBtn.setFocusPainted(false);
+            arrowBtn.setBackground(Color.WHITE);
+            arrowBtn.setBorderPainted(false);
 
-            planBtn.addActionListener(e -> {
+            arrowBtn.addActionListener(e -> {
                 if (mainApp != null) {
-                    mainApp.switchToPlanTrip(plan);
+                	 mainApp.switchToFullSchedule(plan); 
                 }
             });
 
+            // 화살표 오른쪽 정렬
+            JPanel arrowPanel = new JPanel(new BorderLayout());
+            arrowPanel.setBackground(Color.WHITE);
+            arrowPanel.add(arrowBtn, BorderLayout.CENTER);
+            arrowPanel.setPreferredSize(new Dimension(60, 100));
 
-            JButton checklistBtn = new JButton("체크리스트");
-            checklistBtn.setBackground(new Color(100, 150, 240));
-            checklistBtn.setForeground(Color.WHITE);
-
-            btns.add(planBtn);
-            btns.add(checklistBtn);
-
-            card.add(btns, BorderLayout.EAST);
+            card.add(arrowPanel, BorderLayout.EAST);
         }
+
 
         return card;
     }
 
+    private void loadFont() {
+        try {
+            InputStream is = getClass().getResourceAsStream("/busantravel/resources/Jalnan2TTF.ttf");
+            if (is != null) {
+                jalnanFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(14f); // 기본 크기 14로 설정
+                GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+                ge.registerFont(jalnanFont);
+            } else {
+                System.err.println("폰트 파일을 찾을 수 없습니다! 기본 폰트 사용.");
+                jalnanFont = new Font("맑은 고딕", Font.PLAIN, 14);
+            }
+        } catch (Exception e) {
+            System.err.println("폰트 로드 중 예외 발생: " + e.getMessage());
+            e.printStackTrace();
+            jalnanFont = new Font("맑은 고딕", Font.PLAIN, 14);
+        }
+    }
 }

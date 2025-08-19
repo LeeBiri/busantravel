@@ -11,10 +11,13 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -65,6 +68,7 @@ public class PlanTripPanel extends JPanel {
     private static final int THUMB_W = 68;
     private static final int THUMB_H = 54;
     private static final int ROW_INNER_HPAD = 10;
+    private Font jalnanFont;
 
     /**
      * PlanTripPanel의 새 인스턴스를 생성합니다.
@@ -77,7 +81,7 @@ public class PlanTripPanel extends JPanel {
      * @param onBack    '뒤로가기' 버튼 클릭 시 실행될 콜백
      */
     public PlanTripPanel(LocalDateTime startDate, LocalDateTime endDate,
-                         TravelPlannerApp mainApp, String tripTitle, String planId, Runnable onBack) {
+                         TravelPlannerApp mainApp, String tripTitle, String planId, int dayIndex, Runnable onBack) {
         this.startDate = startDate.toLocalDate();
         this.endDate = endDate.toLocalDate();
         this.mainApp = mainApp;
@@ -85,14 +89,16 @@ public class PlanTripPanel extends JPanel {
         this.planId = planId;
         this.onBack = onBack;
         this.scheduledPlaces = ScheduledPlaceService.getSchedulesByPlanId(planId);
-        System.out.println("[DEBUG] planId: " + planId);
 
         setLayout(new BorderLayout(10, 10));
-        setBackground(new Color(252, 248, 244));
 
         buildTopBar();
         buildBody();
 
+        if (dayComboBox != null && dayIndex >= 0) {
+            dayComboBox.setSelectedIndex(dayIndex - 1);
+        }
+        
         loadPlacesFor(selectedCategory);
         refreshSelectedList();
     }
@@ -109,6 +115,7 @@ public class PlanTripPanel extends JPanel {
      * 패널의 상단 바(날짜 선택 콤보박스, 뒤로가기 버튼)를 구성합니다.
      */
     private void buildTopBar() {
+        loadFont();
         JPanel top = new JPanel(new BorderLayout());
         top.setBackground(new Color(245, 242, 238));
         top.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
@@ -117,12 +124,12 @@ public class PlanTripPanel extends JPanel {
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         left.setOpaque(false);
 
-        JLabel titleLabel = new JLabel(tripTitle);             // ✅ 여행 제목 표시
-        titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 18));
+        JLabel titleLabel = new JLabel(tripTitle);             
+        titleLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
         left.add(titleLabel);
 
         JLabel dateLabel = new JLabel("날짜 선택:");
-        dateLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+        dateLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
         left.add(dateLabel);
 
         DefaultComboBoxModel<String> daysModel = new DefaultComboBoxModel<>();
@@ -168,6 +175,7 @@ public class PlanTripPanel extends JPanel {
      * 추천 장소, 나의 여행 계획, 지도 영역으로 나누어진 3단 레이아웃을 생성합니다.
      */
     private void buildBody() {
+        loadFont();
         JPanel grid = new JPanel(new GridBagLayout());
         grid.setOpaque(false);
         grid.setBorder(BorderFactory.createEmptyBorder(6, 12, 16, 12));
@@ -181,13 +189,13 @@ public class PlanTripPanel extends JPanel {
         JPanel left = boxedColumn(null);
         left.setPreferredSize(new Dimension(COLUMN_LEFT_WIDTH, 0));
 
-        // 제목 + 카테고리 버튼을 하나의 헤더에 넣어서 NORTH에 단 한 번만 추가 ✅
+        // 제목 + 카테고리 버튼을 하나의 헤더에 넣어서 NORTH에 단 한 번만 추가 
         JPanel leftHeader = new JPanel();
         leftHeader.setOpaque(false);
         leftHeader.setLayout(new BoxLayout(leftHeader, BoxLayout.Y_AXIS));
 
         JLabel leftTitle = new JLabel("추천 장소");
-        leftTitle.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+        leftTitle.setFont(jalnanFont.deriveFont(Font.BOLD, 20f));
         leftTitle.setForeground(new Color(100, 80, 70));
         leftTitle.setAlignmentX(LEFT_ALIGNMENT);
         leftTitle.setBorder(BorderFactory.createEmptyBorder(0, 2, 6, 0));
@@ -223,7 +231,7 @@ public class PlanTripPanel extends JPanel {
         JPanel centerHeader = new JPanel(new BorderLayout());
         centerHeader.setOpaque(false);
         JLabel centerTitle = new JLabel("나의 여행 계획");
-        centerTitle.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+        centerTitle.setFont(jalnanFont.deriveFont(Font.BOLD, 20f));
         centerTitle.setForeground(new Color(100, 80, 70));
         centerTitle.setBorder(BorderFactory.createEmptyBorder(0, 2, 6, 0));
         centerHeader.add(centerTitle, BorderLayout.WEST);
@@ -267,7 +275,7 @@ public class PlanTripPanel extends JPanel {
         JPanel right = boxedColumn(null);
         right.setPreferredSize(new Dimension(520, 0));
         JLabel mapPh = new JLabel("지도", SwingConstants.CENTER);
-        mapPh.setFont(new Font("맑은 고딕", Font.BOLD, 22));
+        mapPh.setFont(jalnanFont.deriveFont(Font.BOLD, 20f));
         mapPh.setForeground(new Color(150, 160, 150));
         right.add(mapPh, BorderLayout.CENTER);
 
@@ -284,15 +292,15 @@ public class PlanTripPanel extends JPanel {
      * @return 스타일이 적용된 JPanel 객체
      */
     private JPanel boxedColumn(String title) {
+        loadFont();
         JPanel p = new JPanel(new BorderLayout());
-        p.setBackground(new Color(255, 251, 248));
-        p.setBorder(BorderFactory.createCompoundBorder(
-                new LineBorder(PANEL_BORDER, 2, true),
+        p.setBackground(Color.white);
+        p.setBorder(
                 BorderFactory.createEmptyBorder(10, 12, 12, 12)
-        ));
+        );
         if (title != null) {
             JLabel t = new JLabel(title);
-            t.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+            t.setFont(jalnanFont.deriveFont(Font.BOLD, 20f));
             t.setBorder(BorderFactory.createEmptyBorder(0, 2, 8, 0));
             t.setForeground(new Color(100, 80, 70));
             p.add(t, BorderLayout.PAGE_START);
@@ -335,6 +343,7 @@ public class PlanTripPanel extends JPanel {
      * @return 생성된 행 JPanel 객체
      */
     private JPanel buildListRow(Object obj) {
+        loadFont();
         PlaceData pd = PlaceData.from(obj);
         placeNameIndex.put(pd.type + ":" + pd.id, pd.name);
         placeThumbIndex.put(pd.type + ":" + pd.id, pd.thumbUrl);
@@ -343,6 +352,7 @@ public class PlanTripPanel extends JPanel {
 
         JPanel row = new JPanel(new BorderLayout(8, 0));
         row.setOpaque(false);
+        row.setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
         row.setBorder(new MatteBorder(0, 0, 1, 0, DIVIDER));
         row.setPreferredSize(new Dimension(COLUMN_LEFT_WIDTH - 32, ROW_HEIGHT));
         row.setMaximumSize(new Dimension(COLUMN_LEFT_WIDTH - 32, ROW_HEIGHT));
@@ -357,33 +367,95 @@ public class PlanTripPanel extends JPanel {
 
         JLabel title = ellipsisLabel("<html><b>"+safe(pd.name)+"</b> <span style='color:#9a9a9a'>("+pd.type+")</span></html>", fixedWidth);
         JLabel addr  = ellipsisLabel(safe(pd.addr), fixedWidth);
-        addr.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+        title.setFont(jalnanFont.deriveFont(Font.PLAIN, 13f));
+        addr.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
         addr.setForeground(new Color(140,140,140));
         text.add(title);
         text.add(addr);
         row.add(text, BorderLayout.CENTER);
 
+
+       String[] times = {
+            "09:00", "10:00", "11:00", "12:00", "13:00",
+            "14:00", "15:00", "16:00", "17:00", "18:00",
+            "19:00", "20:00", "21:00", "22:00", "23:00"
+        };
+        JComboBox<String> startBox = new JComboBox<>(times);
+        JComboBox<String> endBox = new JComboBox<>(times);
+        startBox.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
+        endBox.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
+
+
         JButton plus = new JButton("+");
         plus.setPreferredSize(new Dimension(36, 36));
-        plus.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+        plus.setFont(jalnanFont.deriveFont(Font.BOLD, 20f));
         plus.setForeground(Color.WHITE);
         plus.setBackground(ColorConstants.ACCENT);
         plus.setFocusPainted(false);
         plus.setBorder(new LineBorder(ACCENT_DARK, 1, true));
         plus.addActionListener(e -> {
             LocalDate d = getSelectedDate();
-            LocalDateTime visit = LocalDateTime.of(d, LocalTime.NOON);
+            String startStr = (String) startBox.getSelectedItem();
+            String endStr = (String) endBox.getSelectedItem();
+            // 동일한 장소가 이미 해당 날짜에 존재하는지 확인
+            boolean alreadyExists = scheduledPlaces.stream()
+                .anyMatch(existing ->
+                    existing.getP_id().equals(pd.id) &&
+                    existing.getP_type().equals(pd.type)
+                );
+
+            if (alreadyExists) {
+                JOptionPane.showMessageDialog(this,
+                        "이 장소는 이미 선택한 일정에 추가되어 있습니다.",
+                        "중복 추가",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            if (startStr == null || endStr == null) {
+                JOptionPane.showMessageDialog(this, "시간을 선택해주세요.", "시간 선택", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            LocalTime startTime = LocalTime.parse(startStr);
+            LocalTime endTime = LocalTime.parse(endStr);
+
+            if (!endTime.isAfter(startTime)) {
+                JOptionPane.showMessageDialog(this, "종료 시간은 시작 시간 이후여야 합니다.", "시간 오류", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            boolean hasConflict = scheduledPlaces.stream()
+            .filter(existing -> existing.getScheduled_date().toLocalDate().equals(d))
+            .anyMatch(existing -> {
+                LocalTime exStart = existing.getExpected_start();
+                LocalTime exEnd = existing.getExpected_dutarion();
+                return !(endTime.isBefore(exStart) || startTime.isAfter(exEnd));
+            });
+
+            if (hasConflict) {
+                JOptionPane.showMessageDialog(this,
+                    "선택한 시간대가 기존 일정과 겹칩니다.\n다른 시간대를 선택해주세요.",
+                    "시간 중복",
+                    JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            LocalDateTime visit = LocalDateTime.of(d, startTime);
             ScheduledPlace sp = new ScheduledPlace(
-                    planId,
-                    pd.id, pd.type,
-                    visit, visit.plusHours(2),
-                    nextOrder(d)
+                planId,
+                pd.id, pd.type,
+                visit, startTime, endTime,
+                nextOrder(d)
             );
             scheduledPlaces.add(sp);
             refreshSelectedList();
         });
+
         JPanel btnWrap = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, (ROW_HEIGHT-36)/2));
         btnWrap.setOpaque(false);
+        btnWrap.add(startBox);
+        btnWrap.add(endBox);
         btnWrap.add(plus);
         row.add(btnWrap, BorderLayout.EAST);
         return row;
@@ -397,6 +469,7 @@ public class PlanTripPanel extends JPanel {
      * @return 생성된 행 JPanel 객체
      */
     private JPanel buildCenterRow(ScheduledPlace sp) {
+        loadFont();
         String key = sp.getP_type() + ":" + sp.getP_id();
         String name = placeNameIndex.getOrDefault(key, "[" + sp.getP_id() + "]");
         String thumbUrl = placeThumbIndex.get(key);
@@ -405,6 +478,7 @@ public class PlanTripPanel extends JPanel {
 
         JPanel row = new JPanel(new BorderLayout(8, 0));
         row.setOpaque(false);
+        row.setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
         row.setBorder(new MatteBorder(0, 0, 1, 0, DIVIDER));
         row.setPreferredSize(new Dimension(COLUMN_CENTER_WIDTH - 32, ROW_HEIGHT));
         row.setMaximumSize(new Dimension(COLUMN_CENTER_WIDTH - 32, ROW_HEIGHT));
@@ -419,11 +493,17 @@ public class PlanTripPanel extends JPanel {
 
         JLabel title = ellipsisLabel("<html><b>"+safe(name)+"</b> <span style='color:#9a9a9a'>("+sp.getP_type()+")</span></html>", fixedWidth);
         JLabel sub   = ellipsisLabel("", fixedWidth);
-        sub.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+        title.setFont(jalnanFont.deriveFont(Font.PLAIN, 13f));
+        sub.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
         sub.setForeground(new Color(140,140,140));
+        JLabel time = new JLabel("체류 시간 : " + sp.getExpected_start() + " ~ " + sp.getExpected_dutarion());
+        time.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
         text.add(title);
         text.add(sub);
+        text.add(time);
         row.add(text, BorderLayout.CENTER);
+
+
 
         JButton del = new JButton("삭제");
         styleDangerButton(del);
@@ -449,6 +529,7 @@ public class PlanTripPanel extends JPanel {
                 if (chosen != null) {
                     sp.setP_id(chosen.id);
                     sp.setP_type(chosen.type);
+                    ScheduledPlaceService.updateSchedule(sp);
                     placeNameIndex.put(chosen.type + ":" + chosen.id, chosen.name);
                     placeThumbIndex.put(chosen.type + ":" + chosen.id, chosen.thumbUrl);
                     refreshSelectedList();
@@ -458,6 +539,7 @@ public class PlanTripPanel extends JPanel {
 
         JPanel btns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, (ROW_HEIGHT-28)/2));
         btns.setOpaque(false);
+
         btns.add(del);
         btns.add(swap);
         row.add(btns, BorderLayout.EAST);
@@ -531,9 +613,10 @@ public class PlanTripPanel extends JPanel {
      * @return "No Img" 텍스트가 포함된 JLabel 객체
      */
     private JLabel noImg(int w, int h) {
+        loadFont();
         JLabel n = new JLabel("No Img", SwingConstants.CENTER);
         n.setPreferredSize(new Dimension(w, h));
-        n.setFont(new Font("맑은 고딕", Font.PLAIN, 11));
+        n.setFont(jalnanFont.deriveFont(Font.PLAIN, 11f));
         n.setForeground(new Color(150, 150, 150));
         n.setBorder(new LineBorder(new Color(220, 220, 220), 1, true));
         return n;
@@ -574,7 +657,8 @@ public class PlanTripPanel extends JPanel {
      * @param cb 스타일을 적용할 JComboBox 객체
      */
     private void styleCombo(JComboBox<?> cb) {
-        cb.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+        loadFont();
+        cb.setFont(jalnanFont.deriveFont(Font.PLAIN, 14f));
         cb.setBackground(Color.WHITE);
         cb.setBorder(new LineBorder(new Color(220, 210, 200), 1, true));
     }
@@ -596,11 +680,12 @@ public class PlanTripPanel extends JPanel {
      * @param selected 해당 버튼이 현재 선택되었는지 여부
      */
     private void styleCategoryChip(JButton b, boolean selected) {
+        loadFont();
         b.setFocusPainted(false);
         b.setBorder(new LineBorder(selected ? ACCENT_DARK : PANEL_BORDER, 1, true));
         b.setBackground(selected ? ColorConstants.ACCENT : Color.WHITE);
         b.setForeground(selected ? Color.WHITE : new Color(90, 80, 70));
-        b.setFont(new Font("맑은 고딕", Font.BOLD, 13));
+        b.setFont(jalnanFont.deriveFont(Font.BOLD, 13f));
         b.setPreferredSize(new Dimension(64, 30));
     }
 
@@ -620,11 +705,12 @@ public class PlanTripPanel extends JPanel {
      * @param b 스타일을 적용할 JButton 객체
      */
     private void styleSolidButton(JButton b) {
+        loadFont();
         b.setFocusPainted(false);
         b.setBackground(ColorConstants.ACCENT);
         b.setForeground(Color.WHITE);
         b.setBorder(new LineBorder(ACCENT_DARK, 1, true));
-        b.setFont(new Font("맑은 고딕", Font.BOLD, 13));
+        b.setFont(jalnanFont.deriveFont(Font.BOLD, 13f));
         b.setPreferredSize(new Dimension(72, 32));
     }
     /**
@@ -632,11 +718,12 @@ public class PlanTripPanel extends JPanel {
      * @param b 스타일을 적용할 JButton 객체
      */
     private void stylePrimaryButton(JButton b) {
+        loadFont();
         b.setFocusPainted(false);
         b.setBackground(new Color(100, 140, 200));
         b.setForeground(Color.WHITE);
         b.setBorder(new LineBorder(new Color(80, 120, 180), 1, true));
-        b.setFont(new Font("맑은 고딕", Font.BOLD, 12));
+        b.setFont(jalnanFont.deriveFont(Font.BOLD, 12f));
         b.setPreferredSize(new Dimension(56, 28));
     }
     /**
@@ -644,11 +731,12 @@ public class PlanTripPanel extends JPanel {
      * @param b 스타일을 적용할 JButton 객체
      */
     private void styleDangerButton(JButton b) {
+        loadFont();
         b.setFocusPainted(false);
         b.setBackground(new Color(230, 110, 110));
         b.setForeground(Color.WHITE);
         b.setBorder(new LineBorder(new Color(210, 90, 90), 1, true));
-        b.setFont(new Font("맑은 고딕", Font.BOLD, 12));
+        b.setFont(jalnanFont.deriveFont(Font.BOLD, 12f));
         b.setPreferredSize(new Dimension(56, 28));
     }
     /**
@@ -656,11 +744,12 @@ public class PlanTripPanel extends JPanel {
      * @param b 스타일을 적용할 JButton 객체
      */
     private void styleGhostButton(JButton b) {
+        loadFont();
         b.setFocusPainted(false);
         b.setBackground(Color.WHITE);
         b.setForeground(new Color(90, 80, 70));
         b.setBorder(new LineBorder(new Color(210, 200, 190), 1, true));
-        b.setFont(new Font("맑은 고딕", Font.BOLD, 13));
+        b.setFont(jalnanFont.deriveFont(Font.BOLD, 13f));
         b.setPreferredSize(new Dimension(96, 34));
     }
 
@@ -706,42 +795,56 @@ public class PlanTripPanel extends JPanel {
             return instance;
         }
         public ImageIcon getImage(String key) {
-            if (memoryCache.containsKey(key)) return memoryCache.get(key);
+            // 메모리 캐시 있으면 바로 반환 (가장 빠름)
+            ImageIcon icon = memoryCache.get(key);
+            if (icon != null) return icon;
+
+            // 없으면 디스크 캐시 확인
             File imageFile = cacheDir.resolve(getFileName(key)).toFile();
             if (imageFile.exists()) {
                 try {
-                    Image image = ImageIO.read(imageFile);
-                    if (image != null) {
-                        ImageIcon icon = new ImageIcon(image);
-                        memoryCache.put(key, icon);
+                    BufferedImage img = ImageIO.read(imageFile);
+                    if (img != null) {
+                        icon = new ImageIcon(img);
+                        memoryCache.put(key, icon); // 메모리 캐시에 다시 적재
                         return icon;
                     }
-                } catch (IOException ignored) {}
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-            return null;
+
+            return null; // 디스크에도 없으면 null
         }
+
         public void putImage(String key, Image image) {
+            if (image == null) return;
             memoryCache.put(key, new ImageIcon(image));
+
+        
             File imageFile = cacheDir.resolve(getFileName(key)).toFile();
-            try { ImageIO.write(toBufferedImage(image), "png", imageFile); }
-            catch (IOException e) { e.printStackTrace(); }
+            new Thread(() -> {
+                try {
+                    ImageIO.write(toBufferedImage(image), "png", imageFile);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
         }
+
         private String getFileName(String key) {
             try {
-                java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
-                byte[] hash = digest.digest(key.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                StringBuilder hexString = new StringBuilder();
-                for (byte b : hash) {
-                    String hex = Integer.toHexString(0xff & b);
-                    if (hex.length() == 1) hexString.append('0');
-                    hexString.append(hex);
-                }
-                return hexString.toString() + ".png";
-            } catch (java.security.NoSuchAlgorithmException e) {
-                // SHA-256을 사용할 수 없는 경우 이전 방식으로 대체
-                return key.replaceAll("[^a-zA-Z0-9.-]", "_") + ".png";
+                MessageDigest md = MessageDigest.getInstance("SHA-256");
+                byte[] digest = md.digest(key.getBytes(StandardCharsets.UTF_8));
+                StringBuilder sb = new StringBuilder(digest.length * 2);
+                for (byte b : digest) sb.append(String.format("%02x", b));
+                return sb.toString() + ".png";  // 짧고 안전한 파일명
+            } catch (Exception e) {
+                // 해시 실패 시 fallback: 해시코드로
+                return Integer.toHexString(key.hashCode()) + ".png";
             }
         }
+
         private static BufferedImage toBufferedImage(Image img) {
             if (img instanceof BufferedImage) return (BufferedImage) img;
             BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
@@ -775,4 +878,23 @@ public class PlanTripPanel extends JPanel {
             return new PlaceData("", "알 수 없는 장소", "", "기타", null);
         }
     }
+    
+    private void loadFont() {
+        try {
+            InputStream is = getClass().getResourceAsStream("/busantravel/resources/Jalnan2TTF.ttf");
+            if (is != null) {
+                jalnanFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(14f); // 기본 크기 14로 설정
+                GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+                ge.registerFont(jalnanFont);
+            } else {
+                System.err.println("폰트 파일을 찾을 수 없습니다! 기본 폰트 사용.");
+                jalnanFont = new Font("맑은 고딕", Font.PLAIN, 14);
+            }
+        } catch (Exception e) {
+            System.err.println("폰트 로드 중 예외 발생: " + e.getMessage());
+            e.printStackTrace();
+            jalnanFont = new Font("맑은 고딕", Font.PLAIN, 14);
+        }
+    }
+
 }

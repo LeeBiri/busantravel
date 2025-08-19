@@ -1,9 +1,8 @@
 package busantravel.service;
 
-import java.util.List;
-
 import busantravel.dao.ScheduledPlaceDAO;
 import busantravel.model.ScheduledPlace;
+import java.util.List;
 
 /**
  * 여행 일정(ScheduledPlace) 관련 비즈니스 로직을 처리하는 서비스 클래스입니다.
@@ -40,7 +39,6 @@ public class ScheduledPlaceService {
      */
     public static void insertSchedule(List<ScheduledPlace> schedules) {
         for (ScheduledPlace schedule : schedules) {
-            // 참고: 실제 프로덕션 환경에서는 단일 트랜잭션으로 묶어 처리하는 것이 더 효율적입니다.
             scheduledPlaceDAO.insertSchedule(schedule);
         }
     }
