@@ -1,10 +1,10 @@
 package busantravel.ui;
 
 import busantravel.model.TravelPlan;
+import busantravel.util.FontManager;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.InputStream;
 import java.net.URL;
 import javax.swing.*;
 
@@ -14,7 +14,6 @@ import javax.swing.*;
  * 화면 전환 로직을 담당합니다.
  */
 public class TravelPlannerApp {
-    private Font jalnanFont; // 애플리케이션 전역에서 사용될 커스텀 폰트
     private JFrame frame; // 메인 프레임
     private JPanel mainPanel; // 모든 컴포넌트를 담는 메인 패널
     private JPanel contentPanel;
@@ -40,31 +39,9 @@ public class TravelPlannerApp {
     }
 
     /**
-     * 애플리케이션에서 사용할 커스텀 폰트를 로드합니다.
-     */
-    private void loadFont() {
-        try {
-            InputStream is = getClass().getResourceAsStream("/busantravel/resources/Jalnan2TTF.ttf");
-            if (is != null) {
-                jalnanFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(14f); // 기본 크기 14로 설정
-                GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-                ge.registerFont(jalnanFont);
-            } else {
-                System.err.println("폰트 파일을 찾을 수 없습니다! 기본 폰트 사용.");
-                jalnanFont = new Font("맑은 고딕", Font.PLAIN, 14);
-            }
-        } catch (Exception e) {
-            System.err.println("폰트 로드 중 예외 발생: " + e.getMessage());
-            e.printStackTrace();
-            jalnanFont = new Font("맑은 고딕", Font.PLAIN, 14);
-        }
-    }
-
-    /**
      * 애플리케이션의 모든 UI 컴포넌트를 초기화하고 메인 프레임을 설정합니다.
      */
     public void initialize() {
-        loadFont(); // 폰트 로드
         frame = new JFrame("부산 여행 플래너");
         frame.setSize(1500, 1000); // 화면 크기 확장
         frame.setMinimumSize(new Dimension(1000, 700)); // 최소 크기 유지
@@ -93,12 +70,12 @@ public class TravelPlannerApp {
             } else {
                 System.err.println("로고 이미지 파일을 찾을 수 없습니다! 기본 텍스트 로고 사용.");
                 logoLabel = new JLabel("<html><font color='#222222'>부산</font><font color='#DE927C'>어때</font></html>");
-                logoLabel.setFont(jalnanFont.deriveFont(Font.BOLD, 26f));
+                logoLabel.setFont(FontManager.getJalnanFont(Font.BOLD, 26f));
             }
         } catch (Exception e) {
             System.err.println("로고 이미지 로드 중 예외 발생: " + e.getMessage());
             logoLabel = new JLabel("<html><font color='#222222'>부산</font><font color='#DE927C'>어때</font></html>");
-            logoLabel.setFont(jalnanFont.deriveFont(Font.BOLD, 26f));
+            logoLabel.setFont(FontManager.getJalnanFont(Font.BOLD, 26f));
         }
 
         logoLabel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 10)); // 로고 내부 패딩
@@ -124,7 +101,7 @@ public class TravelPlannerApp {
 
         // 동적 타이틀
         currentTitleLabel = new JLabel("", SwingConstants.CENTER);
-        currentTitleLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 30f));
+        currentTitleLabel.setFont(FontManager.getJalnanFont(30f));
         currentTitleLabel.setForeground(new Color(50, 50, 50));
         
         gbc.gridx = 1;
@@ -146,8 +123,8 @@ public class TravelPlannerApp {
         loginButton.setForeground(new Color(50, 50, 50));
         signUpButton.setBackground(new Color(240, 240, 240));
         signUpButton.setForeground(new Color(50, 50, 50));
-        loginButton.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
-        signUpButton.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
+        loginButton.setFont(FontManager.getJalnanFont(12f));
+        signUpButton.setFont(FontManager.getJalnanFont(12f));
         loginButton.setFocusPainted(false);
         signUpButton.setFocusPainted(false);
 
@@ -291,7 +268,7 @@ public class TravelPlannerApp {
         button.setBackground(ColorConstants.ACCENT);
         button.setFocusPainted(false);
         button.setBorderPainted(false);
-        button.setFont(jalnanFont.deriveFont(Font.PLAIN, 18f));
+        button.setFont(FontManager.getJalnanFont(18f));
 
         button.addActionListener(e -> {
             currentTab = tabName;
