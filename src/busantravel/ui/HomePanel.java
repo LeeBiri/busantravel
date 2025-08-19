@@ -275,6 +275,7 @@ public class HomePanel extends JPanel {
     private void loadPlacesBySearch(String query, int page) {
         this.currentSearchQuery = query;
         this.currentPage = page;
+        this.pageSize = 24; // 검색 결과는 항상 24개씩 표시
 
         gridPanel.removeAll();
 

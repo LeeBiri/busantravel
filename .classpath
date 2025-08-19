@@ -2,7 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="C:/Users/dita_810/Downloads/jcalendar-1.4.jar"/>
+	<classpathentry kind="lib" path="c:/Users/dita_810/Desktop/git_repo/busantravel/lib/jcalendar-1.4.jar"/>
 	<classpathentry kind="lib" path="C:/Java/json-simple-1.1.1.jar"/>
 	<classpathentry kind="lib" path="C:/Java/mysql-connector-j-8.0.32.jar"/>
 	<classpathentry kind="lib" path="C:/Java/javafx-sdk-21.0.8/lib/javafx.base.jar"/>

@@ -22,7 +22,7 @@ public class TravelPlannerApp {
     private JPanel navigationPanel; // 하단 네비게이션 버튼을 담는 패널
     private JLabel currentTitleLabel; // 현재 화면의 제목을 표시하는 레이블
     private JLabel logoLabel; // 상단 로고 레이블
-
+    private FullSchedulePanel fullSchedulePanel;
     private SchedulePanel schedulePanel; // '일정' 탭 패널
     private HomePanel homePanel; // '여행 홈' 탭 패널
     private MainBannerPanel mainBannerPanel; // '저장' 버튼 클릭 시 보여줄 MainBannerPanel
@@ -208,21 +208,22 @@ public class TravelPlannerApp {
      *
      * @param plan 사용자가 편집할 여행 계획(TravelPlan) 객체
      */
-    public void switchToPlanTrip(TravelPlan plan) {
+    public void switchToPlanTrip(TravelPlan plan, int dayIndex) {
         if (planTripPanel != null) {
             contentPanel.remove(planTripPanel);
         }
         
         // '뒤로가기' 시 호출될 콜백 정의
-        Runnable onBackCallback = this::goToScheduleTab;
+        Runnable onBackCallback = () -> switchToFullSchedule(plan);
 
         planTripPanel = new PlanTripPanel(
                 plan.getPlan_period_start(),
                 plan.getPlan_period_end(),
                 this,
                 plan.getPlan_title(),
-                plan.getPlan_id(), // planId 전달
-                onBackCallback     // onBack 콜백 전달
+                plan.getPlan_id(), 
+                dayIndex,
+                onBackCallback     
         );
         contentPanel.add(planTripPanel, "plan");
 
@@ -353,6 +354,25 @@ public class TravelPlannerApp {
         return panel;
     }
     
-    
-    
+    public void switchToFullSchedule(TravelPlan plan) {
+        if (fullSchedulePanel != null) {
+            contentPanel.remove(fullSchedulePanel);
+        }
+
+        // 뒤로가기 콜백 정의
+        Runnable onBackCallback = () -> switchToFullSchedule(plan);
+
+        fullSchedulePanel = new FullSchedulePanel(
+        	    this,
+        	    plan,
+        	    onBackCallback
+        	);
+
+        contentPanel.add(fullSchedulePanel, "fullSchedule");
+
+        currentTab = "fullSchedule";
+        updateContent();
+        updateTopPanelTitle();
+        updateNavButtonStyles();
+    }
 }

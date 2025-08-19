@@ -69,7 +69,7 @@ public class TripSchedulePanel extends JPanel {
         planButton.setBackground(new Color(222, 146, 124));
         planButton.setForeground(Color.WHITE);
         planButton.setFocusPainted(false);
-        planButton.addActionListener(e -> mainApp.switchToPlanTrip(plan));
+        planButton.addActionListener(e -> mainApp.switchToFullSchedule(plan));
 
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         bottomPanel.setOpaque(false);

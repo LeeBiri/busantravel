@@ -3,10 +3,9 @@ package busantravel.dao;
 import busantravel.db.DBConnectionMgr;
 import busantravel.model.Festival;
 import busantravel.model.Lodging;
-import busantravel.ui.PlaceDetailInfo;
 import busantravel.model.Restaurant;
 import busantravel.model.Tourist;
-
+import busantravel.ui.PlaceDetailInfo;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -353,6 +352,108 @@ public class PlaceDAO {
                 return "t_thum";
         }
     }
+
+    public Object getPlaceByTypeAndId(String type, String id) {
+    if (!DBConnectionMgr.isDbConnected()) {
+        // 더미 데이터에서 검색
+        for (Object o : getDummyPlaces(type)) {
+            if ((type.equals("관광지") && ((Tourist) o).getT_id().equals(id)) ||
+                (type.equals("맛집") && ((Restaurant) o).getR_id().equals(id)) ||
+                (type.equals("숙소") && ((Lodging) o).getL_id().equals(id)) ||
+                (type.equals("축제") && ((Festival) o).getF_id().equals(id))) {
+                return o;
+            }
+        }
+        return null;
+    }
+
+    Connection con = null;
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
+    Object result = null;
+    String table = getTableName(type);
+    String sql = "SELECT * FROM " + table + " WHERE ";
+
+    switch (type) {
+        case "관광지":
+            sql += "t_id = ?";
+            break;
+        case "맛집":
+            sql += "r_id = ?";
+            break;
+        case "숙소":
+            sql += "l_id = ?";
+            break;
+        case "축제":
+            sql += "f_id = ?";
+            break;
+        default:
+            return null;
+    }
+
+    try {
+        con = pool.getConnection();
+        pstmt = con.prepareStatement(sql);
+        pstmt.setString(1, id);
+        rs = pstmt.executeQuery();
+
+        if (rs.next()) {
+            switch (type) {
+                case "관광지":
+                    result = new Tourist(
+                            rs.getString("t_id"),
+                            rs.getString("t_place"),
+                            removeHtmlTags(rs.getString("t_intro")),
+                            rs.getString("t_num"),
+                            rs.getString("t_tra"),
+                            rs.getString("t_infor"),
+                            rs.getString("t_addr"),
+                            rs.getString("t_thum"));
+                    break;
+                case "맛집":
+                    result = new Restaurant(
+                            rs.getString("r_id"),
+                            rs.getString("r_place"),
+                            removeHtmlTags(rs.getString("r_intro")),
+                            rs.getString("r_num"),
+                            rs.getString("r_infor"),
+                            rs.getString("r_addr"),
+                            rs.getString("r_thum"),
+                            null);
+                    break;
+                case "숙소":
+                    result = new Lodging(
+                            rs.getString("l_id"),
+                            rs.getString("l_place"),
+                            removeHtmlTags(rs.getString("l_intro")),
+                            rs.getString("l_num"),
+                            rs.getString("l_tra"),
+                            rs.getString("l_infor"),
+                            rs.getString("l_addr"),
+                            rs.getString("l_thum"));
+                    break;
+                case "축제":
+                    result = new Festival(
+                            rs.getString("f_id"),
+                            rs.getString("f_name"),
+                            removeHtmlTags(rs.getString("f_intro")),
+                            rs.getString("f_plan"),
+                            rs.getString("f_tra"),
+                            rs.getString("f_infor"),
+                            rs.getString("f_addr"),
+                            rs.getString("f_thum"));
+                    break;
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    } finally {
+        pool.freeConnection(con, pstmt, rs);
+    }
+
+    return result;
+}
+
 
     // --- 더미 데이터 생성 메서드 ---
 
