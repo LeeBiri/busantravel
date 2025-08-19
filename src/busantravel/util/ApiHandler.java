@@ -171,8 +171,9 @@ public class ApiHandler {
         conn.setConnectTimeout(5000);   
         conn.setReadTimeout(5000);
 
-        //정상 HTTP 응답을 받으면
-        if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+        int responseCode = conn.getResponseCode();
+
+        if (responseCode == HttpURLConnection.HTTP_OK) {
             StringBuilder sb = new StringBuilder();
             try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"))) {
                 String line;
@@ -181,15 +182,21 @@ public class ApiHandler {
                 }
             }
             return sb.toString();
-        } else { //비정상 HTTP 응답
-            System.err.println("API GET Request Failed: " + conn.getResponseCode() + " " + conn.getResponseMessage());
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getErrorStream(), "UTF-8"))) {
-                StringBuilder errorBody = new StringBuilder();
-                String line;
-                while ((line = br.readLine()) != null) {
-                    errorBody.append(line);
+        } else if (responseCode == HttpURLConnection.HTTP_NO_CONTENT) {
+            System.err.println("API GET Request successful, but no content: " + responseCode);
+            return null;
+        } else {
+            System.err.println("API GET Request Failed: " + responseCode + " " + conn.getResponseMessage());
+            java.io.InputStream errorStream = conn.getErrorStream();
+            if (errorStream != null) {
+                try (BufferedReader br = new BufferedReader(new InputStreamReader(errorStream, "UTF-8"))) {
+                    StringBuilder errorBody = new StringBuilder();
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        errorBody.append(line);
+                    }
+                    System.err.println("Error Response: " + errorBody.toString());
                 }
-                System.err.println("Error Response: " + errorBody.toString());
             }
             return null;
         }
