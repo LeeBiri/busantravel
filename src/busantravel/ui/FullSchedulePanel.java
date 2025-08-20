@@ -76,6 +76,7 @@ public class FullSchedulePanel extends JPanel {
         checklistBtn.setBackground(ColorConstants.ACCENT);
         checklistBtn.setForeground(Color.WHITE);
         checklistBtn.setFocusPainted(false);
+        checklistBtn.addActionListener(e -> mainApp.switchToChecklist(plan));
     
         // 멤버리스트 버튼
         JButton membersBtn = new JButton("멤버리스트");
