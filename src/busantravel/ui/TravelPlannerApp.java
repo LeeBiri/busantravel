@@ -27,6 +27,7 @@ public class TravelPlannerApp {
     private MainBannerPanel mainBannerPanel; // '저장' 버튼 클릭 시 보여줄 MainBannerPanel
     private JPanel reviewPanel; // '후기' 탭을 위한 임시 패널
     private PlanTripPanel planTripPanel; // '여행 계획' 패널 인스턴스
+    private ChecklistPanel checklistPanel;
 
     private String currentTab = "home"; // 현재 활성화된 탭을 식별하는 문자열 ("여행 홈"이 기본 화면)
 
@@ -314,6 +315,8 @@ public class TravelPlannerApp {
             case "schedule": return "일정";
             case "search": return "검색"; // "search" 식별자는 이제 "검색"을 의미
             case "review": return "후기";
+            case "fullSchedule": return "일정 상세";
+            case "checklist": return "체크리스트";
             default: return "";
         }
     }
@@ -348,15 +351,8 @@ public class TravelPlannerApp {
             contentPanel.remove(fullSchedulePanel);
         }
 
-        // 뒤로가기 콜백 정의
         Runnable onBackCallback = () -> switchToFullSchedule(plan);
-
-        fullSchedulePanel = new FullSchedulePanel(
-        	    this,
-        	    plan,
-        	    onBackCallback
-        	);
-
+        fullSchedulePanel = new FullSchedulePanel(this, plan, onBackCallback);
         contentPanel.add(fullSchedulePanel, "fullSchedule");
 
         currentTab = "fullSchedule";
@@ -367,14 +363,20 @@ public class TravelPlannerApp {
 
 
     public void switchToChecklist(TravelPlan plan) {
-        JPanel checklist = new ChecklistPanel(this, plan, "aaa", //로그인 기능 구현 이후 수정 
-            () -> switchToFullSchedule(plan)); // 
-        contentPanel.removeAll();
-        contentPanel.add(checklist, "CHECKLIST");
-        ((CardLayout) contentPanel.getLayout()).show(contentPanel, "CHECKLIST");
-        contentPanel.revalidate();
-        contentPanel.repaint();
+        if (checklistPanel != null) {
+            contentPanel.remove(checklistPanel);
+        }
+
+        Runnable onBack = () -> switchToFullSchedule(plan);
+        checklistPanel = new ChecklistPanel(this, plan, "aaa", onBack); 
+        contentPanel.add(checklistPanel, "checklist");
+
+        currentTab = "checklist";
+        updateContent();
+        updateTopPanelTitle();
+        updateNavButtonStyles();
     }
+
 
 
     
