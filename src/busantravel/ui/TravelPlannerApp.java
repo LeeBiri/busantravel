@@ -364,4 +364,21 @@ public class TravelPlannerApp {
         updateTopPanelTitle();
         updateNavButtonStyles();
     }
+    
+    public void refreshFullSchedule(TravelPlan plan) {
+        if (fullSchedulePanel != null) {
+            contentPanel.remove(fullSchedulePanel);
+        }
+        
+        Runnable onBackCallback = () -> switchToFullSchedule(plan);
+        
+        fullSchedulePanel = new FullSchedulePanel(this, plan, onBackCallback);
+        contentPanel.add(fullSchedulePanel, "fullSchedule");
+        
+        contentCardLayout.show(contentPanel, "fullSchedule");
+        
+        // 현재 탭 상태는 유지
+        updateTopPanelTitle();
+        updateNavButtonStyles();
+    }
 }

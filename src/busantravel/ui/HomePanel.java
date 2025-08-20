@@ -145,6 +145,8 @@ public class HomePanel extends JPanel {
         scrollPane = new JScrollPane(gridPanel);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getVerticalScrollBar().setUI(new MatteScrollBarUI());
+        scrollPane.getHorizontalScrollBar().setUI(new MatteScrollBarUI());
         scrollPane.setBorder(null);
 
         // --- 페이지네이션 패널 ---

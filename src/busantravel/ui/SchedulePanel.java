@@ -76,51 +76,61 @@ public class SchedulePanel extends JPanel {
         section.setBorder(BorderFactory.createEmptyBorder(80, 0, 0, 0));
 
         // ❸ "다가오는 여행" 컨테이너
+        JPanel upcomingContainer = new JPanel(new BorderLayout());
+        upcomingContainer.setBackground(Color.WHITE);
+        upcomingContainer.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createEmptyBorder(15, 0, 0, 0),
+                        BorderFactory.createLineBorder(ColorConstants.ACCENT)
+                ),
+                "다가오는 여행",
+                TitledBorder.LEFT, TitledBorder.TOP,
+                jalnanFont.deriveFont(Font.BOLD, 26f),
+                ColorConstants.ACCENT
+        ));
+        upcomingContainer.setPreferredSize(new Dimension(SECTION_WIDTH, 280));
+
         upcomingPanel = new JPanel();
         upcomingPanel.setLayout(new BoxLayout(upcomingPanel, BoxLayout.Y_AXIS));
         upcomingPanel.setBackground(Color.WHITE);
-        upcomingPanel.setBorder(BorderFactory.createTitledBorder(
-        	    BorderFactory.createCompoundBorder(
-        	        BorderFactory.createEmptyBorder(15, 0, 0, 0), // ← 상단 여백 15px
-        	        BorderFactory.createLineBorder(ColorConstants.ACCENT)
-        	    ),
-        	    "다가오는 여행",
-        	    TitledBorder.LEFT, TitledBorder.TOP,
-        	    jalnanFont.deriveFont(Font.BOLD, 26f),
-        	    ColorConstants.ACCENT
-        	));
 
+        JScrollPane upcomingScroll = new JScrollPane(upcomingPanel);
+        upcomingScroll.setBorder(null);
+        upcomingScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        upcomingScroll.getVerticalScrollBar().setUI(new MatteScrollBarUI());
+        upcomingScroll.getHorizontalScrollBar().setUI(new MatteScrollBarUI());
+        upcomingContainer.add(upcomingScroll, BorderLayout.CENTER);
 
         // ❹ "지난 여행" 컨테이너
+        JPanel pastContainer = new JPanel(new BorderLayout());
+        pastContainer.setBackground(Color.WHITE);
+        pastContainer.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createEmptyBorder(15, 0, 0, 0),
+                        BorderFactory.createLineBorder(ColorConstants.ACCENT)
+                ),
+                "지난 여행",
+                TitledBorder.LEFT, TitledBorder.TOP,
+                jalnanFont.deriveFont(Font.BOLD, 26f),
+                ColorConstants.ACCENT
+        ));
+        pastContainer.setPreferredSize(new Dimension(SECTION_WIDTH, 280));
+
         pastPanel = new JPanel();
         pastPanel.setLayout(new BoxLayout(pastPanel, BoxLayout.Y_AXIS));
         pastPanel.setBackground(Color.WHITE);
-        pastPanel.setBorder(BorderFactory.createTitledBorder(
-        	    BorderFactory.createCompoundBorder(
-        	        BorderFactory.createEmptyBorder(15, 0, 0, 0), // ← 상단 여백 15px
-        	        BorderFactory.createLineBorder(ColorConstants.ACCENT)
-        	    ),
-        	    "지난 여행",
-        	    TitledBorder.LEFT, TitledBorder.TOP,
-        	    jalnanFont.deriveFont(Font.BOLD, 26f),
-        	    ColorConstants.ACCENT
-        	));
-
-
-        // ❺ 섹션에 스크롤 달아서 추가
-        JScrollPane upcomingScroll = new JScrollPane(upcomingPanel);
-        upcomingScroll.setBorder(null);
-        upcomingScroll.setPreferredSize(new Dimension(SECTION_WIDTH, 280));
-        upcomingScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
         JScrollPane pastScroll = new JScrollPane(pastPanel);
         pastScroll.setBorder(null);
-        pastScroll.setPreferredSize(new Dimension(SECTION_WIDTH, 280));
         pastScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        pastScroll.getVerticalScrollBar().setUI(new MatteScrollBarUI());
+        pastScroll.getHorizontalScrollBar().setUI(new MatteScrollBarUI());
+        pastContainer.add(pastScroll, BorderLayout.CENTER);
 
-        section.add(upcomingScroll);
+        // ❺ 섹션에 컨테이너 추가
+        section.add(upcomingContainer);
         section.add(Box.createVerticalStrut(20));
-        section.add(pastScroll);
+        section.add(pastContainer);
 
         centerWrapper.add(section);
 

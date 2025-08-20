@@ -143,6 +143,8 @@ public class PlaceCard extends JPanel {
         
         JScrollPane descriptionScrollPane = new JScrollPane(descriptionArea);
         descriptionScrollPane.setPreferredSize(new Dimension(560, 200));
+        descriptionScrollPane.getVerticalScrollBar().setUI(new MatteScrollBarUI());
+        descriptionScrollPane.getHorizontalScrollBar().setUI(new MatteScrollBarUI());
 
         leftPanel.add(imagePanel, BorderLayout.CENTER);
         leftPanel.add(descriptionScrollPane, BorderLayout.SOUTH);
@@ -211,6 +213,8 @@ public class PlaceCard extends JPanel {
         infoScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         infoScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         infoScrollPane.setBorder(BorderFactory.createTitledBorder("세부 정보"));
+        infoScrollPane.getVerticalScrollBar().setUI(new MatteScrollBarUI());
+        infoScrollPane.getHorizontalScrollBar().setUI(new MatteScrollBarUI());
         infoScrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);
         return infoScrollPane;
     }

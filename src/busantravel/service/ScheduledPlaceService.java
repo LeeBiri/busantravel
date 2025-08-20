@@ -2,6 +2,7 @@ package busantravel.service;
 
 import busantravel.dao.ScheduledPlaceDAO;
 import busantravel.model.ScheduledPlace;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -76,5 +77,9 @@ public class ScheduledPlaceService {
         for (ScheduledPlace schedule : schedules) {
             scheduledPlaceDAO.insertSchedule(schedule);
         }
+    }
+
+    public static void updateDayScheduleOrder(String planId, LocalDate date, List<ScheduledPlace> newSchedule) {
+        scheduledPlaceDAO.updateScheduleOrder(newSchedule);
     }
 }
