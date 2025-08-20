@@ -204,7 +204,7 @@ public class HomePanel extends JPanel {
             gridPanel.setLayout(new BoxLayout(gridPanel, BoxLayout.Y_AXIS));
         } else {
             this.pageSize = 24;
-            gridPanel.setLayout(new GridLayout(0, 4, 30, 30));
+            gridPanel.setLayout(new GridLayout(0, 5, 30, 30));
         }
 
         int totalItems = placeDAO.getTotalPlaceCount(category);
@@ -222,7 +222,7 @@ public class HomePanel extends JPanel {
                 contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
                 contentPanel.setBackground(Color.WHITE);
             } else {
-                contentPanel.setLayout(new GridLayout(0, 4, 30, 30));
+                contentPanel.setLayout(new GridLayout(0, 5, 30, 30));
                 contentPanel.setBackground(Color.WHITE);
             }
 
@@ -252,7 +252,7 @@ public class HomePanel extends JPanel {
                 gridPanel.setLayout(new BorderLayout());
                 gridPanel.add(wrapper, BorderLayout.CENTER);
             } else {
-                gridPanel.setLayout(new GridLayout(0, 4, 30, 30));
+                gridPanel.setLayout(new GridLayout(0, 5, 30, 30));
                 // 기존 gridPanel에 직접 추가하기 위해 contentPanel의 컴포넌트들을 옮김
                 for(Component comp : contentPanel.getComponents()){
                     gridPanel.add(comp);
@@ -287,7 +287,7 @@ public class HomePanel extends JPanel {
             viewType = PlaceCard.ViewType.LIST;
         } else {
             this.pageSize = 24;
-            gridPanel.setLayout(new GridLayout(0, 4, 30, 30));
+            gridPanel.setLayout(new GridLayout(0, 5, 30, 30));
             viewType = PlaceCard.ViewType.GRID;
         }
 
@@ -304,7 +304,7 @@ public class HomePanel extends JPanel {
                 contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
                 contentPanel.setBackground(Color.WHITE);
             } else {
-                contentPanel.setLayout(new GridLayout(0, 4, 30, 30));
+                contentPanel.setLayout(new GridLayout(0, 5, 30, 30));
                 contentPanel.setBackground(Color.WHITE);
             }
 
