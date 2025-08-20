@@ -1,10 +1,10 @@
 package busantravel.ui;
 
 import busantravel.model.TravelPlan;
+import busantravel.util.FontManager;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.InputStream;
 import java.net.URL;
 import javax.swing.*;
 
@@ -14,7 +14,6 @@ import javax.swing.*;
  * 화면 전환 로직을 담당합니다.
  */
 public class TravelPlannerApp {
-    private Font jalnanFont; // 애플리케이션 전역에서 사용될 커스텀 폰트
     private JFrame frame; // 메인 프레임
     private JPanel mainPanel; // 모든 컴포넌트를 담는 메인 패널
     private JPanel contentPanel;
@@ -29,7 +28,7 @@ public class TravelPlannerApp {
     private JPanel reviewPanel; // '후기' 탭을 위한 임시 패널
     private PlanTripPanel planTripPanel; // '여행 계획' 패널 인스턴스
 
-    private String currentTab = "home"; // 현재 활성화된 탭을 식별하는 문자열
+    private String currentTab = "home"; // 현재 활성화된 탭을 식별하는 문자열 ("여행 홈"이 기본 화면)
 
     /**
      * 애플리케이션의 메인 진입점입니다.
@@ -40,31 +39,9 @@ public class TravelPlannerApp {
     }
 
     /**
-     * 애플리케이션에서 사용할 커스텀 폰트를 로드합니다.
-     */
-    private void loadFont() {
-        try {
-            InputStream is = getClass().getResourceAsStream("/busantravel/resources/Jalnan2TTF.ttf");
-            if (is != null) {
-                jalnanFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(14f); // 기본 크기 14로 설정
-                GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-                ge.registerFont(jalnanFont);
-            } else {
-                System.err.println("폰트 파일을 찾을 수 없습니다! 기본 폰트 사용.");
-                jalnanFont = new Font("맑은 고딕", Font.PLAIN, 14);
-            }
-        } catch (Exception e) {
-            System.err.println("폰트 로드 중 예외 발생: " + e.getMessage());
-            e.printStackTrace();
-            jalnanFont = new Font("맑은 고딕", Font.PLAIN, 14);
-        }
-    }
-
-    /**
      * 애플리케이션의 모든 UI 컴포넌트를 초기화하고 메인 프레임을 설정합니다.
      */
     public void initialize() {
-        loadFont(); // 폰트 로드
         frame = new JFrame("부산 여행 플래너");
         frame.setSize(1500, 1000); // 화면 크기 확장
         frame.setMinimumSize(new Dimension(1000, 700)); // 최소 크기 유지
@@ -93,12 +70,12 @@ public class TravelPlannerApp {
             } else {
                 System.err.println("로고 이미지 파일을 찾을 수 없습니다! 기본 텍스트 로고 사용.");
                 logoLabel = new JLabel("<html><font color='#222222'>부산</font><font color='#DE927C'>어때</font></html>");
-                logoLabel.setFont(jalnanFont.deriveFont(Font.BOLD, 26f));
+                logoLabel.setFont(FontManager.getJalnanFont(Font.BOLD, 26f));
             }
         } catch (Exception e) {
             System.err.println("로고 이미지 로드 중 예외 발생: " + e.getMessage());
             logoLabel = new JLabel("<html><font color='#222222'>부산</font><font color='#DE927C'>어때</font></html>");
-            logoLabel.setFont(jalnanFont.deriveFont(Font.BOLD, 26f));
+            logoLabel.setFont(FontManager.getJalnanFont(Font.BOLD, 26f));
         }
 
         logoLabel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 10)); // 로고 내부 패딩
@@ -124,7 +101,7 @@ public class TravelPlannerApp {
 
         // 동적 타이틀
         currentTitleLabel = new JLabel("", SwingConstants.CENTER);
-        currentTitleLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 30f));
+        currentTitleLabel.setFont(FontManager.getJalnanFont(30f));
         currentTitleLabel.setForeground(new Color(50, 50, 50));
         
         gbc.gridx = 1;
@@ -146,8 +123,8 @@ public class TravelPlannerApp {
         loginButton.setForeground(new Color(50, 50, 50));
         signUpButton.setBackground(new Color(240, 240, 240));
         signUpButton.setForeground(new Color(50, 50, 50));
-        loginButton.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
-        signUpButton.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
+        loginButton.setFont(FontManager.getJalnanFont(12f));
+        signUpButton.setFont(FontManager.getJalnanFont(12f));
         loginButton.setFocusPainted(false);
         signUpButton.setFocusPainted(false);
 
@@ -179,9 +156,9 @@ public class TravelPlannerApp {
         mainBannerPanel = new MainBannerPanel(); // MainBannerPanel 객체 생성
         reviewPanel = createPlaceholderPanel("후기 화면 (추후 구현)");
 
-        contentPanel.add(homePanel, "home");
+        contentPanel.add(mainBannerPanel, "home"); // "저장" 패널을 "home" 식별자로 변경 (새로운 "여행 홈")
         contentPanel.add(schedulePanel, "schedule");
-        contentPanel.add(mainBannerPanel, "saved");
+        contentPanel.add(homePanel, "search"); // "여행 홈" 패널을 "search" 식별자로 변경 (새로운 "검색")
         contentPanel.add(reviewPanel, "review");
 
         mainPanel.add(contentPanel, BorderLayout.CENTER);
@@ -265,11 +242,16 @@ public class TravelPlannerApp {
 
     /**
      * 하단 네비게이션 바에 버튼들을 생성하고 추가합니다.
+     * 사용자의 요청에 따라 "저장" 탭을 맨 왼쪽으로 옮기고, "여행 홈" 탭의 이름을 "검색"으로 변경합니다.
      */
     private void initNavigationButtons() {
+        // "저장" 탭을 "여행 홈"으로 변경하고 "home" 식별자로 설정, 맨 왼쪽으로 이동
         navigationPanel.add(createNavButton("여행 홈", "home"));
+        // "여행 홈" 탭을 "검색"으로 변경하고 "search" 식별자로 설정
+        navigationPanel.add(createNavButton("검색", "search"));
+        // "일정" 탭
         navigationPanel.add(createNavButton("일정", "schedule"));
-        navigationPanel.add(createNavButton("저장", "saved"));
+        // "후기" 탭
         navigationPanel.add(createNavButton("후기", "review"));
     }
 
@@ -286,7 +268,7 @@ public class TravelPlannerApp {
         button.setBackground(ColorConstants.ACCENT);
         button.setFocusPainted(false);
         button.setBorderPainted(false);
-        button.setFont(jalnanFont.deriveFont(Font.PLAIN, 18f));
+        button.setFont(FontManager.getJalnanFont(18f));
 
         button.addActionListener(e -> {
             currentTab = tabName;
@@ -304,8 +286,15 @@ public class TravelPlannerApp {
         for (Component comp : navigationPanel.getComponents()) {
             if (comp instanceof JButton) {
                 JButton btn = (JButton) comp;
+                String buttonText = btn.getText();
+                String currentTabText = getTabText(currentTab);
+
                 if (!"plan".equals(currentTab)) {
-                    btn.setBackground(btn.getText().equals(getTabText(currentTab)) ? ColorConstants.SELECTED : ColorConstants.ACCENT);
+                    if (buttonText.equals(currentTabText)) {
+                        btn.setBackground(ColorConstants.SELECTED);
+                    } else {
+                        btn.setBackground(ColorConstants.ACCENT);
+                    }
                 } else {
                     btn.setBackground(ColorConstants.ACCENT);
                 }
@@ -321,9 +310,9 @@ public class TravelPlannerApp {
      */
     private String getTabText(String tabName) {
         switch (tabName) {
-            case "home": return "여행 홈";
+            case "home": return "여행 홈"; // "home" 식별자는 이제 "여행 홈"을 의미
             case "schedule": return "일정";
-            case "saved": return "저장";
+            case "search": return "검색"; // "search" 식별자는 이제 "검색"을 의미
             case "review": return "후기";
             default: return "";
         }
@@ -376,6 +365,7 @@ public class TravelPlannerApp {
         updateNavButtonStyles();
     }
 
+
     public void switchToChecklist(TravelPlan plan) {
         JPanel checklist = new ChecklistPanel(this, plan, "aaa", //로그인 기능 구현 이후 수정 
             () -> switchToFullSchedule(plan)); // 
@@ -384,6 +374,25 @@ public class TravelPlannerApp {
         ((CardLayout) contentPanel.getLayout()).show(contentPanel, "CHECKLIST");
         contentPanel.revalidate();
         contentPanel.repaint();
+    }
+
+
+    
+    public void refreshFullSchedule(TravelPlan plan) {
+        if (fullSchedulePanel != null) {
+            contentPanel.remove(fullSchedulePanel);
+        }
+        
+        Runnable onBackCallback = () -> switchToFullSchedule(plan);
+        
+        fullSchedulePanel = new FullSchedulePanel(this, plan, onBackCallback);
+        contentPanel.add(fullSchedulePanel, "fullSchedule");
+        
+        contentCardLayout.show(contentPanel, "fullSchedule");
+        
+        // 현재 탭 상태는 유지
+        updateTopPanelTitle();
+        updateNavButtonStyles();
     }
 
 }

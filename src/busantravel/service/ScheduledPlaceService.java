@@ -2,6 +2,7 @@ package busantravel.service;
 
 import busantravel.dao.ScheduledPlaceDAO;
 import busantravel.model.ScheduledPlace;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -59,5 +60,26 @@ public class ScheduledPlaceService {
      */
     public static void deleteSchedule(ScheduledPlace schedule) {
         scheduledPlaceDAO.deleteSchedule(schedule);
+    }
+
+    /**
+     * 특정 여행 계획에 대한 모든 일정을 저장합니다.
+     * 기존의 모든 일정을 삭제하고 새로운 일정 목록으로 대체합니다.
+     *
+     * @param planId    저장할 여행 계획의 ID
+     * @param schedules 새로운 ScheduledPlace 객체들의 리스트
+     */
+    public static void saveSchedulesForPlan(String planId, List<ScheduledPlace> schedules) {
+        // 1. 해당 planId에 대한 기존 일정을 모두 삭제합니다.
+        scheduledPlaceDAO.deleteAllByPlanId(planId);
+
+        // 2. 새로운 일정 목록을 모두 삽입합니다.
+        for (ScheduledPlace schedule : schedules) {
+            scheduledPlaceDAO.insertSchedule(schedule);
+        }
+    }
+
+    public static void updateDayScheduleOrder(String planId, LocalDate date, List<ScheduledPlace> newSchedule) {
+        scheduledPlaceDAO.updateScheduleOrder(newSchedule);
     }
 }

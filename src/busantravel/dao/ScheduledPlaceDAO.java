@@ -21,7 +21,7 @@ public class ScheduledPlaceDAO {
     public void insertSchedule(ScheduledPlace schedule) {
         Connection con = null;
         PreparedStatement pstmt = null;
-        String sql = "INSERT INTO scheduled_place(plan_id, p_id, p_type, scheduled_date, expected_start, expected_duration, visit_order) VALUES(?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO scheduled_place(plan_id, p_id, p_type, scheduled_date, visit_order) VALUES(?, ?, ?, ?, ?)";
         try {
             con = pool.getConnection();
             pstmt = con.prepareStatement(sql);
@@ -29,9 +29,7 @@ public class ScheduledPlaceDAO {
             pstmt.setString(2, schedule.getP_id());
             pstmt.setString(3, schedule.getP_type());
             pstmt.setTimestamp(4, Timestamp.valueOf(schedule.getScheduled_date()));
-            pstmt.setTime(5, java.sql.Time.valueOf(schedule.getExpected_start()));
-            pstmt.setTime(6, java.sql.Time.valueOf(schedule.getExpected_dutarion()));
-            pstmt.setInt(7, schedule.getVisit_order());
+            pstmt.setInt(5, schedule.getVisit_order());
             pstmt.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
@@ -41,15 +39,13 @@ public class ScheduledPlaceDAO {
     }
 
     public void updateSchedule(ScheduledPlace schedule) {
-        String sql = "UPDATE scheduled_place SET scheduled_date = ?, expected_start = ?, expected_duration = ?, visit_order = ? WHERE plan_id = ? AND p_id = ?";
+        String sql = "UPDATE scheduled_place SET scheduled_date = ?, visit_order = ? WHERE plan_id = ? AND p_id = ?";
         try (Connection con = pool.getConnection();
              PreparedStatement pstmt = con.prepareStatement(sql)) {
             pstmt.setTimestamp(1, Timestamp.valueOf(schedule.getScheduled_date()));
-            pstmt.setTime(2, java.sql.Time.valueOf(schedule.getExpected_start()));
-            pstmt.setTime(3, java.sql.Time.valueOf(schedule.getExpected_dutarion()));
-            pstmt.setInt(4, schedule.getVisit_order());
-            pstmt.setString(5, schedule.getplan_id());
-            pstmt.setString(6, schedule.getP_id());
+            pstmt.setInt(2, schedule.getVisit_order());
+            pstmt.setString(3, schedule.getplan_id());
+            pstmt.setString(4, schedule.getP_id());
             pstmt.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
@@ -79,15 +75,40 @@ public class ScheduledPlaceDAO {
                     String pId = rs.getString("p_id");
                     String pType = rs.getString("p_type");
                     LocalDateTime scheduledDate = rs.getTimestamp("scheduled_date").toLocalDateTime();
-                    LocalTime expectedStart = rs.getTime("expected_start").toLocalTime();
-                    LocalTime expectedDuration = rs.getTime("expected_duration").toLocalTime();
                     int visitOrder = rs.getInt("visit_order");
-                    schedules.add(new ScheduledPlace(planId, pId, pType, scheduledDate, expectedStart, expectedDuration, visitOrder));
+                    schedules.add(new ScheduledPlace(planId, pId, pType, scheduledDate, visitOrder));
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return schedules;
+    }
+
+    public void deleteAllByPlanId(String planId) {
+        String sql = "DELETE FROM scheduled_place WHERE plan_id = ?";
+        try (Connection con = pool.getConnection();
+             PreparedStatement pstmt = con.prepareStatement(sql)) {
+            pstmt.setString(1, planId);
+            pstmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateScheduleOrder(List<ScheduledPlace> schedules) {
+        String sql = "UPDATE scheduled_place SET visit_order = ? WHERE plan_id = ? AND p_id = ?";
+        try (Connection con = pool.getConnection();
+             PreparedStatement pstmt = con.prepareStatement(sql)) {
+            for (ScheduledPlace schedule : schedules) {
+                pstmt.setInt(1, schedule.getVisit_order());
+                pstmt.setString(2, schedule.getplan_id());
+                pstmt.setString(3, schedule.getP_id());
+                pstmt.addBatch();
+            }
+            pstmt.executeBatch();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

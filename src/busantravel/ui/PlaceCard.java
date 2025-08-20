@@ -94,7 +94,9 @@ public class PlaceCard extends JPanel {
         textPanel.add(descriptionArea, BorderLayout.CENTER);
 
         add(textPanel, BorderLayout.CENTER);
-        addMouseListener(createMouseAdapter(frame, placeName, category));
+        MouseAdapter adapter = createMouseAdapter(frame, placeName, category);
+        addMouseListener(adapter);
+        descriptionArea.addMouseListener(adapter);
     }
 
     private void showPlaceDetailDialog(JFrame frame, String placeName, String category) {
@@ -141,6 +143,8 @@ public class PlaceCard extends JPanel {
         
         JScrollPane descriptionScrollPane = new JScrollPane(descriptionArea);
         descriptionScrollPane.setPreferredSize(new Dimension(560, 200));
+        descriptionScrollPane.getVerticalScrollBar().setUI(new MatteScrollBarUI());
+        descriptionScrollPane.getHorizontalScrollBar().setUI(new MatteScrollBarUI());
 
         leftPanel.add(imagePanel, BorderLayout.CENTER);
         leftPanel.add(descriptionScrollPane, BorderLayout.SOUTH);
@@ -209,6 +213,8 @@ public class PlaceCard extends JPanel {
         infoScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         infoScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         infoScrollPane.setBorder(BorderFactory.createTitledBorder("세부 정보"));
+        infoScrollPane.getVerticalScrollBar().setUI(new MatteScrollBarUI());
+        infoScrollPane.getHorizontalScrollBar().setUI(new MatteScrollBarUI());
         infoScrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);
         return infoScrollPane;
     }
@@ -411,24 +417,16 @@ public class PlaceCard extends JPanel {
             }
             @Override
             public void mouseEntered(MouseEvent e) {
-                if (getLayout() instanceof BorderLayout) {
-                    setBorder(BorderFactory.createLineBorder(ColorConstants.ACCENT, 2));
-                } else {
-                    setBackground(new Color(245, 245, 245));
-                    for(Component c : getComponents()){
-                        if(c instanceof JPanel) c.setBackground(new Color(245, 245, 245));
-                    }
+                setBackground(new Color(245, 245, 245));
+                for(Component c : getComponents()){
+                    if(c instanceof JPanel) c.setBackground(new Color(245, 245, 245));
                 }
             }
             @Override
             public void mouseExited(MouseEvent e) {
-                if (getLayout() instanceof BorderLayout) {
-                    setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
-                } else {
-                    setBackground(Color.WHITE);
-                    for(Component c : getComponents()){
-                        if(c instanceof JPanel) c.setBackground(Color.WHITE);
-                    }
+                setBackground(Color.WHITE);
+                for(Component c : getComponents()){
+                    if(c instanceof JPanel) c.setBackground(Color.WHITE);
                 }
             }
         };
