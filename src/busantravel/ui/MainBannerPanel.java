@@ -107,6 +107,8 @@ public class MainBannerPanel extends JPanel {
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED); // 세로 스크롤바 필요 시 자동 표시
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER); // 가로 스크롤바는 표시 안 함
         scrollPane.setBorder(BorderFactory.createEmptyBorder()); // 스크롤팬 자체 테두리 제거
+        scrollPane.getVerticalScrollBar().setUI(new MatteScrollBarUI());
+        scrollPane.getHorizontalScrollBar().setUI(new MatteScrollBarUI());
 
         add(scrollPane, BorderLayout.CENTER); // MainBannerPanel의 중앙에 스크롤팬 추가
 

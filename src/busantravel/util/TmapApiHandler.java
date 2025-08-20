@@ -157,4 +157,64 @@ public class TmapApiHandler {
             return null;
         }
     }
+    
+    public List<String> optimizeRoute(RoutePoint start, RoutePoint end, List<RoutePoint> vias) throws Exception {
+        URL url = new URL("https://apis.openapi.sk.com/tmap/routes/routeOptimization10?version=1");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("appKey", apiKey);
+        conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+        conn.setRequestProperty("Accept", "application/json");
+        conn.setDoOutput(true);
+
+        StringBuilder jsonInputString = new StringBuilder("{");
+        jsonInputString.append("\"startName\": \"").append(start.getName()).append("\",");
+        jsonInputString.append("\"startX\": \"").append(start.getCoordinate().getLongitude()).append("\",");
+        jsonInputString.append("\"startY\": \"").append(start.getCoordinate().getLatitude()).append("\",");
+        jsonInputString.append("\"endName\": \"").append(end.getName()).append("\",");
+        jsonInputString.append("\"endX\": \"").append(end.getCoordinate().getLongitude()).append("\",");
+        jsonInputString.append("\"endY\": \"").append(end.getCoordinate().getLatitude()).append("\",");
+        jsonInputString.append("\"startTime\": \"202401010800\",");
+        jsonInputString.append("\"viaPoints\": [");
+
+        for (int i = 0; i < vias.size(); i++) {
+            RoutePoint via = vias.get(i);
+            jsonInputString.append("{");
+            jsonInputString.append("\"viaPointId\": \"").append(via.getId()).append("\",");
+            jsonInputString.append("\"viaPointName\": \"").append(via.getName()).append("\",");
+            jsonInputString.append("\"viaX\": \"").append(via.getCoordinate().getLongitude()).append("\",");
+            jsonInputString.append("\"viaY\": \"").append(via.getCoordinate().getLatitude()).append("\"");
+            jsonInputString.append("}");
+            if (i < vias.size() - 1) {
+                jsonInputString.append(",");
+            }
+        }
+        jsonInputString.append("]}");
+
+        try (OutputStream os = conn.getOutputStream()) {
+            byte[] input = jsonInputString.toString().getBytes("utf-8");
+            os.write(input, 0, input.length);
+        }
+
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"))) {
+            JSONParser parser = new JSONParser();
+            JSONObject responseJson = (JSONObject) parser.parse(br);
+            JSONArray features = (JSONArray) responseJson.get("features");
+
+            List<String> optimizedOrder = new ArrayList<>();
+            for (Object featureObj : features) {
+                JSONObject feature = (JSONObject) featureObj;
+                JSONObject properties = (JSONObject) feature.get("properties");
+                String pointType = (String) properties.get("pointType");
+
+                if (pointType != null && pointType.startsWith("B")) { // "B" for viaPoints (B1, B2...)
+                    String viaId = (String) properties.get("viaPointId");
+                    if (viaId != null) {
+                        optimizedOrder.add(viaId);
+                    }
+                }
+            }
+            return optimizedOrder;
+        }
+    }
 }

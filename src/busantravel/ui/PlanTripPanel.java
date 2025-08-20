@@ -432,17 +432,6 @@ public class PlanTripPanel extends JPanel {
         row.add(text, BorderLayout.CENTER);
 
 
-       String[] times = {
-            "09:00", "10:00", "11:00", "12:00", "13:00",
-            "14:00", "15:00", "16:00", "17:00", "18:00",
-            "19:00", "20:00", "21:00", "22:00", "23:00"
-        };
-        JComboBox<String> startBox = new JComboBox<>(times);
-        JComboBox<String> endBox = new JComboBox<>(times);
-        startBox.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
-        endBox.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
-
-
         JButton plus = new JButton("+");
         plus.setPreferredSize(new Dimension(36, 36));
         plus.setFont(jalnanFont.deriveFont(Font.BOLD, 20f));
@@ -452,13 +441,12 @@ public class PlanTripPanel extends JPanel {
         plus.setBorder(new LineBorder(ACCENT_DARK, 1, true));
         plus.addActionListener(e -> {
             LocalDate d = getSelectedDate();
-            String startStr = (String) startBox.getSelectedItem();
-            String endStr = (String) endBox.getSelectedItem();
             // 동일한 장소가 이미 해당 날짜에 존재하는지 확인
             boolean alreadyExists = scheduledPlaces.stream()
                 .anyMatch(existing ->
                     existing.getP_id().equals(pd.id) &&
-                    existing.getP_type().equals(pd.type)
+                    existing.getP_type().equals(pd.type) &&
+                    existing.getScheduled_date().toLocalDate().equals(d)
                 );
 
             if (alreadyExists) {
@@ -469,40 +457,11 @@ public class PlanTripPanel extends JPanel {
                 return;
             }
 
-            if (startStr == null || endStr == null) {
-                JOptionPane.showMessageDialog(this, "시간을 선택해주세요.", "시간 선택", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
-            LocalTime startTime = LocalTime.parse(startStr);
-            LocalTime endTime = LocalTime.parse(endStr);
-
-            if (!endTime.isAfter(startTime)) {
-                JOptionPane.showMessageDialog(this, "종료 시간은 시작 시간 이후여야 합니다.", "시간 오류", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            boolean hasConflict = scheduledPlaces.stream()
-            .filter(existing -> existing.getScheduled_date().toLocalDate().equals(d))
-            .anyMatch(existing -> {
-                LocalTime exStart = existing.getExpected_start();
-                LocalTime exEnd = existing.getExpected_dutarion();
-                return !(endTime.isBefore(exStart) || startTime.isAfter(exEnd));
-            });
-
-            if (hasConflict) {
-                JOptionPane.showMessageDialog(this,
-                    "선택한 시간대가 기존 일정과 겹칩니다.\n다른 시간대를 선택해주세요.",
-                    "시간 중복",
-                    JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
-            LocalDateTime visit = LocalDateTime.of(d, startTime);
+            LocalDateTime visit = LocalDateTime.of(d, LocalTime.MIDNIGHT); // 시간 정보 제거, 자정으로 설정
             ScheduledPlace sp = new ScheduledPlace(
                 planId,
                 pd.id, pd.type,
-                visit, startTime, endTime,
+                visit,
                 nextOrder(d)
             );
             
@@ -526,8 +485,6 @@ public class PlanTripPanel extends JPanel {
 
         JPanel btnWrap = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, (ROW_HEIGHT-36)/2));
         btnWrap.setOpaque(false);
-        btnWrap.add(startBox);
-        btnWrap.add(endBox);
         btnWrap.add(plus);
         row.add(btnWrap, BorderLayout.EAST);
         return row;
@@ -589,11 +546,8 @@ public class PlanTripPanel extends JPanel {
         title.setFont(jalnanFont.deriveFont(Font.PLAIN, 13f));
         sub.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
         sub.setForeground(new Color(140,140,140));
-        JLabel time = new JLabel("체류 시간 : " + sp.getExpected_start() + " ~ " + sp.getExpected_dutarion());
-        time.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
         text.add(title);
         text.add(sub);
-        text.add(time);
         row.add(text, BorderLayout.CENTER);
 
 
@@ -764,6 +718,8 @@ public class PlanTripPanel extends JPanel {
         sp.getVerticalScrollBar().setUnitIncrement(18);
         sp.setOpaque(false);
         sp.getViewport().setOpaque(false);
+        sp.getVerticalScrollBar().setUI(new MatteScrollBarUI());
+        sp.getHorizontalScrollBar().setUI(new MatteScrollBarUI());
     }
 
     /**
