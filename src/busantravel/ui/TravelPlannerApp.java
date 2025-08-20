@@ -375,4 +375,15 @@ public class TravelPlannerApp {
         updateTopPanelTitle();
         updateNavButtonStyles();
     }
+
+    public void switchToChecklist(TravelPlan plan) {
+        JPanel checklist = new ChecklistPanel(this, plan, "aaa", //로그인 기능 구현 이후 수정 
+            () -> switchToFullSchedule(plan)); // 
+        contentPanel.removeAll();
+        contentPanel.add(checklist, "CHECKLIST");
+        ((CardLayout) contentPanel.getLayout()).show(contentPanel, "CHECKLIST");
+        contentPanel.revalidate();
+        contentPanel.repaint();
+    }
+
 }
