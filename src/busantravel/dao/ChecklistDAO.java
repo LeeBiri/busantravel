@@ -146,7 +146,7 @@ public class ChecklistDAO {
         try {
             Connection con = pool.getConnection();
             PreparedStatement pstmt = con.prepareStatement(sql);
-            pstmt.setInt(2, checklist_id);
+            pstmt.setInt(1, checklist_id);
 			pstmt.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
