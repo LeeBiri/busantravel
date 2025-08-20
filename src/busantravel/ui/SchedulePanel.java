@@ -1,5 +1,6 @@
 package busantravel.ui;
 
+import busantravel.auth.MemberSession;
 import busantravel.controller.PlanController;
 import busantravel.model.TravelPlan;
 import java.awt.*;
@@ -29,7 +30,7 @@ public class SchedulePanel extends JPanel {
     public SchedulePanel(JFrame parentFrame, TravelPlannerApp mainApp) {
         this.parentFrame = parentFrame;
         this.mainApp = mainApp;
-        this.controller = new PlanController(parentFrame, this, "aaa");
+        this.controller = new PlanController(parentFrame, this, MemberSession.getId());
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
         loadFont();

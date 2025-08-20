@@ -1,29 +1,31 @@
 package busantravel.auth;
 
+import busantravel.model.Member;
+
 public class MemberSession {
-	private static String loginId;
-	private static String loginName;
+	private static Member currentUser;
 	
-	public static void login(String id, String name) {
-		loginId = id;
-		loginName = name;
+	public static void login(Member m) {
+		currentUser = m;
 	}
-	
+
 	public static void logout() {
-		loginId = null;
-		loginName = null;
+		currentUser = null;
 	}
-	
+
 	public static String getId() {
-		return loginId;
+		return currentUser != null ? currentUser.getM_id() : null;
 	}
-	
+
 	public static String getName() {
-		return loginName;
+		return currentUser != null ? currentUser.getM_name() : null;
 	}
-	
+
 	public static boolean isLoggedIn() {
-		if (loginId != null) return true;
-		else return false;
+		return currentUser != null;
+	}
+
+	public static Member getCurrentUser() {
+		return currentUser;
 	}
 }
