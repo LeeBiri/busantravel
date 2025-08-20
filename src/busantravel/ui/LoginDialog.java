@@ -1,11 +1,8 @@
 package busantravel.ui;
 
-import javax.swing.*;
-
 import busantravel.controller.LoginController;
-
 import java.awt.*;
-import busantravel.ui.ColorConstants;
+import javax.swing.*;
 
 /**
  * 사용자 로그인을 위한 대화상자를 생성하고 관리하는 클래스입니다.
@@ -19,14 +16,16 @@ public class LoginDialog {
     private JLabel pwLabel;
     private JButton loginBtn;
     private JButton cancelBtn;
+    private TravelPlannerApp mainApp;
 
     /**
      * LoginDialog의 새 인스턴스를 생성합니다.
      *
      * @param parent 부모 JFrame 객체. 대화상자는 이 프레임에 종속됩니다.
      */
-    public LoginDialog(JFrame parent) {
+    public LoginDialog(JFrame parent, TravelPlannerApp mainApp) {
         this.parent = parent;
+        this.mainApp = mainApp;
     }
 
     /**
@@ -92,5 +91,9 @@ public class LoginDialog {
      */
     public String getPw() {
     	return pwField.getText();
+    }
+
+    public TravelPlannerApp getMainApp() {
+        return mainApp;
     }
 }

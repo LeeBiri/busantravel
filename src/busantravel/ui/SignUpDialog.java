@@ -1,10 +1,10 @@
 package busantravel.ui;
 
-import javax.swing.*;
+import busantravel.auth.MemberSession;
+import busantravel.model.Member;
+import busantravel.service.MemberService;
 import java.awt.*;
-import busantravel.ui.ColorConstants;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import javax.swing.*;
 
 /**
  * 사용자 회원가입을 위한 대화상자를 생성하고 관리하는 클래스입니다.
@@ -12,14 +12,16 @@ import java.awt.event.ActionListener;
  */
 public class SignUpDialog {
     private JFrame parent;
+    private TravelPlannerApp mainApp;
 
     /**
      * SignUpDialog의 새 인스턴스를 생성합니다.
      *
      * @param parent 부모 JFrame 객체. 대화상자는 이 프레임에 종속됩니다.
      */
-    public SignUpDialog(JFrame parent) {
+    public SignUpDialog(JFrame parent, TravelPlannerApp mainApp) {
         this.parent = parent;
+        this.mainApp = mainApp;
     }
 
     /**
@@ -47,7 +49,7 @@ public class SignUpDialog {
         emailField.setFont(fieldFont);
 
         // 이름 필드
-        JLabel nameLabel = new JLabel("이름:");
+        JLabel nameLabel = new JLabel("이름:"); 
         nameLabel.setFont(labelFont);
         signUpDialog.add(nameLabel);
         signUpDialog.add(nameField);
@@ -96,13 +98,12 @@ public class SignUpDialog {
         // --- 액션 리스너 ---
         checkIdBtn.addActionListener(e -> {
             String enteredId = idField.getText().trim();
-            if (enteredId.isEmpty()) {
-                JOptionPane.showMessageDialog(signUpDialog, "아이디를 입력하세요!");
-            } else if (enteredId.equalsIgnoreCase("admin") || enteredId.equals("testuser")) { // 예시 중복 아이디
+            if (MemberService.checkID(enteredId)) {
                 JOptionPane.showMessageDialog(signUpDialog, "이미 존재하는 아이디입니다.", "중복확인", JOptionPane.ERROR_MESSAGE);
             } else {
                 JOptionPane.showMessageDialog(signUpDialog, "사용 가능한 아이디입니다!", "중복확인", JOptionPane.INFORMATION_MESSAGE);
             }
+
         });
 
         signUpBtn.addActionListener(e -> {
@@ -113,10 +114,18 @@ public class SignUpDialog {
 
             if (name.isEmpty() || id.isEmpty() || pw.isEmpty() || email.isEmpty()) {
                 JOptionPane.showMessageDialog(signUpDialog, "모든 정보를 입력하세요!", "회원가입 오류", JOptionPane.WARNING_MESSAGE);
-            } else {
-                // 실제 회원가입 처리 로직 (데이터베이스 저장 등)은 추후 구현
+                return;
+            }
+
+            Member member = new Member(id, name, pw, email);
+            boolean success = MemberService.register(member);
+            if (success) {
+                MemberSession.login(member); // 자동 로그인
                 JOptionPane.showMessageDialog(signUpDialog, name + "님, 회원가입이 완료되었습니다!\n환영합니다!");
                 signUpDialog.dispose();
+                mainApp.refreshAuthButtons(); // 우측 상단 로그인/회원가입 → 마이페이지/로그아웃
+            } else {
+                JOptionPane.showMessageDialog(signUpDialog, "이미 존재하는 아이디입니다.", "회원가입 오류", JOptionPane.ERROR_MESSAGE);
             }
         });
 

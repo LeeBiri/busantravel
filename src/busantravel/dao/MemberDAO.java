@@ -1,11 +1,10 @@
 package busantravel.dao;
 
+import busantravel.db.DBConnectionMgr;
+import busantravel.model.Member;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-
-import busantravel.db.DBConnectionMgr;
-import busantravel.model.Member;
 
 public class MemberDAO {
 	static DBConnectionMgr pool= DBConnectionMgr.getInstance();
@@ -30,6 +29,8 @@ public class MemberDAO {
 					rs.getString("M_PASSWORD"),
 					rs.getString("M_EMAIL")
 				);
+			}  else {
+				System.out.println("로그인 실패: 아이디 또는 비밀번호 불일치");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -79,6 +80,8 @@ public class MemberDAO {
 			rs = pstmt.executeQuery();
 			if (rs.next() && rs.getInt(1) > 0) {
 				duplicated = true;
+			} else {
+				System.out.println("중복된 아이디");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -88,4 +91,38 @@ public class MemberDAO {
 		return duplicated;
 	}
 	
+	public static boolean deleteId(String id, String pw) {
+		String sql = "DELETE FROM member WHERE m_id = ? and m_password = ?";
+		boolean flag = false;
+        try {
+            Connection con = pool.getConnection();
+            PreparedStatement pstmt = con.prepareStatement(sql);
+            pstmt.setString(1, id);
+			pstmt.setString(2, pw);
+			int cnt = pstmt.executeUpdate();
+			if (cnt == 1) { flag = true; }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+		return flag;
+	}
+
+	public static boolean updateId(Member member) {
+		String sql = "UPDATE member SET m_name = ?, m_password = ?, m_email = ? WHERE m_id = ?";
+		boolean flag = false;
+        try {
+            Connection con = pool.getConnection();
+            PreparedStatement pstmt = con.prepareStatement(sql);
+            pstmt.setString(1, member.getM_name());
+			pstmt.setString(2, member.getM_password());
+			pstmt.setString(3, member.getM_email());
+			pstmt.setString(4, member.getM_id());
+			int cnt = pstmt.executeUpdate();
+			if (cnt == 1) { flag = true; }
+			pstmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+		return flag;
+	}
 }
