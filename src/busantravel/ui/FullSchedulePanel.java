@@ -8,11 +8,19 @@ import busantravel.model.ScheduledPlace;
 import busantravel.model.Tourist;
 import busantravel.model.TravelPlan;
 import busantravel.service.ScheduledPlaceService;
+import busantravel.util.ApiHandler;
+import busantravel.util.Coordinate;
+import busantravel.util.PlaceInfo;
+import busantravel.util.StaticMapGenerator;
+import busantravel.util.TmapApiHandler;
+import busantravel.util.TmapRouteInfo;
+import busantravel.util.TmapRouteResult;
 import java.awt.*;
 import java.io.InputStream;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -25,12 +33,19 @@ public class FullSchedulePanel extends JPanel {
     private final TravelPlan plan;
     private final Runnable onBackCallback;
     private Font jalnanFont;
+    private JLabel mapLabel;
+    private JPanel routeInfoPanel;
+    private final ApiHandler apiHandler = new ApiHandler();
+    private final TmapApiHandler tmapApiHandler = new TmapApiHandler(TMAP_API_KEY);
+    private final StaticMapGenerator mapGenerator;
+    private static final String TMAP_API_KEY = "h5baCQSfp37eFmXohbwx23t7n1KLSIcn3RyFtMcg";
 
 
         public FullSchedulePanel(TravelPlannerApp mainApp, TravelPlan plan, Runnable onBackCallback) {
             this.mainApp = mainApp;
             this.plan = plan;
             this.onBackCallback = onBackCallback;
+            this.mapGenerator = new StaticMapGenerator(TMAP_API_KEY);
 
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
@@ -82,11 +97,25 @@ public class FullSchedulePanel extends JPanel {
         scrollPane.setPreferredSize(new Dimension(900, 0));
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
-        // 우측 지도 자리 (임시)
-        JPanel mapPanel = new JPanel();
-        mapPanel.setBackground(Color.GREEN);
+        // 우측 지도
+        JPanel mapPanel = new JPanel(new BorderLayout());
+        mapPanel.setBackground(Color.WHITE);
         mapPanel.setPreferredSize(new Dimension(550, 0));
-        mapPanel.add(new JLabel("지도 자리"));
+        mapLabel = new JLabel("좌측 일정에서 '지도 보기'를 클릭하세요.", SwingConstants.CENTER);
+        mapLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
+        mapPanel.add(mapLabel, BorderLayout.CENTER);
+
+        routeInfoPanel = new JPanel();
+        routeInfoPanel.setLayout(new BoxLayout(routeInfoPanel, BoxLayout.Y_AXIS));
+        routeInfoPanel.setBackground(Color.WHITE);
+
+        JScrollPane routeInfoScrollPane = new JScrollPane(routeInfoPanel);
+        routeInfoScrollPane.setBorder(new EmptyBorder(10, 10, 10, 10));
+        routeInfoScrollPane.setBackground(Color.WHITE);
+        routeInfoScrollPane.setPreferredSize(new Dimension(550, 300)); // Set a preferred height
+        routeInfoScrollPane.getViewport().setBackground(Color.WHITE);
+        mapPanel.add(routeInfoScrollPane, BorderLayout.SOUTH);
+
 
         // 메인 좌측 패널 구성
         JPanel leftPanel = new JPanel(new BorderLayout());
@@ -151,19 +180,38 @@ public class FullSchedulePanel extends JPanel {
             dayPanel.add(Box.createVerticalStrut(10));
         }
 
+        JPanel buttonContainer = new JPanel();
+        buttonContainer.setLayout(new BoxLayout(buttonContainer, BoxLayout.X_AXIS));
+        buttonContainer.setOpaque(false);
+        buttonContainer.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+
         // 장소 추가 버튼
         JButton addPlaceBtn = new JButton("＋ 장소 추가");
         addPlaceBtn.setPreferredSize(new Dimension(140, 40));
         addPlaceBtn.setMaximumSize(new Dimension(160, 40));
-        addPlaceBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
         addPlaceBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
         addPlaceBtn.setBackground(ColorConstants.ACCENT);
         addPlaceBtn.setForeground(Color.WHITE);
         addPlaceBtn.setFocusPainted(false);
         addPlaceBtn.addActionListener(e -> mainApp.switchToPlanTrip(plan, dayIndex));
 
-        dayPanel.add(Box.createVerticalStrut(5)); 
-        dayPanel.add(addPlaceBtn); 
+        // 지도 보기 버튼
+        JButton viewMapBtn = new JButton("지도 보기");
+        viewMapBtn.setPreferredSize(new Dimension(140, 40));
+        viewMapBtn.setMaximumSize(new Dimension(160, 40));
+        viewMapBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
+        viewMapBtn.setBackground(new Color(67, 119, 181));
+        viewMapBtn.setForeground(Color.WHITE);
+        viewMapBtn.setFocusPainted(false);
+        viewMapBtn.addActionListener(e -> updateMap(places));
+
+        buttonContainer.add(addPlaceBtn);
+        buttonContainer.add(Box.createHorizontalStrut(10));
+        buttonContainer.add(viewMapBtn);
+
+        dayPanel.add(Box.createVerticalStrut(5));
+        dayPanel.add(buttonContainer);
 
         return dayPanel;
     }
@@ -267,6 +315,141 @@ private JPanel createPlaceCard(ScheduledPlace place, int order) {
     }
 }
 
+    private void updateMap(List<ScheduledPlace> places) {
+        if (places == null || places.isEmpty()) {
+            mapLabel.setIcon(null);
+            mapLabel.setText("선택한 날짜에 예정된 장소가 없습니다.");
+            routeInfoPanel.removeAll();
+            routeInfoPanel.revalidate();
+            routeInfoPanel.repaint();
+            return;
+        }
+
+        mapLabel.setText("지도 생성 중...");
+        mapLabel.setIcon(null);
+        routeInfoPanel.removeAll();
+
+        new Thread(() -> {
+            List<Coordinate> coordinates = new ArrayList<>();
+            List<String> placeNames = new ArrayList<>();
+            PlaceDAO placeDAO = new PlaceDAO();
+
+            for (ScheduledPlace sp : places) {
+                Object rawPlace = placeDAO.getPlaceByTypeAndId(sp.getP_type(), sp.getP_id());
+                PlaceData data = PlaceData.from(rawPlace);
+                if (data.name != null && !data.name.equals("알 수 없는 장소")) {
+                    PlaceInfo placeInfo = apiHandler.getPlaceDetailsByName(data.name, TMAP_API_KEY);
+                    if (placeInfo != null) {
+                        coordinates.add(new Coordinate(placeInfo.getLatitude(), placeInfo.getLongitude()));
+                        placeNames.add(data.name);
+                    }
+                }
+            }
+
+            if (coordinates.isEmpty()) {
+                SwingUtilities.invokeLater(() -> mapLabel.setText("장소의 좌표를 찾을 수 없습니다."));
+                return;
+            }
+
+            String mapUrl = null;
+            if (coordinates.size() >= 2) {
+                mapUrl = mapGenerator.generateRouteMapUrl(coordinates, mapLabel.getWidth(), mapLabel.getHeight(), "red");
+                
+                List<TmapRouteResult> routeResults = new ArrayList<>();
+                for (int i = 0; i < coordinates.size() - 1; i++) {
+                    TmapRouteResult segmentResult = tmapApiHandler.getRouteInfo(TMAP_API_KEY,
+                            coordinates.get(i).getLongitude(), coordinates.get(i).getLatitude(),
+                            coordinates.get(i + 1).getLongitude(), coordinates.get(i + 1).getLatitude(),
+                            placeNames.get(i), placeNames.get(i + 1));
+                    routeResults.add(segmentResult);
+                }
+                SwingUtilities.invokeLater(() -> updateRouteInfoPanel(routeResults, placeNames));
+
+            } else if (coordinates.size() == 1) {
+                mapUrl = mapGenerator.generateMapWithPinUrl(coordinates.get(0), mapLabel.getWidth(), mapLabel.getHeight(), 15);
+                 SwingUtilities.invokeLater(() -> {
+                    routeInfoPanel.removeAll();
+                    routeInfoPanel.revalidate();
+                    routeInfoPanel.repaint();
+                });
+            }
+
+            if (mapUrl != null) {
+                try {
+                    ImageIcon icon = new ImageIcon(new URL(mapUrl));
+                    SwingUtilities.invokeLater(() -> {
+                        mapLabel.setText("");
+                        mapLabel.setIcon(icon);
+                    });
+                } catch (Exception e) {
+                    SwingUtilities.invokeLater(() -> mapLabel.setText("지도 이미지를 불러올 수 없습니다."));
+                    e.printStackTrace();
+                }
+            } else {
+                SwingUtilities.invokeLater(() -> mapLabel.setText("지도 URL을 생성할 수 없습니다."));
+            }
+        }).start();
+    }
+
+    private void updateRouteInfoPanel(List<TmapRouteResult> results, List<String> placeNames) {
+        routeInfoPanel.removeAll();
+        int totalTime = 0;
+        int totalDistance = 0;
+
+        for (int i = 0; i < results.size(); i++) {
+            TmapRouteResult result = results.get(i);
+            
+            JLabel segmentTitle = new JLabel(String.format("<html><b>%s &rarr; %s</b></html>", placeNames.get(i), placeNames.get(i+1)));
+            segmentTitle.setFont(jalnanFont.deriveFont(Font.BOLD, 15f));
+            routeInfoPanel.add(segmentTitle);
+
+            if (result != null && result.getSummary() != null) {
+                TmapRouteInfo info = result.getSummary();
+                int minutes = info.getTotalTime() / 60;
+                double distance = info.getTotalDistance() / 1000.0;
+                totalTime += info.getTotalTime();
+                totalDistance += info.getTotalDistance();
+
+                JLabel timeLabel = new JLabel(String.format("  소요 시간: %d분", minutes));
+                JLabel distanceLabel = new JLabel(String.format("  거리: %.1fkm", distance));
+                JLabel taxiFareLabel = new JLabel(String.format("  예상 택시 요금: %,d원", info.getTaxiFare()));
+                
+                timeLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 14f));
+                distanceLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 14f));
+                taxiFareLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 14f));
+
+                routeInfoPanel.add(timeLabel);
+                routeInfoPanel.add(distanceLabel);
+                routeInfoPanel.add(taxiFareLabel);
+
+            } else {
+                JLabel errorLabel = new JLabel("  경로 정보를 가져올 수 없습니다.");
+                errorLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 14f));
+                routeInfoPanel.add(errorLabel);
+            }
+            routeInfoPanel.add(Box.createVerticalStrut(10)); // Add space between segments
+        }
+
+        if (results.size() > 0) {
+            JSeparator separator = new JSeparator();
+            routeInfoPanel.add(separator);
+            routeInfoPanel.add(Box.createVerticalStrut(10));
+
+            int totalMinutes = totalTime / 60;
+            double totalKm = totalDistance / 1000.0;
+
+            JLabel totalTimeLabel = new JLabel(String.format("총 이동 시간: %d분", totalMinutes));
+            totalTimeLabel.setFont(jalnanFont.deriveFont(Font.BOLD, 16f));
+            routeInfoPanel.add(totalTimeLabel);
+
+            JLabel totalDistanceLabel = new JLabel(String.format("총 이동 거리: %.1fkm", totalKm));
+            totalDistanceLabel.setFont(jalnanFont.deriveFont(Font.BOLD, 16f));
+            routeInfoPanel.add(totalDistanceLabel);
+        }
+
+        routeInfoPanel.revalidate();
+        routeInfoPanel.repaint();
+    }
     private void loadFont() {
         try {
             InputStream is = getClass().getResourceAsStream("/busantravel/resources/Jalnan2TTF.ttf");

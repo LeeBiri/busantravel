@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 public class StaticMapGenerator {
 
     private static final String STATIC_MAP_URL = "https://apis.openapi.sk.com/tmap/staticMap?version=1";
+    private static final String ROUTE_STATIC_MAP_URL = "https://apis.openapi.sk.com/tmap/routeStaticMap?version=1";
     private final String apiKey;
 
     /**
@@ -98,6 +99,48 @@ public class StaticMapGenerator {
         urlBuilder.append("&longitude=").append(center.getLongitude());
         urlBuilder.append("&latitude=").append(center.getLatitude());
         urlBuilder.append("&markers=").append(markers);
+
+        return urlBuilder.toString();
+    }
+    
+    /**
+     * 지정된 좌표 목록을 기반으로 경로가 표시된 TMAP Static Map 이미지 URL을 생성합니다.
+     *
+     * @param coordinates  경로를 구성하는 좌표 목록 (첫 번째는 출발지, 마지막은 도착지, 중간은 경유지)
+     * @param width        생성할 지도의 너비 (픽셀)
+     * @param height       생성할 지도의 높이 (픽셀)
+     * @return 경로 지도 이미지에 접근할 수 있는 완전한 URL 문자열
+     */
+    public String generateRouteMapUrl(List<Coordinate> coordinates, int width, int height, String lineColor) {
+        if (coordinates == null || coordinates.size() < 2 || apiKey == null || apiKey.isEmpty()) {
+            return null;
+        }
+
+        StringBuilder urlBuilder = new StringBuilder(ROUTE_STATIC_MAP_URL);
+        urlBuilder.append("&appKey=").append(apiKey);
+        urlBuilder.append("&width=").append(width);
+        urlBuilder.append("&height=").append(height);
+        urlBuilder.append("&coordType=WGS84GEO");
+        urlBuilder.append("&format=PNG");
+
+        Coordinate start = coordinates.get(0);
+        urlBuilder.append("&startX=").append(start.getLongitude());
+        urlBuilder.append("&startY=").append(start.getLatitude());
+
+        Coordinate end = coordinates.get(coordinates.size() - 1);
+        urlBuilder.append("&endX=").append(end.getLongitude());
+        urlBuilder.append("&endY=").append(end.getLatitude());
+
+        if (coordinates.size() > 2) {
+            String passList = coordinates.subList(1, coordinates.size() - 1).stream()
+                .map(c -> String.format("%f,%f", c.getLongitude(), c.getLatitude()))
+                .collect(Collectors.joining("_"));
+            urlBuilder.append("&passList=").append(passList);
+        }
+        
+        if (lineColor != null && !lineColor.isEmpty()) {
+            urlBuilder.append("&lineColor=").append(lineColor);
+        }
 
         return urlBuilder.toString();
     }
