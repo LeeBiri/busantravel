@@ -228,7 +228,7 @@ public class TravelPlannerApp {
         }
         
         if ("schedule".equals(currentTab)) {
-            schedulePanel.controller.refreshRoomLists();
+            schedulePanel.getController().refreshRoomLists();
         }
     }
 
@@ -386,30 +386,32 @@ public class TravelPlannerApp {
     }
 
     private void initAuthButtons() {
-    authButtonsPanel.removeAll(); // 기존 버튼 제거
+        authButtonsPanel.removeAll(); // 기존 버튼 제거
 
-    if (MemberSession.isLoggedIn()) {
-        // 로그인 상태일 경우: 마이페이지 + 로그아웃
-        myPageButton = new JButton("마이페이지");
-        logoutButton = new JButton("로그아웃");
+        if (MemberSession.isLoggedIn()) {
+            // 로그인 상태일 경우: 마이페이지 + 로그아웃
+            myPageButton = new JButton("마이페이지");
+            logoutButton = new JButton("로그아웃");
 
-        myPageButton.setFont(FontManager.getJalnanFont(12f));
-        logoutButton.setFont(FontManager.getJalnanFont(12f));
-        myPageButton.setBackground(new Color(240, 240, 240));
-        logoutButton.setBackground(new Color(240, 240, 240));
-        myPageButton.setForeground(new Color(50, 50, 50));
-        logoutButton.setForeground(new Color(50, 50, 50));
-        myPageButton.setFocusPainted(false);
-        logoutButton.setFocusPainted(false);
+            myPageButton.setFont(FontManager.getJalnanFont(12f));
+            logoutButton.setFont(FontManager.getJalnanFont(12f));
+            myPageButton.setBackground(new Color(240, 240, 240));
+            logoutButton.setBackground(new Color(240, 240, 240));
+            myPageButton.setForeground(new Color(50, 50, 50));
+            logoutButton.setForeground(new Color(50, 50, 50));
+            myPageButton.setFocusPainted(false);
+            logoutButton.setFocusPainted(false);
 
-        logoutButton.addActionListener(e -> {
-            MemberSession.logout();
-            JOptionPane.showMessageDialog(frame, "로그아웃 되었습니다.");
-            refreshAuthButtons();
-        });
+            logoutButton.addActionListener(e -> {
+                MemberSession.logout();
+                JOptionPane.showMessageDialog(frame, "로그아웃 되었습니다.");
+                currentTab = "home";
+                updateContent(); 
+                refreshAuthButtons();
+            });
 
-        myPageButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(frame, "마이페이지는 아직 준비 중입니다.");
+            myPageButton.addActionListener(e -> {
+                JOptionPane.showMessageDialog(frame, "마이페이지는 아직 준비 중입니다.");
         });
 
         authButtonsPanel.add(myPageButton);
@@ -429,7 +431,14 @@ public class TravelPlannerApp {
         loginButton.setFocusPainted(false);
         signUpButton.setFocusPainted(false);
 
-        loginButton.addActionListener(e -> new LoginDialog(frame, this).showDialog());
+        loginButton.addActionListener(e -> {
+            new LoginDialog(frame, this, () -> {
+                refreshAuthButtons();            // 로그인/로그아웃 버튼 새로고침
+                updateContent();                 // 패널 업데이트 (여기서 schedulePanel 새로고침됨)
+                updateTopPanelTitle();           // 제목 바꾸기
+                updateNavButtonStyles();         // 네비게이션 스타일 갱신
+            }).showDialog();
+        });
         signUpButton.addActionListener(e -> new SignUpDialog(frame, this).showDialog());
 
         authButtonsPanel.add(loginButton);

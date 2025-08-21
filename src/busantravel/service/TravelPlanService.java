@@ -1,14 +1,11 @@
 package busantravel.service;
 
 import busantravel.dao.TravelPlanDAO;
-import busantravel.dao.TravelPlanMemberDAO;
-
-import java.util.List;
-import java.util.UUID;
-
 import busantravel.model.TravelPlan;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 public class TravelPlanService {
 
@@ -40,12 +37,24 @@ public class TravelPlanService {
 	        end.atStartOfDay()
 	    );
 	    TravelPlanDAO.insert(plan);
-	    TravelPlanMemberDAO.insert(planId, creatorId, null);
+	    TravelPlanMemberService.insert(planId, creatorId);
 	}
 
-	//계획 ID만드는 메소드. ***************중복처리도 추가해야댐****************
+	// 계획 ID 중복 체크
+	private static boolean dupCheck(String planId) {
+		return TravelPlanDAO.findById(planId) != null;
+	}
+
+	//계획 ID만드는 메소드. 
 	private static String generatePlanId() {
-	    return UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+	    String planId;
+		do {
+			planId = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+		} while (TravelPlanService.dupCheck(planId));
+		return planId;
 	}
 
+	public static TravelPlan findById(String planId) {
+		return TravelPlanDAO.findById(planId);
+	}
 }

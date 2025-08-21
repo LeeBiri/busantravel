@@ -43,7 +43,13 @@ public class CreateTripDialog extends JDialog {
 
         JButton createBtn = new JButton("만들기");
         JButton cancelBtn = new JButton("취소");
-
+        createBtn.setBackground(ColorConstants.ACCENT);
+        createBtn.setForeground(Color.WHITE);
+        createBtn.setFocusPainted(false);
+        cancelBtn.setBackground(new Color(240, 240, 240));
+        cancelBtn.setForeground(new Color(50, 50, 50));
+        cancelBtn.setFocusPainted(false);
+        
         createBtn.addActionListener(e -> {
             if (titleField.getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "여행 제목을 입력하세요.");

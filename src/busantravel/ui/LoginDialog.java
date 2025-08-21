@@ -2,6 +2,7 @@ package busantravel.ui;
 
 import busantravel.controller.LoginController;
 import java.awt.*;
+import java.io.InputStream;
 import javax.swing.*;
 
 /**
@@ -17,6 +18,7 @@ public class LoginDialog {
     private JButton loginBtn;
     private JButton cancelBtn;
     private TravelPlannerApp mainApp;
+    private Runnable onLoginSuccess;
 
     /**
      * LoginDialog의 새 인스턴스를 생성합니다.
@@ -28,52 +30,98 @@ public class LoginDialog {
         this.mainApp = mainApp;
     }
 
+    public LoginDialog(JFrame parent, TravelPlannerApp mainApp, Runnable onLoginSuccess) {
+        this.parent = parent;
+        this.mainApp = mainApp;
+        this.onLoginSuccess = onLoginSuccess;
+    }
+
+
     /**
      * 로그인 대화상자를 화면에 표시합니다.
      * UI 컴포넌트를 초기화하고, 이벤트 리스너를 설정한 후 대화상자를 보이게 합니다.
      */
     public void showDialog() {
         JDialog loginDialog = new JDialog(parent, "로그인", true);
-        loginDialog.setSize(350, 230); // 다이얼로그 크기 조정
+        loginDialog.setSize(400, 280);
         loginDialog.setLocationRelativeTo(parent);
-        loginDialog.setLayout(new GridLayout(3, 2, 15, 15)); // 행/열 간격 조정
-        loginDialog.getContentPane().setBackground(Color.WHITE); // 배경색
+        loginDialog.setLayout(new BorderLayout());
+        loginDialog.getContentPane().setBackground(Color.WHITE);
 
-        idField = new JTextField();
-        pwField = new JPasswordField();
+        Font labelFont;
+        try {
+            InputStream is = getClass().getResourceAsStream("/busantravel/resources/Jalnan2TTF.ttf");
+            if (is != null) {
+                labelFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(14f);
+                GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(labelFont);
+            } else {
+                labelFont = new Font("맑은 고딕", Font.PLAIN, 14);
+            }
+        } catch (Exception e) {
+            labelFont = new Font("맑은 고딕", Font.PLAIN, 14);
+        }
 
-        // 라벨 및 필드 추가
+        // 중앙 입력 패널
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new GridLayout(2, 2, 10, 10));
+        inputPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 10, 30));
+        inputPanel.setBackground(Color.WHITE);
+
         idLabel = new JLabel("아이디:");
-        idLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
-        JLabel pwLabel = new JLabel("비밀번호:");
-        pwLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+        idLabel.setFont(labelFont);
+        idField = new JTextField();
+        idField.setFont(labelFont);
 
-        loginDialog.add(idLabel);
-        loginDialog.add(idField);
-        loginDialog.add(pwLabel);
-        loginDialog.add(pwField);
+        pwLabel = new JLabel("비밀번호:");
+        pwLabel.setFont(labelFont);
+        pwField = new JPasswordField();
+        pwField.setFont(labelFont);
+
+        inputPanel.add(idLabel);
+        inputPanel.add(idField);
+        inputPanel.add(pwLabel);
+        inputPanel.add(pwField);
+
+        // 하단 버튼 패널
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridLayout(1, 2, 20, 0));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+        buttonPanel.setBackground(Color.WHITE);
 
         loginBtn = new JButton("로그인");
-        cancelBtn = new JButton("취소");
-
-        // 버튼 스타일 설정
+        loginBtn.setFont(labelFont.deriveFont(Font.BOLD, 14f));
         loginBtn.setBackground(ColorConstants.ACCENT);
         loginBtn.setForeground(Color.WHITE);
         loginBtn.setFocusPainted(false);
+
+        cancelBtn = new JButton("취소");
+        cancelBtn.setFont(labelFont.deriveFont(Font.BOLD, 14f));
         cancelBtn.setBackground(new Color(240, 240, 240));
         cancelBtn.setForeground(new Color(50, 50, 50));
         cancelBtn.setFocusPainted(false);
-        
+
+        buttonPanel.add(loginBtn);
+        buttonPanel.add(cancelBtn);
+
+        loginDialog.add(inputPanel, BorderLayout.CENTER);
+        loginDialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        // 이벤트
         LoginController controller = new LoginController(this, loginDialog);
-        loginBtn.addActionListener(e -> controller.handleLogin());
+        loginBtn.addActionListener(e -> {
+            boolean success = controller.handleLogin();
+            if (success) {
+                if (onLoginSuccess != null) {
+                    onLoginSuccess.run();
+                }
+                loginDialog.dispose();
+            }
+        });
 
         cancelBtn.addActionListener(e -> loginDialog.dispose());
-
-        loginDialog.add(loginBtn);
-        loginDialog.add(cancelBtn);
-
         loginDialog.setVisible(true);
     }
+
     
     /**
      * 아이디 입력 필드에 입력된 값을 반환합니다.

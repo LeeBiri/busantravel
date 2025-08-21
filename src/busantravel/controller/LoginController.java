@@ -18,10 +18,11 @@ public class LoginController {
 		this.dialog = dialog;
 	}
 
-	public void handleLogin() {
+	public boolean handleLogin() {
 		String id = view.getId();
 		String pw = view.getPw();
 		mainApp = view.getMainApp();
+		boolean flag = false;
 
 		if (id.isEmpty() || pw.isEmpty()) {
 			JOptionPane.showMessageDialog(dialog, "아이디와 비밀번호를 입력해주세요.", "로그인 오류", JOptionPane.WARNING_MESSAGE);
@@ -29,11 +30,14 @@ public class LoginController {
 			Member member = MemberService.login(id, pw);
 			if (member != null) {
 				JOptionPane.showMessageDialog(dialog, member.getM_name() + "님 환영합니다!");
+				flag = true;
 				mainApp.refreshAuthButtons();
 				dialog.dispose();
 			} else {
 				JOptionPane.showMessageDialog(dialog, "아이디 또는 비밀번호가 올바르지 않습니다.", "로그인 오류", JOptionPane.ERROR_MESSAGE);
 			}
 		}
+
+		return flag;
 	}
 }
