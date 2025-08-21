@@ -288,6 +288,7 @@ public class PlaceDAO {
                             rs.getString("l_tra"),
                             rs.getString("l_infor"),
                             rs.getString("l_addr"),
+                            null,
                             rs.getString("l_num") // l_num 추가
                     );
                 } else if ("festival".equals(tableName)) {

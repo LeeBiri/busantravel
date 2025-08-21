@@ -1,5 +1,8 @@
 package busantravel.ui;
 
+import busantravel.auth.MemberSession;
+import busantravel.service.TravelPlanMemberService;
+import busantravel.service.TravelPlanService;
 import java.awt.*;
 import javax.swing.*;
 
@@ -8,17 +11,19 @@ import javax.swing.*;
  */
 public class EnterCodeDialog extends JDialog {
     private JTextField codeField;
-    private SchedulePanel schedulePanel;
+    private Runnable onSuccess;
 
     /**
      * EnterCodeDialog의 새 인스턴스를 생성합니다.
      *
      * @param parent        부모 JFrame 객체. 대화상자는 이 프레임에 종속됩니다.
      * @param schedulePanel 코드를 통해 참여한 후 UI를 갱신할 SchedulePanel 객체.
+     * 
+     * 
      */
-    public EnterCodeDialog(JFrame parent, SchedulePanel schedulePanel) {
+    public EnterCodeDialog(JFrame parent, Runnable onSuccess) {
         super(parent, "참여 코드 입력", true);
-        this.schedulePanel = schedulePanel;
+        this.onSuccess = onSuccess;
         setSize(350, 150);
         setLocationRelativeTo(parent);
         setLayout(new GridLayout(2, 2, 10, 10));
@@ -31,22 +36,35 @@ public class EnterCodeDialog extends JDialog {
         JButton enterBtn = new JButton("입력");
         JButton cancelBtn = new JButton("취소");
 
-        /**
-         * '입력' 버튼 클릭 시 호출됩니다.
-         * 1. 코드 입력값이 비어 있는지 검증하여 비어 있으면 경고창을 표시합니다.
-         * 2. TripRoomManager의 인스턴스를 가져옵니다.
-         * 3. 입력된 코드를 사용하여 여행방을 검색합니다.
-         * 4. 방이 존재하면 방 정보를 팝업으로 표시하고, SchedulePanel의 목록을 새로고침한 후 대화상자를 닫습니다.
-         * 5. 방이 존재하지 않으면 오류 메시지를 표시합니다.
-         */
-        // enterBtn.addActionListener(...) 구현 생략
+        enterBtn.setBackground(ColorConstants.ACCENT);
+        enterBtn.setForeground(Color.WHITE);
+        enterBtn.setFocusPainted(false);
+        cancelBtn.setBackground(new Color(240, 240, 240));
+        cancelBtn.setForeground(new Color(50, 50, 50));
+        cancelBtn.setFocusPainted(false);
 
-        /**
-         * '취소' 버튼 클릭 시 현재 대화상자를 닫습니다.
-         */
-        // cancelBtn.addActionListener(...) 구현 생략
+        enterBtn.addActionListener((e) -> {
+            String enterCode = codeField.getText().trim();
+
+            if (enterCode.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "모든 정보를 입력하세요!", "오류", JOptionPane.WARNING_MESSAGE);
+            } else {
+                if (TravelPlanService.findById(enterCode) == null) {
+                    JOptionPane.showMessageDialog(this, "일치하는 여행 계획이 없습니다.", "오류", JOptionPane.WARNING_MESSAGE);
+                    codeField.setText("");
+                } else {
+                    JOptionPane.showMessageDialog(this, "여행 계획이 추가되었습니다.", "안내", JOptionPane.WARNING_MESSAGE);
+                    TravelPlanMemberService.insert(enterCode, MemberSession.getId());
+                    if (onSuccess != null) onSuccess.run();
+                    this.dispose();
+                }
+            }
+        });
+
+        cancelBtn.addActionListener(e -> this.dispose());
 
         add(enterBtn);
         add(cancelBtn);
+        
     }
 }

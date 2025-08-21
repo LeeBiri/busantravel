@@ -4,132 +4,156 @@ import busantravel.auth.MemberSession;
 import busantravel.model.Member;
 import busantravel.service.MemberService;
 import java.awt.*;
+import java.io.InputStream;
 import javax.swing.*;
 
-/**
- * 사용자 회원가입을 위한 대화상자를 생성하고 관리하는 클래스입니다.
- * 이름, 아이디, 비밀번호, 이메일 등 가입에 필요한 정보를 입력받습니다.
- */
 public class SignUpDialog {
     private JFrame parent;
     private TravelPlannerApp mainApp;
+    private Font jalnanFont;
 
-    /**
-     * SignUpDialog의 새 인스턴스를 생성합니다.
-     *
-     * @param parent 부모 JFrame 객체. 대화상자는 이 프레임에 종속됩니다.
-     */
     public SignUpDialog(JFrame parent, TravelPlannerApp mainApp) {
         this.parent = parent;
         this.mainApp = mainApp;
+        loadFont();
     }
 
-    /**
-     * 회원가입 대화상자를 화면에 표시합니다.
-     * UI 컴포넌트를 초기화하고, 이벤트 리스너를 설정한 후 대화상자를 보이게 합니다.
-     */
     public void showDialog() {
-        JDialog signUpDialog = new JDialog(parent, "회원가입", true);
-        signUpDialog.setSize(450, 350); // 크기 조정
-        signUpDialog.setLocationRelativeTo(parent);
-        signUpDialog.setLayout(new GridLayout(5, 2, 15, 15)); // 간격 조정
-        signUpDialog.getContentPane().setBackground(Color.WHITE);
+        JDialog dialog = new JDialog(parent, "회원가입", true);
+        dialog.setSize(520, 500);
+        dialog.setLocationRelativeTo(parent);
+        dialog.getContentPane().setBackground(Color.WHITE);
+        dialog.setLayout(new BorderLayout());
 
-        // 폰트 설정
-        Font labelFont = new Font("맑은 고딕", Font.PLAIN, 14);
-        Font fieldFont = new Font("맑은 고딕", Font.PLAIN, 14);
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+        contentPanel.setBackground(Color.WHITE);
 
-        JTextField nameField = new JTextField();
-        nameField.setFont(fieldFont);
-        JTextField idField = new JTextField();
-        idField.setFont(fieldFont);
+        // 필드 생성
+        JTextField nameField = createTextField();
+        JTextField idField = createTextField();
         JPasswordField pwField = new JPasswordField();
-        pwField.setFont(fieldFont);
-        JTextField emailField = new JTextField();
-        emailField.setFont(fieldFont);
+        pwField.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+        JTextField emailField = createTextField();
 
-        // 이름 필드
-        JLabel nameLabel = new JLabel("이름:"); 
-        nameLabel.setFont(labelFont);
-        signUpDialog.add(nameLabel);
-        signUpDialog.add(nameField);
-
-        // 아이디 필드와 중복확인 버튼
-        JLabel idLabel = new JLabel("아이디:");
-        idLabel.setFont(labelFont);
+        // 아이디 + 중복확인 버튼
         JPanel idPanel = new JPanel(new BorderLayout());
         idPanel.setBackground(Color.WHITE);
         idPanel.add(idField, BorderLayout.CENTER);
-        JButton checkIdBtn = new JButton("중복확인");
-        checkIdBtn.setBackground(new Color(240, 240, 240));
-        checkIdBtn.setForeground(new Color(50, 50, 50));
-        checkIdBtn.setFocusPainted(false);
-        checkIdBtn.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
-        idPanel.add(checkIdBtn, BorderLayout.EAST);
-        signUpDialog.add(idLabel);
-        signUpDialog.add(idPanel);
+        JButton checkBtn = new JButton("중복확인");
+        checkBtn.setFocusPainted(false);
+        checkBtn.setFont(jalnanFont.deriveFont(12f));
+        checkBtn.setBackground(ColorConstants.ACCENT);
+        checkBtn.setForeground(Color.WHITE);
+        idPanel.add(checkBtn, BorderLayout.EAST);
 
-        // 비밀번호 필드
-        JLabel pwLabel = new JLabel("비밀번호:");
-        pwLabel.setFont(labelFont);
-        signUpDialog.add(pwLabel);
-        signUpDialog.add(pwField);
+        // 필드 그룹
+        contentPanel.add(createFormRow("이름", nameField));
+        contentPanel.add(Box.createVerticalStrut(18));
+        contentPanel.add(createFormRow("아이디", idPanel));
+        contentPanel.add(Box.createVerticalStrut(18));
+        contentPanel.add(createFormRow("비밀번호", pwField));
+        contentPanel.add(Box.createVerticalStrut(18));
+        contentPanel.add(createFormRow("이메일", emailField));
+        contentPanel.add(Box.createVerticalStrut(25));
 
-        // 이메일 필드
-        JLabel emailLabel = new JLabel("이메일:");
-        emailLabel.setFont(labelFont);
-        signUpDialog.add(emailLabel);
-        signUpDialog.add(emailField);
+        // 버튼 영역
+        JPanel btnPanel = new JPanel();
+        btnPanel.setLayout(new GridLayout(1, 2, 20, 0));
+        btnPanel.setBackground(Color.WHITE);
 
-        JButton signUpBtn = new JButton("가입하기");
+        JButton joinBtn = new JButton("가입하기");
         JButton cancelBtn = new JButton("취소");
 
-        // 가입하기/취소 버튼 스타일
-        signUpBtn.setBackground(ColorConstants.ACCENT);
-        signUpBtn.setForeground(Color.WHITE);
-        signUpBtn.setFocusPainted(false);
-        cancelBtn.setBackground(new Color(240, 240, 240));
-        cancelBtn.setForeground(new Color(50, 50, 50));
-        cancelBtn.setFocusPainted(false);
+        Dimension btnSize = new Dimension(180, 50);
+        joinBtn.setPreferredSize(btnSize);
+        cancelBtn.setPreferredSize(btnSize);
 
-        signUpDialog.add(signUpBtn);
-        signUpDialog.add(cancelBtn);
+        joinBtn.setBackground(ColorConstants.ACCENT);
+        joinBtn.setForeground(Color.WHITE);
+        joinBtn.setFocusPainted(false);
+        joinBtn.setFont(jalnanFont.deriveFont(Font.BOLD, 15f));
+
+        cancelBtn.setBackground(new Color(240, 240, 240));
+        cancelBtn.setForeground(Color.DARK_GRAY);
+        cancelBtn.setFocusPainted(false);
+        cancelBtn.setFont(jalnanFont.deriveFont(Font.BOLD, 15f));
+
+        btnPanel.add(joinBtn);
+        btnPanel.add(cancelBtn);
+        contentPanel.add(btnPanel);
+
+        dialog.add(contentPanel, BorderLayout.CENTER);
 
         // --- 액션 리스너 ---
-        checkIdBtn.addActionListener(e -> {
+        checkBtn.addActionListener(e -> {
             String enteredId = idField.getText().trim();
-            if (MemberService.checkID(enteredId)) {
-                JOptionPane.showMessageDialog(signUpDialog, "이미 존재하는 아이디입니다.", "중복확인", JOptionPane.ERROR_MESSAGE);
+            if (enteredId.isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "아이디를 입력하세요.", "오류", JOptionPane.WARNING_MESSAGE);
+            } else if (MemberService.checkID(enteredId)) {
+                JOptionPane.showMessageDialog(dialog, "이미 존재하는 아이디입니다.", "중복확인", JOptionPane.ERROR_MESSAGE);
             } else {
-                JOptionPane.showMessageDialog(signUpDialog, "사용 가능한 아이디입니다!", "중복확인", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "사용 가능한 아이디입니다.", "중복확인", JOptionPane.INFORMATION_MESSAGE);
             }
-
         });
 
-        signUpBtn.addActionListener(e -> {
+        joinBtn.addActionListener(e -> {
             String name = nameField.getText().trim();
             String id = idField.getText().trim();
             String pw = new String(pwField.getPassword());
             String email = emailField.getText().trim();
 
             if (name.isEmpty() || id.isEmpty() || pw.isEmpty() || email.isEmpty()) {
-                JOptionPane.showMessageDialog(signUpDialog, "모든 정보를 입력하세요!", "회원가입 오류", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "모든 정보를 입력하세요.", "입력 오류", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
             Member member = new Member(id, name, pw, email);
-            boolean success = MemberService.register(member);
-            if (success) {
-                MemberSession.login(member); // 자동 로그인
-                JOptionPane.showMessageDialog(signUpDialog, name + "님, 회원가입이 완료되었습니다!\n환영합니다!");
-                signUpDialog.dispose();
-                mainApp.refreshAuthButtons(); // 우측 상단 로그인/회원가입 → 마이페이지/로그아웃
+            if (MemberService.register(member)) {
+                MemberSession.login(member);
+                JOptionPane.showMessageDialog(dialog, name + "님, 회원가입이 완료되었습니다!");
+                dialog.dispose();
+                mainApp.refreshAuthButtons();
             } else {
-                JOptionPane.showMessageDialog(signUpDialog, "이미 존재하는 아이디입니다.", "회원가입 오류", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "이미 존재하는 아이디입니다.", "오류", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        cancelBtn.addActionListener(e -> signUpDialog.dispose());
-        signUpDialog.setVisible(true);
+        cancelBtn.addActionListener(e -> dialog.dispose());
+
+        dialog.setVisible(true);
+    }
+
+    private JPanel createFormRow(String labelText, Component inputField) {
+        JPanel panel = new JPanel(new BorderLayout(10, 0));
+        panel.setBackground(Color.WHITE);
+        JLabel label = new JLabel(labelText + ": ");
+        label.setFont(jalnanFont.deriveFont(Font.PLAIN, 15f));
+        label.setPreferredSize(new Dimension(80, 30));
+        panel.add(label, BorderLayout.WEST);
+        panel.add(inputField, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private JTextField createTextField() {
+        JTextField tf = new JTextField();
+        tf.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+        tf.setPreferredSize(new Dimension(300, 30));
+        return tf;
+    }
+
+    private void loadFont() {
+        try {
+            InputStream is = getClass().getResourceAsStream("/busantravel/resources/Jalnan2TTF.ttf");
+            if (is != null) {
+                jalnanFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(14f);
+                GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(jalnanFont);
+            } else {
+                jalnanFont = new Font("맑은 고딕", Font.PLAIN, 14);
+            }
+        } catch (Exception e) {
+            jalnanFont = new Font("맑은 고딕", Font.PLAIN, 14);
+        }
     }
 }

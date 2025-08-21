@@ -1,5 +1,4 @@
 /bin/
 cache/
-.vscode/mcp.json
-src/busantravel/db/DBConnectionMgr.java
-src/busantravel/dao/PlaceDAO.java
+doc/
+src/busantravel/doc/

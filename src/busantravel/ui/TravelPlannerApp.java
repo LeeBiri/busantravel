@@ -27,7 +27,7 @@ public class TravelPlannerApp {
     private SchedulePanel schedulePanel; // '일정' 탭 패널
     private HomePanel homePanel; // '여행 홈' 탭 패널
     private MainBannerPanel mainBannerPanel; // '저장' 버튼 클릭 시 보여줄 MainBannerPanel
-    private ReviewPanel reviewPanel; // '후기' 탭을 위한 패널
+    private JPanel reviewPanel; // '후기' 탭을 위한 임시 패널
     private PlanTripPanel planTripPanel; // '여행 계획' 패널 인스턴스
     private ChecklistPanel checklistPanel;
     private JPanel authButtonsPanel; // 로그인, 회원가입, 마이페이지, 로그아웃을 담는 패널
@@ -147,7 +147,7 @@ public class TravelPlannerApp {
         homePanel = new HomePanel(frame);
         schedulePanel = new SchedulePanel(frame, this); // SchedulePanel에 TravelPlannerApp 인스턴스 (this) 전달
         mainBannerPanel = new MainBannerPanel(); // MainBannerPanel 객체 생성
-        reviewPanel = new ReviewPanel();
+        reviewPanel = createPlaceholderPanel("후기 화면 (추후 구현)");
 
         contentPanel.add(mainBannerPanel, "home"); // "저장" 패널을 "home" 식별자로 변경 (새로운 "여행 홈")
         contentPanel.add(schedulePanel, "schedule");
@@ -229,10 +229,7 @@ public class TravelPlannerApp {
         }
         
         if ("schedule".equals(currentTab)) {
-            schedulePanel.controller.refreshRoomLists();
-        }
-        if ("review".equals(currentTab)) {
-            reviewPanel.refreshReviews();
+            schedulePanel.getController().refreshRoomLists();
         }
     }
 
@@ -390,30 +387,32 @@ public class TravelPlannerApp {
     }
 
     private void initAuthButtons() {
-    authButtonsPanel.removeAll(); // 기존 버튼 제거
+        authButtonsPanel.removeAll(); // 기존 버튼 제거
 
-    if (MemberSession.isLoggedIn()) {
-        // 로그인 상태일 경우: 마이페이지 + 로그아웃
-        myPageButton = new JButton("마이페이지");
-        logoutButton = new JButton("로그아웃");
+        if (MemberSession.isLoggedIn()) {
+            // 로그인 상태일 경우: 마이페이지 + 로그아웃
+            myPageButton = new JButton("마이페이지");
+            logoutButton = new JButton("로그아웃");
 
-        myPageButton.setFont(FontManager.getJalnanFont(12f));
-        logoutButton.setFont(FontManager.getJalnanFont(12f));
-        myPageButton.setBackground(new Color(240, 240, 240));
-        logoutButton.setBackground(new Color(240, 240, 240));
-        myPageButton.setForeground(new Color(50, 50, 50));
-        logoutButton.setForeground(new Color(50, 50, 50));
-        myPageButton.setFocusPainted(false);
-        logoutButton.setFocusPainted(false);
+            myPageButton.setFont(FontManager.getJalnanFont(12f));
+            logoutButton.setFont(FontManager.getJalnanFont(12f));
+            myPageButton.setBackground(new Color(240, 240, 240));
+            logoutButton.setBackground(new Color(240, 240, 240));
+            myPageButton.setForeground(new Color(50, 50, 50));
+            logoutButton.setForeground(new Color(50, 50, 50));
+            myPageButton.setFocusPainted(false);
+            logoutButton.setFocusPainted(false);
 
-        logoutButton.addActionListener(e -> {
-            MemberSession.logout();
-            JOptionPane.showMessageDialog(frame, "로그아웃 되었습니다.");
-            refreshAuthButtons();
-        });
+            logoutButton.addActionListener(e -> {
+                MemberSession.logout();
+                JOptionPane.showMessageDialog(frame, "로그아웃 되었습니다.");
+                currentTab = "home";
+                updateContent(); 
+                refreshAuthButtons();
+            });
 
-        myPageButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(frame, "마이페이지는 아직 준비 중입니다.");
+            myPageButton.addActionListener(e -> {
+                JOptionPane.showMessageDialog(frame, "마이페이지는 아직 준비 중입니다.");
         });
 
         authButtonsPanel.add(myPageButton);
@@ -433,7 +432,14 @@ public class TravelPlannerApp {
         loginButton.setFocusPainted(false);
         signUpButton.setFocusPainted(false);
 
-        loginButton.addActionListener(e -> new LoginDialog(frame, this).showDialog());
+        loginButton.addActionListener(e -> {
+            new LoginDialog(frame, this, () -> {
+                refreshAuthButtons();            // 로그인/로그아웃 버튼 새로고침
+                updateContent();                 // 패널 업데이트 (여기서 schedulePanel 새로고침됨)
+                updateTopPanelTitle();           // 제목 바꾸기
+                updateNavButtonStyles();         // 네비게이션 스타일 갱신
+            }).showDialog();
+        });
         signUpButton.addActionListener(e -> new SignUpDialog(frame, this).showDialog());
 
         authButtonsPanel.add(loginButton);

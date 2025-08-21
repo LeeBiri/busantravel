@@ -69,7 +69,7 @@ public class PlaceCard extends JPanel {
             BorderFactory.createEmptyBorder(10, 10, 10, 10)
         ));
         setBackground(Color.WHITE);
-        setMaximumSize(new Dimension(Integer.MAX_VALUE, 140));
+        setMaximumSize(new Dimension(Integer.MAX_VALUE, 130));
 
         ScaledImagePanel imagePanel = new ScaledImagePanel();
         imagePanel.setPreferredSize(new Dimension(120, 120));
