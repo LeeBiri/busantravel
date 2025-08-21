@@ -63,6 +63,7 @@ public class FullSchedulePanel extends JPanel {
         JLabel titleLabel = new JLabel(plan.getPlan_title());
         titleLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 26f));
         titleLabel.setForeground(new Color(80, 40, 40));
+        titleLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         buttonPanel.setOpaque(false);
@@ -180,118 +181,131 @@ public class FullSchedulePanel extends JPanel {
         JLabel titleLabel = new JLabel(dayTitle);
         titleLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 26f));
         titleLabel.setForeground(new Color(50, 30, 30));
+        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         dayPanel.add(titleLabel);
         dayPanel.add(Box.createVerticalStrut(15));
 
         // 장소들 표시
         int order = 1;
         for (ScheduledPlace place : places) {
-            dayPanel.add(createPlaceCard(place, order++));
+            JPanel placeCard = createPlaceCard(place, order++);
+            placeCard.setAlignmentX(Component.LEFT_ALIGNMENT);
+            dayPanel.add(placeCard);
             dayPanel.add(Box.createVerticalStrut(10));
         }
 
         JPanel buttonContainer = new JPanel();
         buttonContainer.setLayout(new BoxLayout(buttonContainer, BoxLayout.X_AXIS));
         buttonContainer.setOpaque(false);
-        buttonContainer.setAlignmentX(Component.CENTER_ALIGNMENT);
+        buttonContainer.setAlignmentX(Component.LEFT_ALIGNMENT);
 
 
-        // 장소 추가 버튼
-        JButton addPlaceBtn = new JButton("＋ 장소 추가");
-        addPlaceBtn.setPreferredSize(new Dimension(140, 40));
-        addPlaceBtn.setMaximumSize(new Dimension(160, 40));
-        addPlaceBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
-        addPlaceBtn.setBackground(ColorConstants.ACCENT);
-        addPlaceBtn.setForeground(Color.WHITE);
-        addPlaceBtn.setFocusPainted(false);
-        addPlaceBtn.addActionListener(e -> mainApp.switchToPlanTrip(plan, dayIndex));
+        if (places.isEmpty()) {
+            // 장소가 없으면 "장소 추가" 버튼만 표시
+            JButton addPlaceBtn = new JButton("＋ 장소 추가");
+            addPlaceBtn.setPreferredSize(new Dimension(140, 40));
+            addPlaceBtn.setMaximumSize(new Dimension(160, 40));
+            addPlaceBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
+            addPlaceBtn.setBackground(ColorConstants.ACCENT);
+            addPlaceBtn.setForeground(Color.WHITE);
+            addPlaceBtn.setFocusPainted(false);
+            addPlaceBtn.addActionListener(e -> mainApp.switchToPlanTrip(plan, dayIndex));
+            buttonContainer.add(addPlaceBtn);
+        } else {
+            // 장소가 있으면 "장소 편집", "지도 보기", "경로 최적화" 버튼 표시
+            JButton editPlaceBtn = new JButton("장소 편집");
+            editPlaceBtn.setPreferredSize(new Dimension(140, 40));
+            editPlaceBtn.setMaximumSize(new Dimension(160, 40));
+            editPlaceBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
+            editPlaceBtn.setBackground(ColorConstants.ACCENT);
+            editPlaceBtn.setForeground(Color.WHITE);
+            editPlaceBtn.setFocusPainted(false);
+            editPlaceBtn.addActionListener(e -> mainApp.switchToPlanTrip(plan, dayIndex));
 
-        // 지도 보기 버튼
-        JButton viewMapBtn = new JButton("지도 보기");
-        viewMapBtn.setPreferredSize(new Dimension(140, 40));
-        viewMapBtn.setMaximumSize(new Dimension(160, 40));
-        viewMapBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
-        viewMapBtn.setBackground(new Color(67, 119, 181));
-        viewMapBtn.setForeground(Color.WHITE);
-        viewMapBtn.setFocusPainted(false);
-        viewMapBtn.addActionListener(e -> updateMap(places));
+            JButton viewMapBtn = new JButton("지도 보기");
+            viewMapBtn.setPreferredSize(new Dimension(140, 40));
+            viewMapBtn.setMaximumSize(new Dimension(160, 40));
+            viewMapBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
+            viewMapBtn.setBackground(new Color(67, 119, 181));
+            viewMapBtn.setForeground(Color.WHITE);
+            viewMapBtn.setFocusPainted(false);
+            viewMapBtn.addActionListener(e -> updateMap(places));
 
-        buttonContainer.add(addPlaceBtn);
-        buttonContainer.add(Box.createHorizontalStrut(10));
-        buttonContainer.add(viewMapBtn);
-
-        // 경로 최적화 버튼
-        JButton optimizeRouteBtn = new JButton("경로 최적화");
-        optimizeRouteBtn.setPreferredSize(new Dimension(180, 40));
-        optimizeRouteBtn.setMaximumSize(new Dimension(180, 40));
-        optimizeRouteBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
-        Color originalColor = new Color(0, 153, 153);
-        optimizeRouteBtn.setBackground(originalColor);
-        optimizeRouteBtn.setForeground(Color.WHITE);
-        optimizeRouteBtn.setFocusPainted(false);
-        optimizeRouteBtn.addActionListener(e -> {
-            if (places.size() < 3) {
-                JOptionPane.showMessageDialog(this, "경유지가 1개 이상 있어야 최적화할 수 있습니다.\n(총 장소 3개 이상)", "알림", JOptionPane.INFORMATION_MESSAGE);
-                return;
-            }
-            
-            optimizeRouteBtn.setEnabled(false);
-            optimizeRouteBtn.setText("최적 경로 계산중...");
-            optimizeRouteBtn.setBackground(Color.GRAY);
-
-            new Thread(() -> {
-                try {
-                    List<ScheduledPlace> optimizedSchedule = optimizeRoute(places, date);
-                    if (optimizedSchedule == null) return;
-
-                    TmapRouteResult originalRouteInfo = getRouteDetails(places);
-                    TmapRouteResult optimizedRouteInfo = getRouteDetails(optimizedSchedule);
-
-                    SwingUtilities.invokeLater(() -> {
-                        if (originalRouteInfo != null && optimizedRouteInfo != null &&
-                            originalRouteInfo.getSummary() != null && optimizedRouteInfo.getSummary() != null) {
-                            int originalDistance = originalRouteInfo.getSummary().getTotalDistance();
-                            int optimizedDistance = optimizedRouteInfo.getSummary().getTotalDistance();
-
-                            if (optimizedDistance >= originalDistance) {
-                                JOptionPane.showMessageDialog(this, "현재 경로가 이미 최적의 경로입니다.", "경로 최적화", JOptionPane.INFORMATION_MESSAGE);
-                                return;
-                            }
-                        }
-
-                        RouteComparisonDialog dialog = new RouteComparisonDialog(
-                                (Frame) SwingUtilities.getWindowAncestor(this),
-                                places,
-                                optimizedSchedule,
-                                originalRouteInfo,
-                                optimizedRouteInfo
-                        );
-                        dialog.setVisible(true);
-                        
-                        if (dialog.isRouteApplied()) {
-                             for (int i = 0; i < optimizedSchedule.size(); i++) {
-                                optimizedSchedule.get(i).setVisit_order(i + 1);
-                            }
-                            ScheduledPlaceService.updateDayScheduleOrder(plan.getPlan_id(), date, optimizedSchedule);
-                            JOptionPane.showMessageDialog(this, "새로운 경로가 적용되었습니다.", "성공", JOptionPane.INFORMATION_MESSAGE);
-                            mainApp.refreshFullSchedule(plan);
-                        }
-                    });
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, "경로 최적화 중 오류가 발생했습니다: " + ex.getMessage(), "오류", JOptionPane.ERROR_MESSAGE));
-                } finally {
-                    SwingUtilities.invokeLater(() -> {
-                        optimizeRouteBtn.setEnabled(true);
-                        optimizeRouteBtn.setText("경로 최적화");
-                        optimizeRouteBtn.setBackground(originalColor);
-                    });
+            JButton optimizeRouteBtn = new JButton("경로 최적화");
+            optimizeRouteBtn.setPreferredSize(new Dimension(180, 40));
+            optimizeRouteBtn.setMaximumSize(new Dimension(180, 40));
+            optimizeRouteBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
+            Color originalColor = new Color(0, 153, 153);
+            optimizeRouteBtn.setBackground(originalColor);
+            optimizeRouteBtn.setForeground(Color.WHITE);
+            optimizeRouteBtn.setFocusPainted(false);
+            optimizeRouteBtn.addActionListener(e -> {
+                if (places.size() < 3) {
+                    JOptionPane.showMessageDialog(this, "경유지가 1개 이상 있어야 최적화할 수 있습니다.\n(총 장소 3개 이상)", "알림", JOptionPane.INFORMATION_MESSAGE);
+                    return;
                 }
-            }).start();
-        });
+                
+                optimizeRouteBtn.setEnabled(false);
+                optimizeRouteBtn.setText("최적 경로 계산중...");
+                optimizeRouteBtn.setBackground(Color.GRAY);
 
-        buttonContainer.add(Box.createHorizontalStrut(10));
-        buttonContainer.add(optimizeRouteBtn);
+                new Thread(() -> {
+                    try {
+                        List<ScheduledPlace> optimizedSchedule = optimizeRoute(places, date);
+                        if (optimizedSchedule == null) return;
+
+                        TmapRouteResult originalRouteInfo = getRouteDetails(places);
+                        TmapRouteResult optimizedRouteInfo = getRouteDetails(optimizedSchedule);
+
+                        SwingUtilities.invokeLater(() -> {
+                            if (originalRouteInfo != null && optimizedRouteInfo != null &&
+                                originalRouteInfo.getSummary() != null && optimizedRouteInfo.getSummary() != null) {
+                                int originalDistance = originalRouteInfo.getSummary().getTotalDistance();
+                                int optimizedDistance = optimizedRouteInfo.getSummary().getTotalDistance();
+
+                                if (optimizedDistance >= originalDistance) {
+                                    JOptionPane.showMessageDialog(this, "현재 경로가 이미 최적의 경로입니다.", "경로 최적화", JOptionPane.INFORMATION_MESSAGE);
+                                    return;
+                                }
+                            }
+
+                            RouteComparisonDialog dialog = new RouteComparisonDialog(
+                                    (Frame) SwingUtilities.getWindowAncestor(this),
+                                    places,
+                                    optimizedSchedule,
+                                    originalRouteInfo,
+                                    optimizedRouteInfo
+                            );
+                            dialog.setVisible(true);
+                            
+                            if (dialog.isRouteApplied()) {
+                                 for (int i = 0; i < optimizedSchedule.size(); i++) {
+                                    optimizedSchedule.get(i).setVisit_order(i + 1);
+                                }
+                                ScheduledPlaceService.updateDayScheduleOrder(plan.getPlan_id(), date, optimizedSchedule);
+                                JOptionPane.showMessageDialog(this, "새로운 경로가 적용되었습니다.", "성공", JOptionPane.INFORMATION_MESSAGE);
+                                mainApp.refreshFullSchedule(plan);
+                            }
+                        });
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, "경로 최적화 중 오류가 발생했습니다: " + ex.getMessage(), "오류", JOptionPane.ERROR_MESSAGE));
+                    } finally {
+                        SwingUtilities.invokeLater(() -> {
+                            optimizeRouteBtn.setEnabled(true);
+                            optimizeRouteBtn.setText("경로 최적화");
+                            optimizeRouteBtn.setBackground(originalColor);
+                        });
+                    }
+                }).start();
+            });
+
+            buttonContainer.add(editPlaceBtn);
+            buttonContainer.add(Box.createHorizontalStrut(10));
+            buttonContainer.add(viewMapBtn);
+            buttonContainer.add(Box.createHorizontalStrut(10));
+            buttonContainer.add(optimizeRouteBtn);
+        }
 
         // 후기 작성 버튼 (여행 종료일이 지난 경우에만 표시)
         if (plan.getPlan_period_end().toLocalDate().isBefore(LocalDate.now())) {
@@ -313,7 +327,10 @@ public class FullSchedulePanel extends JPanel {
         dayPanel.add(Box.createVerticalStrut(5));
         dayPanel.add(buttonContainer);
 
-        return dayPanel;
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.setBackground(Color.WHITE);
+        wrapper.add(dayPanel, BorderLayout.NORTH);
+        return wrapper;
     }
 
 private JPanel createPlaceCard(ScheduledPlace place, int order) {
