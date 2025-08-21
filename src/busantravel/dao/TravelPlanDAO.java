@@ -161,4 +161,20 @@ public class TravelPlanDAO {
 		}
         return out;
     }
+
+    public static void deleteById(String planId) {
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        String sql = "DELETE FROM travel_plan WHERE plan_id = ?";
+        try {
+            con = pool.getConnection();
+            pstmt = con.prepareStatement(sql);
+            pstmt.setString(1, planId);
+            pstmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            pool.freeConnection(con, pstmt);
+        }
+    }
 }

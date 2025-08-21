@@ -1,6 +1,7 @@
 package busantravel.service;
 
 import busantravel.dao.TravelPlanDAO;
+import busantravel.dao.TravelPlanMemberDAO;
 import busantravel.model.TravelPlan;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -57,4 +58,11 @@ public class TravelPlanService {
 	public static TravelPlan findById(String planId) {
 		return TravelPlanDAO.findById(planId);
 	}
+
+    public static void deletePlan(String planId) {
+        // First, delete all members associated with the plan
+        TravelPlanMemberDAO.deleteByPlanId(planId);
+        // Then, delete the plan itself
+        TravelPlanDAO.deleteById(planId);
+    }
 }

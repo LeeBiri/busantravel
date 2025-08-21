@@ -38,8 +38,11 @@ public class PlanController {
             );
 
             if (result == JOptionPane.YES_OPTION) {
-                // 로그인 성공 시 다시 handleCreateTrip 실행
-                new LoginDialog(parentFrame, mainApp, () -> handleCreateTrip()).showDialog();
+                // 로그인 성공 시 리프레시 후 다시 handleCreateTrip 실행
+                new LoginDialog(parentFrame, mainApp, () -> {
+                    refreshRoomLists();
+                    handleCreateTrip();
+                }).showDialog();
             }
             return; 
         }
@@ -69,8 +72,11 @@ public class PlanController {
             );
 
             if (result == JOptionPane.YES_OPTION) {
-                // 로그인 성공 시 다시 handleCreateTrip 실행
-                new LoginDialog(parentFrame, mainApp, () -> handleEnterCode()).showDialog();
+                // 로그인 성공 시 리프레시 후 다시 handleEnterCode 실행
+                new LoginDialog(parentFrame, mainApp, () -> {
+                    refreshRoomLists();
+                    handleEnterCode();
+                }).showDialog();
             }
             return; 
         }
@@ -104,6 +110,18 @@ public class PlanController {
 
     }
 
+    public void handleDeletePlan(String planId) {
+        int result = JOptionPane.showConfirmDialog(
+            parentFrame,
+            "정말로 이 여행 일정을 삭제하시겠습니까?\n관련된 모든 정보가 삭제됩니다.",
+            "일정 삭제 확인",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
 
-    
+        if (result == JOptionPane.YES_OPTION) {
+            TravelPlanService.deletePlan(planId);
+            refreshRoomLists();
+        }
+    }
 }

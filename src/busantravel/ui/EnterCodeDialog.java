@@ -1,8 +1,10 @@
 package busantravel.ui;
 
 import busantravel.auth.MemberSession;
+import busantravel.auth.MemberSession;
 import busantravel.service.TravelPlanMemberService;
 import busantravel.service.TravelPlanService;
+import busantravel.util.FontManager;
 import java.awt.*;
 import javax.swing.*;
 
@@ -29,12 +31,17 @@ public class EnterCodeDialog extends JDialog {
         setLayout(new GridLayout(2, 2, 10, 10));
         setResizable(false);
 
-        add(new JLabel("참여 코드:"));
+        JLabel codeLabel = new JLabel("참여 코드:");
+        codeLabel.setFont(FontManager.getJalnanFont(14f));
+        add(codeLabel);
         codeField = new JTextField();
+        codeField.setFont(FontManager.getJalnanFont(14f));
         add(codeField);
 
         JButton enterBtn = new JButton("입력");
+        enterBtn.setFont(FontManager.getJalnanFont(14f));
         JButton cancelBtn = new JButton("취소");
+        cancelBtn.setFont(FontManager.getJalnanFont(14f));
 
         enterBtn.setBackground(ColorConstants.ACCENT);
         enterBtn.setForeground(Color.WHITE);

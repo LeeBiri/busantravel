@@ -2,6 +2,7 @@ package busantravel.ui;
 
 import javax.swing.*;
 import com.toedter.calendar.JDateChooser;
+import busantravel.util.FontManager;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -29,20 +30,31 @@ public class CreateTripDialog extends JDialog {
         setLayout(new GridLayout(5, 2, 10, 10));
         setResizable(false);
 
-        add(new JLabel("여행 제목:"));
+        JLabel titleLabel = new JLabel("여행 제목:");
+        titleLabel.setFont(FontManager.getJalnanFont(14f));
+        add(titleLabel);
         titleField = new JTextField();
+        titleField.setFont(FontManager.getJalnanFont(14f));
         add(titleField);
 
-        add(new JLabel("시작 날짜:"));
+        JLabel startLabel = new JLabel("시작 날짜:");
+        startLabel.setFont(FontManager.getJalnanFont(14f));
+        add(startLabel);
         startDateChooser = new JDateChooser();
+        startDateChooser.setFont(FontManager.getJalnanFont(14f));
         add(startDateChooser);
 
-        add(new JLabel("종료 날짜:"));
+        JLabel endLabel = new JLabel("종료 날짜:");
+        endLabel.setFont(FontManager.getJalnanFont(14f));
+        add(endLabel);
         endDateChooser = new JDateChooser();
+        endDateChooser.setFont(FontManager.getJalnanFont(14f));
         add(endDateChooser);
 
         JButton createBtn = new JButton("만들기");
+        createBtn.setFont(FontManager.getJalnanFont(14f));
         JButton cancelBtn = new JButton("취소");
+        cancelBtn.setFont(FontManager.getJalnanFont(14f));
         createBtn.setBackground(ColorConstants.ACCENT);
         createBtn.setForeground(Color.WHITE);
         createBtn.setFocusPainted(false);
@@ -113,4 +125,3 @@ public class CreateTripDialog extends JDialog {
         return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 }
-

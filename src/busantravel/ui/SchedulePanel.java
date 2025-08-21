@@ -262,25 +262,30 @@ public class SchedulePanel extends JPanel {
         card.add(left, BorderLayout.CENTER);
 
         if (isUpcoming) {
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            buttonPanel.setBackground(Color.WHITE);
+
+            JButton deleteBtn = new JButton("삭제");
+            deleteBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
+            deleteBtn.setBackground(new Color(220, 220, 220));
+            deleteBtn.setFocusPainted(false);
+            deleteBtn.addActionListener(e -> controller.handleDeletePlan(plan.getPlan_id()));
+            buttonPanel.add(deleteBtn);
+
             JButton arrowBtn = new JButton(">");
             arrowBtn.setFont(jalnanFont.deriveFont(Font.BOLD, 26f));
             arrowBtn.setPreferredSize(new Dimension(60, 100));
             arrowBtn.setFocusPainted(false);
             arrowBtn.setBackground(Color.WHITE);
             arrowBtn.setBorderPainted(false);
-
             arrowBtn.addActionListener(e -> {
                 if (mainApp != null) {
                     mainApp.switchToFullSchedule(plan);
                 }
             });
+            buttonPanel.add(arrowBtn);
 
-            JPanel arrowPanel = new JPanel(new BorderLayout());
-            arrowPanel.setBackground(Color.WHITE);
-            arrowPanel.add(arrowBtn, BorderLayout.CENTER);
-            arrowPanel.setPreferredSize(new Dimension(60, 100));
-
-            card.add(arrowPanel, BorderLayout.EAST);
+            card.add(buttonPanel, BorderLayout.EAST);
         } else {
             JButton reviewBtn = new JButton("후기 작성");
             reviewBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 14f));
