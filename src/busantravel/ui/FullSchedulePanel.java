@@ -293,6 +293,23 @@ public class FullSchedulePanel extends JPanel {
         buttonContainer.add(Box.createHorizontalStrut(10));
         buttonContainer.add(optimizeRouteBtn);
 
+        // 후기 작성 버튼 (여행 종료일이 지난 경우에만 표시)
+        if (plan.getPlan_period_end().toLocalDate().isBefore(LocalDate.now())) {
+            JButton writeReviewBtn = new JButton("후기 작성하기");
+            writeReviewBtn.setPreferredSize(new Dimension(180, 40));
+            writeReviewBtn.setMaximumSize(new Dimension(180, 40));
+            writeReviewBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
+            writeReviewBtn.setBackground(ColorConstants.ACCENT);
+            writeReviewBtn.setForeground(Color.WHITE);
+            writeReviewBtn.setFocusPainted(false);
+            writeReviewBtn.addActionListener(e -> {
+                ReviewPopup popup = new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this));
+                popup.setVisible(true);
+            });
+            buttonContainer.add(Box.createHorizontalStrut(10));
+            buttonContainer.add(writeReviewBtn);
+        }
+
         dayPanel.add(Box.createVerticalStrut(5));
         dayPanel.add(buttonContainer);
 
