@@ -157,7 +157,6 @@ public class SchedulePanel extends JPanel {
         }
 
         mainContentPanel.removeAll();
-        mainContentPanel.setLayout(new GridBagLayout());
 
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -200,13 +199,15 @@ public class SchedulePanel extends JPanel {
         createBtn.addActionListener(e -> controller.handleCreateTrip());
         joinBtn.addActionListener(e -> controller.handleEnterCode());
 
+        panel.add(Box.createVerticalGlue());
         panel.add(label);
         panel.add(Box.createVerticalStrut(40));
         panel.add(createBtn);
         panel.add(Box.createVerticalStrut(20));
         panel.add(joinBtn);
+        panel.add(Box.createVerticalGlue());
 
-        mainContentPanel.add(panel, new GridBagConstraints());
+        mainContentPanel.add(panel, BorderLayout.CENTER);
     }
 
 
