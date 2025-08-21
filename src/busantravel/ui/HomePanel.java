@@ -127,6 +127,9 @@ public class HomePanel extends JPanel {
             String query = searchField.getText();
             if (query != null && !query.trim().isEmpty()) {
                 performSearch(query.trim());
+            } else {
+                // 검색어가 비어있으면 현재 카테고리의 모든 장소를 로드
+                loadPlaces(selectedCategory);
             }
         });
 
@@ -254,11 +257,8 @@ public class HomePanel extends JPanel {
                 gridPanel.setLayout(new BorderLayout());
                 gridPanel.add(wrapper, BorderLayout.CENTER);
             } else {
-                gridPanel.setLayout(new GridLayout(0, 5, 30, 30));
-                // 기존 gridPanel에 직접 추가하기 위해 contentPanel의 컴포넌트들을 옮김
-                for(Component comp : contentPanel.getComponents()){
-                    gridPanel.add(comp);
-                }
+                gridPanel.setLayout(new BorderLayout());
+                gridPanel.add(contentPanel, BorderLayout.NORTH);
             }
         }
 
@@ -336,10 +336,8 @@ public class HomePanel extends JPanel {
                 gridPanel.setLayout(new BorderLayout());
                 gridPanel.add(wrapper, BorderLayout.CENTER);
             } else {
-                // 기존 gridPanel에 직접 추가하기 위해 contentPanel의 컴포넌트들을 옮김
-                for(Component comp : contentPanel.getComponents()){
-                    gridPanel.add(comp);
-                }
+                gridPanel.setLayout(new BorderLayout());
+                gridPanel.add(contentPanel, BorderLayout.NORTH);
             }
         }
 

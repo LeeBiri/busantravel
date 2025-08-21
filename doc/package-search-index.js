@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"busantravel.auth"},{"l":"busantravel.controller"},{"l":"busantravel.dao"},{"l":"busantravel.db"},{"l":"busantravel.main"},{"l":"busantravel.model"},{"l":"busantravel.service"},{"l":"busantravel.ui"},{"l":"busantravel.util"}];updateSearchResults();

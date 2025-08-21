@@ -113,3 +113,4 @@ public class CreateTripDialog extends JDialog {
         return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 }
+
