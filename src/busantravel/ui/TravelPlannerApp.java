@@ -9,6 +9,7 @@ import java.awt.event.MouseEvent;
 import java.net.URL;
 import javax.swing.*;
 
+
 /**
  * 부산 여행 플래너 애플리케이션의 메인 클래스입니다.
  * 애플리케이션의 전체적인 UI 프레임, 상단 바, 네비게이션, 컨텐츠 패널을 초기화하고 관리합니다.
