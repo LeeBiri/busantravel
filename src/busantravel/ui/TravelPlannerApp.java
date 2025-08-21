@@ -26,7 +26,7 @@ public class TravelPlannerApp {
     private SchedulePanel schedulePanel; // '일정' 탭 패널
     private HomePanel homePanel; // '여행 홈' 탭 패널
     private MainBannerPanel mainBannerPanel; // '저장' 버튼 클릭 시 보여줄 MainBannerPanel
-    private JPanel reviewPanel; // '후기' 탭을 위한 임시 패널
+    private ReviewPanel reviewPanel; // '후기' 탭을 위한 패널
     private PlanTripPanel planTripPanel; // '여행 계획' 패널 인스턴스
     private ChecklistPanel checklistPanel;
     private JPanel authButtonsPanel; // 로그인, 회원가입, 마이페이지, 로그아웃을 담는 패널
@@ -146,7 +146,7 @@ public class TravelPlannerApp {
         homePanel = new HomePanel(frame);
         schedulePanel = new SchedulePanel(frame, this); // SchedulePanel에 TravelPlannerApp 인스턴스 (this) 전달
         mainBannerPanel = new MainBannerPanel(); // MainBannerPanel 객체 생성
-        reviewPanel = createPlaceholderPanel("후기 화면 (추후 구현)");
+        reviewPanel = new ReviewPanel();
 
         contentPanel.add(mainBannerPanel, "home"); // "저장" 패널을 "home" 식별자로 변경 (새로운 "여행 홈")
         contentPanel.add(schedulePanel, "schedule");
@@ -229,6 +229,9 @@ public class TravelPlannerApp {
         
         if ("schedule".equals(currentTab)) {
             schedulePanel.controller.refreshRoomLists();
+        }
+        if ("review".equals(currentTab)) {
+            reviewPanel.refreshReviews();
         }
     }
 

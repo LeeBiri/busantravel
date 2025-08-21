@@ -256,6 +256,21 @@ public class SchedulePanel extends JPanel {
             arrowPanel.setPreferredSize(new Dimension(60, 100));
 
             card.add(arrowPanel, BorderLayout.EAST);
+        } else {
+            JButton reviewBtn = new JButton("후기 작성");
+            reviewBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 14f));
+            reviewBtn.setBackground(ColorConstants.ACCENT);
+            reviewBtn.setForeground(Color.WHITE);
+            reviewBtn.setFocusPainted(false);
+            reviewBtn.addActionListener(e -> {
+                ReviewPopup popup = new ReviewPopup(parentFrame);
+                popup.setVisible(true);
+            });
+
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            buttonPanel.setBackground(Color.WHITE);
+            buttonPanel.add(reviewBtn);
+            card.add(buttonPanel, BorderLayout.EAST);
         }
 
 
