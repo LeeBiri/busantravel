@@ -277,7 +277,7 @@ public class PlaceDAO {
                             "", // transportation for restaurant
                             rs.getString("r_infor"),
                             rs.getString("r_addr"),
-                            null,
+                            rs.getString("r_menu"), // r_menu 추가
                             rs.getString("r_num")
                     );
                 } else if ("stay".equals(tableName)) {
@@ -287,7 +287,9 @@ public class PlaceDAO {
                             rs.getString("l_thum"),
                             rs.getString("l_tra"),
                             rs.getString("l_infor"),
-                            rs.getString("l_addr")
+                            rs.getString("l_addr"),
+                            null,
+                            rs.getString("l_num") // l_num 추가
                     );
                 } else if ("festival".equals(tableName)) {
                     placeDetailInfo = new PlaceDetailInfo(

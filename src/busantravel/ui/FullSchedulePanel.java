@@ -222,10 +222,11 @@ public class FullSchedulePanel extends JPanel {
 
         // 경로 최적화 버튼
         JButton optimizeRouteBtn = new JButton("경로 최적화");
-        optimizeRouteBtn.setPreferredSize(new Dimension(140, 40));
-        optimizeRouteBtn.setMaximumSize(new Dimension(160, 40));
+        optimizeRouteBtn.setPreferredSize(new Dimension(180, 40));
+        optimizeRouteBtn.setMaximumSize(new Dimension(180, 40));
         optimizeRouteBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
-        optimizeRouteBtn.setBackground(new Color(0, 153, 153));
+        Color originalColor = new Color(0, 153, 153);
+        optimizeRouteBtn.setBackground(originalColor);
         optimizeRouteBtn.setForeground(Color.WHITE);
         optimizeRouteBtn.setFocusPainted(false);
         optimizeRouteBtn.addActionListener(e -> {
@@ -233,6 +234,11 @@ public class FullSchedulePanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "경유지가 1개 이상 있어야 최적화할 수 있습니다.\n(총 장소 3개 이상)", "알림", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
+            
+            optimizeRouteBtn.setEnabled(false);
+            optimizeRouteBtn.setText("최적 경로 계산중...");
+            optimizeRouteBtn.setBackground(Color.GRAY);
+
             new Thread(() -> {
                 try {
                     List<ScheduledPlace> optimizedSchedule = optimizeRoute(places, date);
@@ -242,6 +248,17 @@ public class FullSchedulePanel extends JPanel {
                     TmapRouteResult optimizedRouteInfo = getRouteDetails(optimizedSchedule);
 
                     SwingUtilities.invokeLater(() -> {
+                        if (originalRouteInfo != null && optimizedRouteInfo != null &&
+                            originalRouteInfo.getSummary() != null && optimizedRouteInfo.getSummary() != null) {
+                            int originalDistance = originalRouteInfo.getSummary().getTotalDistance();
+                            int optimizedDistance = optimizedRouteInfo.getSummary().getTotalDistance();
+
+                            if (optimizedDistance >= originalDistance) {
+                                JOptionPane.showMessageDialog(this, "현재 경로가 이미 최적의 경로입니다.", "경로 최적화", JOptionPane.INFORMATION_MESSAGE);
+                                return;
+                            }
+                        }
+
                         RouteComparisonDialog dialog = new RouteComparisonDialog(
                                 (Frame) SwingUtilities.getWindowAncestor(this),
                                 places,
@@ -263,6 +280,12 @@ public class FullSchedulePanel extends JPanel {
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, "경로 최적화 중 오류가 발생했습니다: " + ex.getMessage(), "오류", JOptionPane.ERROR_MESSAGE));
+                } finally {
+                    SwingUtilities.invokeLater(() -> {
+                        optimizeRouteBtn.setEnabled(true);
+                        optimizeRouteBtn.setText("경로 최적화");
+                        optimizeRouteBtn.setBackground(originalColor);
+                    });
                 }
             }).start();
         });
@@ -378,7 +401,8 @@ private JPanel createPlaceCard(ScheduledPlace place, int order) {
             Object rawPlace = placeDAO.getPlaceByTypeAndId(sp.getP_type(), sp.getP_id());
             PlaceData data = PlaceData.from(rawPlace);
             if (data.name != null && !data.name.equals("알 수 없는 장소")) {
-                PlaceInfo placeInfo = apiHandler.getPlaceDetailsByName(data.name, TMAP_API_KEY);
+                String searchQuery = (data.addr != null && !data.addr.isBlank()) ? data.addr : data.name;
+                PlaceInfo placeInfo = apiHandler.getPlaceDetailsByName(searchQuery, TMAP_API_KEY);
                 if (placeInfo != null) {
                     placeDataList.add(new PlaceDataWithCoords(sp, data, new Coordinate(placeInfo.getLatitude(), placeInfo.getLongitude())));
                 }
@@ -440,7 +464,8 @@ private JPanel createPlaceCard(ScheduledPlace place, int order) {
             Object rawPlace = placeDAO.getPlaceByTypeAndId(sp.getP_type(), sp.getP_id());
             PlaceData data = PlaceData.from(rawPlace);
             if (data.name != null && !data.name.equals("알 수 없는 장소")) {
-                PlaceInfo placeInfo = apiHandler.getPlaceDetailsByName(data.name, TMAP_API_KEY);
+                String searchQuery = (data.addr != null && !data.addr.isBlank()) ? data.addr : data.name;
+                PlaceInfo placeInfo = apiHandler.getPlaceDetailsByName(searchQuery, TMAP_API_KEY);
                 if (placeInfo != null) {
                     coordinates.add(new Coordinate(placeInfo.getLatitude(), placeInfo.getLongitude()));
                     placeNames.add(data.name);
@@ -504,7 +529,8 @@ private JPanel createPlaceCard(ScheduledPlace place, int order) {
                 Object rawPlace = placeDAO.getPlaceByTypeAndId(sp.getP_type(), sp.getP_id());
                 PlaceData data = PlaceData.from(rawPlace);
                 if (data.name != null && !data.name.equals("알 수 없는 장소")) {
-                    PlaceInfo placeInfo = apiHandler.getPlaceDetailsByName(data.name, TMAP_API_KEY);
+                    String searchQuery = (data.addr != null && !data.addr.isBlank()) ? data.addr : data.name;
+                    PlaceInfo placeInfo = apiHandler.getPlaceDetailsByName(searchQuery, TMAP_API_KEY);
                     if (placeInfo != null) {
                         coordinates.add(new Coordinate(placeInfo.getLatitude(), placeInfo.getLongitude()));
                         placeNames.add(data.name);

@@ -1,5 +1,6 @@
 package busantravel.ui;
 
+import busantravel.auth.MemberSession;
 import busantravel.model.TravelPlan;
 import busantravel.util.FontManager;
 import java.awt.*;
@@ -28,6 +29,11 @@ public class TravelPlannerApp {
     private JPanel reviewPanel; // '후기' 탭을 위한 임시 패널
     private PlanTripPanel planTripPanel; // '여행 계획' 패널 인스턴스
     private ChecklistPanel checklistPanel;
+    private JPanel authButtonsPanel; // 로그인, 회원가입, 마이페이지, 로그아웃을 담는 패널
+    private JButton loginButton; // 로그인
+    private JButton signUpButton; // 회원가입
+    private JButton logoutButton; // 로그아웃
+    private JButton myPageButton; // 마이페이지
 
     private String currentTab = "home"; // 현재 활성화된 탭을 식별하는 문자열 ("여행 홈"이 기본 화면)
 
@@ -115,25 +121,10 @@ public class TravelPlannerApp {
         searchAndAuthPanel.setBackground(Color.WHITE);
 
         // 로그인/회원가입 버튼
-        JPanel authButtonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        authButtonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         authButtonsPanel.setBackground(Color.WHITE);
-        JButton loginButton = new JButton("로그인");
-        JButton signUpButton = new JButton("회원가입");
+        initAuthButtons();
 
-        loginButton.setBackground(new Color(240, 240, 240));
-        loginButton.setForeground(new Color(50, 50, 50));
-        signUpButton.setBackground(new Color(240, 240, 240));
-        signUpButton.setForeground(new Color(50, 50, 50));
-        loginButton.setFont(FontManager.getJalnanFont(12f));
-        signUpButton.setFont(FontManager.getJalnanFont(12f));
-        loginButton.setFocusPainted(false);
-        signUpButton.setFocusPainted(false);
-
-        loginButton.addActionListener(e -> new LoginDialog(frame).showDialog());
-        signUpButton.addActionListener(e -> new SignUpDialog(frame).showDialog());
-
-        authButtonsPanel.add(loginButton);
-        authButtonsPanel.add(signUpButton);
         searchAndAuthPanel.add(authButtonsPanel);
         searchAndAuthPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 20));
         
@@ -368,7 +359,7 @@ public class TravelPlannerApp {
         }
 
         Runnable onBack = () -> switchToFullSchedule(plan);
-        checklistPanel = new ChecklistPanel(this, plan, "aaa", onBack); 
+        checklistPanel = new ChecklistPanel(this, plan, MemberSession.getId(), onBack); 
         contentPanel.add(checklistPanel, "checklist");
 
         currentTab = "checklist";
@@ -376,9 +367,6 @@ public class TravelPlannerApp {
         updateTopPanelTitle();
         updateNavButtonStyles();
     }
-
-
-
     
     public void refreshFullSchedule(TravelPlan plan) {
         if (fullSchedulePanel != null) {
@@ -396,5 +384,65 @@ public class TravelPlannerApp {
         updateTopPanelTitle();
         updateNavButtonStyles();
     }
+
+    private void initAuthButtons() {
+    authButtonsPanel.removeAll(); // 기존 버튼 제거
+
+    if (MemberSession.isLoggedIn()) {
+        // 로그인 상태일 경우: 마이페이지 + 로그아웃
+        myPageButton = new JButton("마이페이지");
+        logoutButton = new JButton("로그아웃");
+
+        myPageButton.setFont(FontManager.getJalnanFont(12f));
+        logoutButton.setFont(FontManager.getJalnanFont(12f));
+        myPageButton.setBackground(new Color(240, 240, 240));
+        logoutButton.setBackground(new Color(240, 240, 240));
+        myPageButton.setForeground(new Color(50, 50, 50));
+        logoutButton.setForeground(new Color(50, 50, 50));
+        myPageButton.setFocusPainted(false);
+        logoutButton.setFocusPainted(false);
+
+        logoutButton.addActionListener(e -> {
+            MemberSession.logout();
+            JOptionPane.showMessageDialog(frame, "로그아웃 되었습니다.");
+            refreshAuthButtons();
+        });
+
+        myPageButton.addActionListener(e -> {
+            JOptionPane.showMessageDialog(frame, "마이페이지는 아직 준비 중입니다.");
+        });
+
+        authButtonsPanel.add(myPageButton);
+        authButtonsPanel.add(logoutButton);
+
+    } else {
+        // 비로그인 상태일 경우: 로그인 + 회원가입
+        loginButton = new JButton("로그인");
+        signUpButton = new JButton("회원가입");
+
+        loginButton.setFont(FontManager.getJalnanFont(12f));
+        signUpButton.setFont(FontManager.getJalnanFont(12f));
+        loginButton.setBackground(new Color(240, 240, 240));
+        signUpButton.setBackground(new Color(240, 240, 240));
+        loginButton.setForeground(new Color(50, 50, 50));
+        signUpButton.setForeground(new Color(50, 50, 50));
+        loginButton.setFocusPainted(false);
+        signUpButton.setFocusPainted(false);
+
+        loginButton.addActionListener(e -> new LoginDialog(frame, this).showDialog());
+        signUpButton.addActionListener(e -> new SignUpDialog(frame, this).showDialog());
+
+        authButtonsPanel.add(loginButton);
+        authButtonsPanel.add(signUpButton);
+    }
+
+    authButtonsPanel.revalidate();
+    authButtonsPanel.repaint();
+}
+
+public void refreshAuthButtons() {
+    initAuthButtons();
+}
+
 
 }

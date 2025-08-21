@@ -1,20 +1,17 @@
 package busantravel.controller;
 
+import busantravel.auth.MemberSession;
 import busantravel.model.ScheduledPlace;
 import busantravel.model.TravelPlan;
-import busantravel.service.ScheduledPlaceService;
 import busantravel.service.TravelPlanService;
 import busantravel.ui.CreateTripDialog;
 import busantravel.ui.EnterCodeDialog;
 import busantravel.ui.SchedulePanel;
 import busantravel.ui.TravelPlannerApp;
-import busantravel.ui.TravelPlannerApp;
-
-import javax.swing.*;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.*;
 
 public class PlanController {
     private JFrame parentFrame;
@@ -33,7 +30,7 @@ public class PlanController {
 
         if (dialog.isConfirmed()) {
             TravelPlanService.createPlan(
-                "aaa", // 로그인 미구현이므로 임시 생성자 ID
+                MemberSession.getId(), // 로그인 미구현이므로 임시 생성자 ID
                 dialog.getTitleInput(),
                 dialog.getStartDate(),
                 dialog.getEndDate()
@@ -54,7 +51,7 @@ public class PlanController {
 
     /** 목록 새로고침: 서비스 호출 → 패널 렌더 */
     public void refreshRoomLists() {
-        List<TravelPlan> allPlans = TravelPlanService.getAllPlansByMember("aaa");
+        List<TravelPlan> allPlans = TravelPlanService.getAllPlansByMember(MemberSession.getId());
 
         LocalDateTime now = LocalDateTime.now();
         List<TravelPlan> upcoming = new ArrayList<TravelPlan>();
