@@ -193,7 +193,7 @@ public class PlaceCard extends JPanel {
                 break;
             case "숙소":
                 infoPanel.add(createBorderedInfoRowPanel("교통 정보", detailInfo.getTransportation()));
-                infoPanel.add(createBorderedInfoRowPanel("휴무일", detailInfo.getRestDay()));
+                infoPanel.add(createBorderedInfoRowPanel("호텔 정보", detailInfo.getRestDay()));
                 infoPanel.add(createBorderedInfoRowPanel("주소", detailInfo.getAddress()));
                 infoPanel.add(createBorderedInfoRowPanel("전화번호", detailInfo.getPhone()));
                 break;
@@ -201,6 +201,7 @@ public class PlaceCard extends JPanel {
                 infoPanel.add(createBorderedInfoRowPanel("운영 시간", detailInfo.getRestDay()));
                 infoPanel.add(createBorderedInfoRowPanel("주소", detailInfo.getAddress()));
                 infoPanel.add(createBorderedInfoRowPanel("전화번호", detailInfo.getPhone()));
+                infoPanel.add(createBorderedInfoRowPanel("대표 메뉴", detailInfo.getMenu()));
                 break;
             default: // 관광지
                 infoPanel.add(createBorderedInfoRowPanel("교통 정보", detailInfo.getTransportation()));
