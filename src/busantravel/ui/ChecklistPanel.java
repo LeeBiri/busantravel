@@ -41,6 +41,12 @@ public class ChecklistPanel extends JPanel {
         p.setOpaque(false);
 
         JButton back = new JButton("뒤로");
+        back.setFocusPainted(false);
+
+        back.setBackground(ColorConstants.ACCENT);
+        back.setForeground(Color.WHITE);
+        back.setFocusPainted(false);
+        
         back.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
         back.addActionListener(e -> { if (onBack != null) onBack.run(); });
         p.add(back, BorderLayout.EAST);
@@ -77,7 +83,7 @@ public class ChecklistPanel extends JPanel {
         box.setBorder(new EmptyBorder(8, 8, 8, 8));
 
         JLabel title = new JLabel("여행 준비 체크리스트");
-        title.setFont(jalnanFont.deriveFont(Font.BOLD, 35f));
+        title.setFont(jalnanFont.deriveFont(Font.PLAIN, 35f));
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JButton publicAddBtn = makeAddButton("전체 체크리스트 추가", true);
@@ -148,11 +154,19 @@ public class ChecklistPanel extends JPanel {
         });
 
         column.add(new JScrollPane(list), BorderLayout.CENTER);
-
+        
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton edit = new JButton("수정");
+        edit.setFocusPainted(false);
+        edit.setBackground(ColorConstants.ACCENT);
+        edit.setForeground(Color.WHITE);
+        edit.setFocusPainted(false);
         edit.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
         JButton del  = new JButton("삭제");
+        del.setFocusPainted(false);
+        del.setBackground(ColorConstants.ACCENT);
+        del.setForeground(Color.WHITE);
+        del.setFocusPainted(false);
         del.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
         actions.add(edit); actions.add(del);
         column.add(actions, BorderLayout.SOUTH);
