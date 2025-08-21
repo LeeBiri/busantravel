@@ -59,6 +59,7 @@ public class PlanTripPanel extends JPanel {
     private final List<ScheduledPlace> scheduledPlaces;
     private final Map<String, String> placeNameIndex = new HashMap<>();
     private final Map<String, String> placeThumbIndex = new HashMap<>();
+    private final Map<String, String> placeAddrIndex = new HashMap<>();
     private final Map<String, String> scheduledPlaceColors = new HashMap<>();
     private JLabel mapLabel;
     private final ApiHandler apiHandler = new ApiHandler();
@@ -404,6 +405,7 @@ public class PlanTripPanel extends JPanel {
         PlaceData pd = PlaceData.from(obj);
         placeNameIndex.put(pd.type + ":" + pd.id, pd.name);
         placeThumbIndex.put(pd.type + ":" + pd.id, pd.thumbUrl);
+        placeAddrIndex.put(pd.type + ":" + pd.id, pd.addr);
 
         int fixedWidth = COLUMN_LEFT_WIDTH - 2*ROW_INNER_HPAD - 6;
 
@@ -898,9 +900,13 @@ public class PlanTripPanel extends JPanel {
             Random rand = new Random(); // For fallback color generation
 
             for (ScheduledPlace sp : todaysPlaces) {
+                String placeAddr = placeAddrIndex.get(sp.getP_type() + ":" + sp.getP_id());
                 String placeName = placeNameIndex.get(sp.getP_type() + ":" + sp.getP_id());
-                if (placeName != null) {
-                    PlaceInfo placeInfo = apiHandler.getPlaceDetailsByName(placeName, TMAP_API_KEY);
+                
+                String searchQuery = (placeAddr != null && !placeAddr.isBlank()) ? placeAddr : placeName;
+
+                if (searchQuery != null) {
+                    PlaceInfo placeInfo = apiHandler.getPlaceDetailsByName(searchQuery, TMAP_API_KEY);
                     if (placeInfo != null) {
                         Coordinate coord = new Coordinate(placeInfo.getLatitude(), placeInfo.getLongitude());
                         coordinates.add(coord);
