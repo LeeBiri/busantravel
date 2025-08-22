@@ -11,10 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TravelPlanDAO {
-	static DBConnectionMgr pool= DBConnectionMgr.getInstance();
+	private DBConnectionMgr pool = DBConnectionMgr.getInstance();
 
 	/*여행 계획 추가*/
-    public static String insert(TravelPlan plan) {
+    public String insert(TravelPlan plan) {
         Connection con = null;
 		PreparedStatement pstmt = null;
 		String sql = null;
@@ -37,7 +37,7 @@ public class TravelPlanDAO {
     }
 
     /*계획 ID로 계획 찾기*/
-    public static TravelPlan findById(String planId) {
+    public TravelPlan findById(String planId) {
         Connection con = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -66,7 +66,7 @@ public class TravelPlanDAO {
     }
 
     /* 멤버가 참여중인 계획 전부 찾기 */
-    public static List<TravelPlan> findAllByMember(String memberId) {
+    public List<TravelPlan> findAllByMember(String memberId) {
         Connection con = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -95,9 +95,39 @@ public class TravelPlanDAO {
 		}
         return out;
     }
+    
+    public List<TravelPlan> getTravelPlansByMemberId(String memberId) {
+        Connection con = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+        String sql = "SELECT p.* FROM TRAVEL_PLAN p JOIN TRAVEL_PLAN_MEMBER m ON p.plan_id = m.plan_id " +
+                    "WHERE m.m_id = ? ORDER BY p.plan_period_start DESC";
+        List<TravelPlan> out = new ArrayList<>();
+        try {
+            con = pool.getConnection();
+            pstmt = con.prepareStatement(sql);
+            pstmt.setString(1, memberId);
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                Timestamp startTs = rs.getTimestamp("plan_period_start");
+                Timestamp endTs = rs.getTimestamp("plan_period_end");
+                out.add(new TravelPlan(
+                    rs.getString("plan_id"), 
+                    rs.getString("creator_id"),
+                    rs.getString("plan_title"), 
+                    startTs.toLocalDateTime(), 
+                    endTs.toLocalDateTime()));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+		} finally {
+			pool.freeConnection(con, pstmt, rs);
+		}
+        return out;
+    }
 
     /* 멤버가 참여중인 계획 중 진행중인 or 앞으로의 계획 */
-    public static List<TravelPlan> findUpcomingByMember(String memberId, LocalDateTime todayEnd) {
+    public List<TravelPlan> findUpcomingByMember(String memberId, LocalDateTime todayEnd) {
         Connection con = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -130,7 +160,7 @@ public class TravelPlanDAO {
     }
 
     /* 끝난 계획 찾기*/
-    public static List<TravelPlan> findPastByMember(String memberId, LocalDateTime todayEnd) {
+    public List<TravelPlan> findPastByMember(String memberId, LocalDateTime todayEnd) {
         Connection con = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -162,7 +192,7 @@ public class TravelPlanDAO {
         return out;
     }
 
-    public static void deleteById(String planId) {
+    public void deleteById(String planId) {
         Connection con = null;
         PreparedStatement pstmt = null;
         String sql = "DELETE FROM travel_plan WHERE plan_id = ?";

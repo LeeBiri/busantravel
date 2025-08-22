@@ -14,6 +14,7 @@ import javax.swing.*;
 public class EnterCodeDialog extends JDialog {
     private JTextField codeField;
     private Runnable onSuccess;
+    private TravelPlanService travelPlanService;
 
     /**
      * EnterCodeDialog의 새 인스턴스를 생성합니다.
@@ -26,6 +27,7 @@ public class EnterCodeDialog extends JDialog {
     public EnterCodeDialog(JFrame parent, Runnable onSuccess) {
         super(parent, "참여 코드 입력", true);
         this.onSuccess = onSuccess;
+        this.travelPlanService = new TravelPlanService();
         setSize(350, 150);
         setLocationRelativeTo(parent);
         setLayout(new GridLayout(2, 2, 10, 10));
@@ -56,7 +58,7 @@ public class EnterCodeDialog extends JDialog {
             if (enterCode.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "모든 정보를 입력하세요!", "오류", JOptionPane.WARNING_MESSAGE);
             } else {
-                if (TravelPlanService.findById(enterCode) == null) {
+                if (travelPlanService.findById(enterCode) == null) {
                     JOptionPane.showMessageDialog(this, "일치하는 여행 계획이 없습니다.", "오류", JOptionPane.WARNING_MESSAGE);
                     codeField.setText("");
                 } else {

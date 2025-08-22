@@ -19,12 +19,14 @@ public class PlanController {
     private SchedulePanel schedulePanel;
     private String currentUserId; // 로그인 사용자 ID
     private TravelPlannerApp mainApp;
+    private TravelPlanService travelPlanService;
 
     public PlanController(JFrame parentFrame, SchedulePanel schedulePanel, String currentUserId, TravelPlannerApp mainApp) {
         this.parentFrame = parentFrame;
         this.schedulePanel = schedulePanel;
         this.currentUserId = currentUserId;
         this.mainApp = mainApp;
+        this.travelPlanService = new TravelPlanService();
     }
     
     public void handleCreateTrip() {
@@ -52,7 +54,7 @@ public class PlanController {
         dialog.setVisible(true);
 
         if (dialog.isConfirmed()) {
-            TravelPlanService.createPlan(
+            travelPlanService.createPlan(
                 MemberSession.getId(),
                 dialog.getTitleInput(),
                 dialog.getStartDate(),
@@ -89,7 +91,7 @@ public class PlanController {
     /** 목록 새로고침: 서비스 호출 → 패널 렌더 */
     public void refreshRoomLists() {
 
-        List<TravelPlan> allPlans = TravelPlanService.getAllPlansByMember(MemberSession.getId());
+        List<TravelPlan> allPlans = travelPlanService.getAllPlansByMember(MemberSession.getId());
 
         LocalDateTime now = LocalDateTime.now();
         List<TravelPlan> upcoming = new ArrayList<TravelPlan>();
@@ -120,7 +122,7 @@ public class PlanController {
         );
 
         if (result == JOptionPane.YES_OPTION) {
-            TravelPlanService.deletePlan(planId);
+            travelPlanService.deletePlan(planId);
             refreshRoomLists();
         }
     }

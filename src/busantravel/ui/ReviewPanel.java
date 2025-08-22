@@ -1,7 +1,6 @@
 package busantravel.ui;
 
 import java.awt.BorderLayout;
-import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -15,82 +14,99 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
+import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 
+import busantravel.auth.MemberSession;
 import busantravel.dao.ReviewDAO;
 import busantravel.model.Review;
 
 public class ReviewPanel extends JPanel {
 
-    private JTabbedPane tabbedPane;
-    private JPanel allReviewsPanel;
-    private JPanel myReviewsPanel;
+    private JPanel reviewsContainerPanel;
     private ReviewDAO reviewDAO;
+    private JLabel reviewListTitle;
 
     public ReviewPanel() {
         this.reviewDAO = new ReviewDAO();
         initializeUI();
-        loadAllReviews();
-        loadMyReviews();
     }
 
     private void initializeUI() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
 
-        tabbedPane = new JTabbedPane();
-        tabbedPane.setFont(new Font("맑은 고딕", Font.BOLD, 16));
-        tabbedPane.setBackground(Color.WHITE);
-        tabbedPane.setForeground(ColorConstants.ACCENT);
+        reviewsContainerPanel = new JPanel();
+        reviewsContainerPanel.setLayout(new BoxLayout(reviewsContainerPanel, BoxLayout.Y_AXIS));
+        reviewsContainerPanel.setBackground(Color.WHITE);
 
-        allReviewsPanel = new JPanel();
-        allReviewsPanel.setLayout(new BoxLayout(allReviewsPanel, BoxLayout.Y_AXIS));
-        JScrollPane allReviewsScrollPane = new JScrollPane(allReviewsPanel);
-        allReviewsScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        allReviewsScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        JScrollPane reviewsScrollPane = new JScrollPane(reviewsContainerPanel);
+        reviewsScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        reviewsScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        reviewsScrollPane.setBorder(BorderFactory.createEmptyBorder());
+        reviewsScrollPane.getVerticalScrollBar().setUI(new MatteScrollBarUI());
+        reviewsScrollPane.getHorizontalScrollBar().setUI(new MatteScrollBarUI());
 
-        myReviewsPanel = new JPanel();
-        myReviewsPanel.setLayout(new BoxLayout(myReviewsPanel, BoxLayout.Y_AXIS));
-        JScrollPane myReviewsScrollPane = new JScrollPane(myReviewsPanel);
-        myReviewsScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        myReviewsScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        JPanel reviewListPanel = new JPanel(new BorderLayout());
+        reviewListPanel.setBackground(Color.WHITE);
 
-        tabbedPane.addTab("전체 후기", allReviewsScrollPane);
-        tabbedPane.addTab("내 후기", myReviewsScrollPane);
+        reviewListTitle = new JLabel("전체 후기");
+        reviewListTitle.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+        reviewListTitle.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        reviewListPanel.add(reviewListTitle, BorderLayout.NORTH);
+        reviewListPanel.add(reviewsScrollPane, BorderLayout.CENTER);
 
-        add(tabbedPane, BorderLayout.CENTER);
-    }
-
-    private void loadAllReviews() {
-        allReviewsPanel.removeAll();
-        List<Review> reviews = reviewDAO.getAllPublicReviews();
-        for (Review review : reviews) {
-            allReviewsPanel.add(createReviewCard(review, false));
-        }
-        allReviewsPanel.revalidate();
-        allReviewsPanel.repaint();
-    }
-
-    private void loadMyReviews() {
-        myReviewsPanel.removeAll();
-        String memberId = busantravel.auth.MemberSession.getId();
+        String memberId = MemberSession.getId();
         if (memberId != null && !memberId.isEmpty()) {
-            List<Review> reviews = reviewDAO.getReviewsByMember(memberId);
-            for (Review review : reviews) {
-                myReviewsPanel.add(createReviewCard(review, true));
-            }
+            // Logged in: Use JSplitPane
+            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+            splitPane.setLeftComponent(reviewListPanel);
+
+            // Use the new ProfileSidePanel class
+            ProfileSidePanel profileSidePanel = new ProfileSidePanel(this);
+            splitPane.setRightComponent(profileSidePanel);
+
+            splitPane.setResizeWeight(0.9);
+            splitPane.setBorder(null);
+
+            add(splitPane, BorderLayout.CENTER);
+        } else {
+            // Not logged in: Show only the review list
+            add(reviewListPanel, BorderLayout.CENTER);
         }
-        myReviewsPanel.revalidate();
-        myReviewsPanel.repaint();
+
+        loadAllReviews(); // Load all reviews by default
+    }
+
+    public void loadAllReviews() {
+        reviewListTitle.setText("전체 후기");
+        List<Review> reviews = reviewDAO.getAllPublicReviews();
+        displayReviews(reviews);
+    }
+
+    public void loadMyReviews() {
+        String memberId = MemberSession.getId();
+        if (memberId != null && !memberId.isEmpty()) {
+            reviewListTitle.setText("내 후기");
+            List<Review> reviews = reviewDAO.getReviewsByMember(memberId);
+            displayReviews(reviews);
+        }
+    }
+
+    private void displayReviews(List<Review> reviews) {
+        reviewsContainerPanel.removeAll();
+        for (Review review : reviews) {
+            reviewsContainerPanel.add(createReviewCard(review));
+        }
+        reviewsContainerPanel.revalidate();
+        reviewsContainerPanel.repaint();
     }
 
     public void refreshReviews() {
         loadAllReviews();
-        loadMyReviews();
     }
 
-    private JPanel createReviewCard(Review review, boolean isMyReview) {
+    private JPanel createReviewCard(Review review) {
         JPanel card = new JPanel(new BorderLayout());
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY),
@@ -99,14 +115,12 @@ public class ReviewPanel extends JPanel {
         card.setBackground(Color.WHITE);
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 150));
 
-        // Left panel for image (placeholder)
         JPanel imagePanel = new JPanel();
         imagePanel.setPreferredSize(new Dimension(120, 120));
         imagePanel.setBackground(Color.GRAY);
         JLabel imageLabel = new JLabel("사진");
         imagePanel.add(imageLabel);
 
-        // Center panel for review info
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
         infoPanel.setBackground(Color.WHITE);
@@ -140,15 +154,16 @@ public class ReviewPanel extends JPanel {
         });
         buttonPanel.add(readButton);
 
-        if (isMyReview) {
-            JButton editButton = new JButton("편집하기");
+        String currentUserId = MemberSession.getId();
+        boolean isAuthor = currentUserId != null && currentUserId.equals(review.getMemberId());
+
+        if (isAuthor) {
+            JButton editButton = new JButton("후기 편집");
             editButton.setFont(new Font("맑은 고딕", Font.BOLD, 12));
             editButton.setBackground(ColorConstants.ACCENT);
             editButton.setForeground(Color.WHITE);
             editButton.addActionListener(e -> {
-                ReviewPopup popup = new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this), review);
-                popup.setVisible(true);
-                loadMyReviews(); // Refresh after edit
+                new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this), review, this::refreshReviews).setVisible(true);
             });
             buttonPanel.add(editButton);
         }

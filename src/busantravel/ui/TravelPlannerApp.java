@@ -147,12 +147,12 @@ public class TravelPlannerApp {
         homePanel = new HomePanel(frame);
         schedulePanel = new SchedulePanel(frame, this); // SchedulePanel에 TravelPlannerApp 인스턴스 (this) 전달
         mainBannerPanel = new MainBannerPanel(); // MainBannerPanel 객체 생성
-        reviewPanel = new ReviewPanel();
+        // reviewPanel is now created on tab switch
 
         contentPanel.add(mainBannerPanel, "home"); // "저장" 패널을 "home" 식별자로 변경 (새로운 "여행 홈")
         contentPanel.add(schedulePanel, "schedule");
         contentPanel.add(homePanel, "search"); // "여행 홈" 패널을 "search" 식별자로 변경 (새로운 "검색")
-        contentPanel.add(reviewPanel, "review");
+        // contentPanel.add(reviewPanel, "review"); // Removed from here
 
         mainPanel.add(contentPanel, BorderLayout.CENTER);
 
@@ -232,7 +232,13 @@ public class TravelPlannerApp {
             schedulePanel.getController().refreshRoomLists();
         }
         if ("review".equals(currentTab)) {
-            reviewPanel.refreshReviews();
+            // 매번 reviewPanel을 새로 생성하여 로그인 상태를 반영
+            if (reviewPanel != null) {
+                contentPanel.remove(reviewPanel);
+            }
+            reviewPanel = new ReviewPanel();
+            contentPanel.add(reviewPanel, "review");
+            contentCardLayout.show(contentPanel, "review");
         }
     }
 

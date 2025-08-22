@@ -5,20 +5,18 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
-
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -29,8 +27,6 @@ import busantravel.dao.ReviewDAO;
 import busantravel.dao.ReviewPhotoDAO;
 import busantravel.model.Review;
 import busantravel.model.ReviewPhoto;
-import busantravel.model.TravelPlan;
-import java.util.UUID;
 
 public class ReviewPopup extends JDialog {
 
@@ -38,7 +34,7 @@ public class ReviewPopup extends JDialog {
     private JTextArea contentArea;
     private JComboBox<String> visibilityComboBox;
     private JButton submitButton;
-    private JButton cancelButton;
+    private JButton deleteButton;
     private JButton addPhotoButton;
     private JPanel photoPanel;
     private List<File> selectedPhotos = new ArrayList<>();
@@ -46,21 +42,18 @@ public class ReviewPopup extends JDialog {
     private ReviewDAO reviewDAO;
     private ReviewPhotoDAO reviewPhotoDAO;
     private Review review; // for editing
+    private Runnable onDispose;
 
-    public ReviewPopup(JFrame parent) {
-        super(parent, "후기 작성", true);
-        this.reviewDAO = new ReviewDAO();
-        this.reviewPhotoDAO = new ReviewPhotoDAO();
-        initializeUI();
-    }
-
-    public ReviewPopup(JFrame parent, Review review) {
-        super(parent, "후기 수정", true);
+    public ReviewPopup(JFrame parent, Review review, Runnable onDispose) {
+        super(parent, review == null ? "후기 작성" : "후기 수정", true);
         this.review = review;
+        this.onDispose = onDispose;
         this.reviewDAO = new ReviewDAO();
         this.reviewPhotoDAO = new ReviewPhotoDAO();
         initializeUI();
-        loadReviewData();
+        if (review != null) {
+            loadReviewData();
+        }
     }
 
     private void initializeUI() {
@@ -122,19 +115,23 @@ public class ReviewPopup extends JDialog {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setBackground(Color.WHITE);
         submitButton = new JButton(review == null ? "후기 등록하기" : "수정하기");
-        cancelButton = new JButton("뒤로가기");
         
         // Style buttons
         Font buttonFont = new Font("맑은 고딕", Font.BOLD, 14);
         submitButton.setFont(buttonFont);
         submitButton.setBackground(ColorConstants.ACCENT);
         submitButton.setForeground(Color.WHITE);
-        cancelButton.setFont(buttonFont);
-        cancelButton.setBackground(Color.LIGHT_GRAY);
-        cancelButton.setForeground(Color.WHITE);
 
         buttonPanel.add(submitButton);
-        buttonPanel.add(cancelButton);
+
+        if (review != null) {
+            deleteButton = new JButton("삭제하기");
+            deleteButton.setFont(buttonFont);
+            deleteButton.setBackground(Color.RED);
+            deleteButton.setForeground(Color.WHITE);
+            deleteButton.addActionListener(e -> deleteReview());
+            buttonPanel.add(deleteButton);
+        }
 
         // Add components to main panel
         JPanel formPanel = new JPanel(new BorderLayout(10, 10));
@@ -156,7 +153,6 @@ public class ReviewPopup extends JDialog {
 
         // Add Action Listeners
         submitButton.addActionListener(e -> submitReview());
-        cancelButton.addActionListener(e -> dispose());
         addPhotoButton.addActionListener(e -> addPhoto());
     }
 
@@ -170,7 +166,7 @@ public class ReviewPopup extends JDialog {
 
     private void submitReview() {
         if (!busantravel.auth.MemberSession.isLoggedIn()) {
-            javax.swing.JOptionPane.showMessageDialog(this, "로그인이 필요합니다.", "알림", javax.swing.JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "로그인이 필요합니다.", "알림", JOptionPane.WARNING_MESSAGE);
             return;
         }
         String title = titleField.getText();
@@ -191,33 +187,26 @@ public class ReviewPopup extends JDialog {
             review.setContent(content);
             review.setVisibility(visibility);
             reviewDAO.updateReview(review);
-            // TODO: Handle photo updates
         }
 
-        // Save photos
-        if (!selectedPhotos.isEmpty()) {
-            // This is a simplified version. In a real app, you'd get the new/updated review's ID.
-            // For new reviews, you might need to get the last inserted ID.
-            // For now, we'll assume we have the review ID.
-            String reviewId = (review != null) ? review.getReviewId() : ""; // Placeholder for new review ID
-            if (!reviewId.isEmpty()) {
-                 for (int i = 0; i < selectedPhotos.size(); i++) {
-                    File photoFile = selectedPhotos.get(i);
-                    // In a real app, you would copy the file to a designated storage folder
-                    // and save the path. Here, we'll just use the file's absolute path.
-                    String photoPath = photoFile.getAbsolutePath();
-                    
-                    ReviewPhoto reviewPhoto = new ReviewPhoto();
-                    // reviewPhoto.setPhotoId(...); // Should be generated
-                    reviewPhoto.setReviewId(reviewId);
-                    reviewPhoto.setPhotoPath(photoPath);
-                    reviewPhoto.setOrder(i);
-                    
-                    reviewPhotoDAO.addReviewPhoto(reviewPhoto);
-                }
-            }
+        if (onDispose != null) {
+            onDispose.run();
         }
         dispose();
+    }
+
+    private void deleteReview() {
+        if (review != null) {
+            int result = JOptionPane.showConfirmDialog(this, "정말로 이 후기를 삭제하시겠습니까?", "삭제 확인", JOptionPane.YES_NO_OPTION);
+            if (result == JOptionPane.YES_OPTION) {
+                reviewDAO.deleteReview(review.getReviewId());
+                reviewPhotoDAO.deletePhotosByReviewId(review.getReviewId());
+                if (onDispose != null) {
+                    onDispose.run();
+                }
+                dispose();
+            }
+        }
     }
 
     private void addPhoto() {
@@ -228,8 +217,6 @@ public class ReviewPopup extends JDialog {
             File[] files = fileChooser.getSelectedFiles();
             for (File file : files) {
                 selectedPhotos.add(file);
-                // Display thumbnail
-                // For simplicity, just showing the name for now
                 photoPanel.add(new JLabel(file.getName()));
                 photoPanel.revalidate();
                 photoPanel.repaint();

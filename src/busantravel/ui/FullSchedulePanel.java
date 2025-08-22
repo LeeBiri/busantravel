@@ -317,7 +317,7 @@ public class FullSchedulePanel extends JPanel {
             writeReviewBtn.setForeground(Color.WHITE);
             writeReviewBtn.setFocusPainted(false);
             writeReviewBtn.addActionListener(e -> {
-                ReviewPopup popup = new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this));
+                ReviewPopup popup = new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this), null, () -> mainApp.refreshFullSchedule(plan));
                 popup.setVisible(true);
             });
             buttonContainer.add(Box.createHorizontalStrut(10));

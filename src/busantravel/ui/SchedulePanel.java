@@ -293,7 +293,7 @@ public class SchedulePanel extends JPanel {
             reviewBtn.setForeground(Color.WHITE);
             reviewBtn.setFocusPainted(false);
             reviewBtn.addActionListener(e -> {
-                new ReviewPopup(parentFrame).setVisible(true);
+                new ReviewPopup(parentFrame, null, () -> controller.refreshRoomLists()).setVisible(true);
             });
 
             JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
