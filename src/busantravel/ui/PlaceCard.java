@@ -1,7 +1,10 @@
 package busantravel.ui;
 
 import busantravel.auth.MemberSession;
+import busantravel.auth.MemberSession;
 import busantravel.dao.PlaceDAO;
+import busantravel.model.Interest;
+import busantravel.service.InterestService;
 import busantravel.model.Interest;
 import busantravel.service.InterestService;
 import busantravel.util.Coordinate;
@@ -20,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PlaceCard extends JPanel {
     private String placeId;
+    private String placeId;
     private PlaceDAO placeDAO;
     private Font jalnanFont;
     private TmapApiHandler tmapApiHandler;
@@ -32,6 +36,8 @@ public class PlaceCard extends JPanel {
         LIST
     }
 
+    public PlaceCard(JFrame frame, String placeId, String placeName, String category, String thumbnail, ViewType viewType, Font customFont) {
+        this.placeId = placeId;
     public PlaceCard(JFrame frame, String placeId, String placeName, String category, String thumbnail, ViewType viewType, Font customFont) {
         this.placeId = placeId;
         this.placeDAO = new PlaceDAO();
