@@ -12,10 +12,12 @@ public class LoginController {
 	LoginDialog view;
 	JDialog dialog;
 	TravelPlannerApp mainApp;
+	private MemberService memberService;
 
 	public LoginController(LoginDialog view, JDialog dialog) {
 		this.view = view;
 		this.dialog = dialog;
+		this.memberService = new MemberService();
 	}
 
 	public boolean handleLogin() {
@@ -27,7 +29,7 @@ public class LoginController {
 		if (id.isEmpty() || pw.isEmpty()) {
 			JOptionPane.showMessageDialog(dialog, "아이디와 비밀번호를 입력해주세요.", "로그인 오류", JOptionPane.WARNING_MESSAGE);
 		} else {
-			Member member = MemberService.login(id, pw);
+			Member member = memberService.login(id, pw);
 			if (member != null) {
 				JOptionPane.showMessageDialog(dialog, member.getM_name() + "님 환영합니다!");
 				flag = true;

@@ -381,6 +381,7 @@ public class TravelPlannerApp {
 
     public void switchToMyPage() {
         currentTab = "myPage";
+        myPagePanel.refreshData();
         updateContent();
         updateTopPanelTitle();
         updateNavButtonStyles();
