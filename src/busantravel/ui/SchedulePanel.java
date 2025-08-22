@@ -162,8 +162,8 @@ public class SchedulePanel extends JPanel {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(Color.WHITE);
 
-        JLabel label = new JLabel("생성된 여행이 없습니다");
-        label.setFont(jalnanFont.deriveFont(Font.BOLD, 22f));
+        JLabel label = new JLabel("생성된 여행 일정이 없습니다");
+        label.setFont(jalnanFont.deriveFont(Font.PLAIN, 32f));
         label.setAlignmentX(Component.CENTER_ALIGNMENT);
         label.setForeground(new Color(90, 90, 90));
 
@@ -176,14 +176,14 @@ public class SchedulePanel extends JPanel {
         createBtn.setMaximumSize(size);
         createBtn.setMinimumSize(size);
         createBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
-        createBtn.setFont(jalnanFont.deriveFont(Font.BOLD, 20f));
+        createBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 20f));
         createBtn.setMargin(new Insets(20, 40, 20, 40));
 
         joinBtn.setPreferredSize(size);
         joinBtn.setMaximumSize(size);
         joinBtn.setMinimumSize(size);
         joinBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
-        joinBtn.setFont(jalnanFont.deriveFont(Font.BOLD, 20f));
+        joinBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 20f));
         joinBtn.setMargin(new Insets(20, 40, 20, 40)); 
 
         createBtn.setBackground(ColorConstants.ACCENT);
@@ -240,7 +240,7 @@ public class SchedulePanel extends JPanel {
         textPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
 
         JLabel title = new JLabel(plan.getPlan_title());
-        title.setFont(jalnanFont.deriveFont(Font.BOLD, 16f));
+        title.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
 
         String dateRange = plan.getPlan_period_start().toLocalDate() + " - " +
                             plan.getPlan_period_end().toLocalDate();
@@ -262,25 +262,44 @@ public class SchedulePanel extends JPanel {
         card.add(left, BorderLayout.CENTER);
 
         if (isUpcoming) {
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            buttonPanel.setBackground(Color.WHITE);
+
+            JButton deleteBtn = new JButton("삭제");
+            deleteBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
+            deleteBtn.setBackground(new Color(220, 220, 220));
+            deleteBtn.setFocusPainted(false);
+            deleteBtn.addActionListener(e -> controller.handleDeletePlan(plan.getPlan_id()));
+            buttonPanel.add(deleteBtn);
+
             JButton arrowBtn = new JButton(">");
             arrowBtn.setFont(jalnanFont.deriveFont(Font.BOLD, 26f));
             arrowBtn.setPreferredSize(new Dimension(60, 100));
             arrowBtn.setFocusPainted(false);
             arrowBtn.setBackground(Color.WHITE);
             arrowBtn.setBorderPainted(false);
-
             arrowBtn.addActionListener(e -> {
                 if (mainApp != null) {
                     mainApp.switchToFullSchedule(plan);
                 }
             });
+            buttonPanel.add(arrowBtn);
 
-            JPanel arrowPanel = new JPanel(new BorderLayout());
-            arrowPanel.setBackground(Color.WHITE);
-            arrowPanel.add(arrowBtn, BorderLayout.CENTER);
-            arrowPanel.setPreferredSize(new Dimension(60, 100));
+            card.add(buttonPanel, BorderLayout.EAST);
+        } else {
+            JButton reviewBtn = new JButton("후기 작성");
+            reviewBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 14f));
+            reviewBtn.setBackground(ColorConstants.ACCENT);
+            reviewBtn.setForeground(Color.WHITE);
+            reviewBtn.setFocusPainted(false);
+            reviewBtn.addActionListener(e -> {
+                new ReviewPopup(parentFrame, null, () -> controller.refreshRoomLists()).setVisible(true);
+            });
 
-            card.add(arrowPanel, BorderLayout.EAST);
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            buttonPanel.setBackground(Color.WHITE);
+            buttonPanel.add(reviewBtn);
+            card.add(buttonPanel, BorderLayout.EAST);
         }
 
         return card;

@@ -11,10 +11,12 @@ public class SignUpDialog {
     private JFrame parent;
     private TravelPlannerApp mainApp;
     private Font jalnanFont;
+    private MemberService memberService;
 
     public SignUpDialog(JFrame parent, TravelPlannerApp mainApp) {
         this.parent = parent;
         this.mainApp = mainApp;
+        this.memberService = new MemberService();
         loadFont();
     }
 
@@ -91,7 +93,7 @@ public class SignUpDialog {
             String enteredId = idField.getText().trim();
             if (enteredId.isEmpty()) {
                 JOptionPane.showMessageDialog(dialog, "아이디를 입력하세요.", "오류", JOptionPane.WARNING_MESSAGE);
-            } else if (MemberService.checkID(enteredId)) {
+            } else if (memberService.checkID(enteredId)) {
                 JOptionPane.showMessageDialog(dialog, "이미 존재하는 아이디입니다.", "중복확인", JOptionPane.ERROR_MESSAGE);
             } else {
                 JOptionPane.showMessageDialog(dialog, "사용 가능한 아이디입니다.", "중복확인", JOptionPane.INFORMATION_MESSAGE);
@@ -110,7 +112,7 @@ public class SignUpDialog {
             }
 
             Member member = new Member(id, name, pw, email);
-            if (MemberService.register(member)) {
+            if (memberService.register(member)) {
                 MemberSession.login(member);
                 JOptionPane.showMessageDialog(dialog, name + "님, 회원가입이 완료되었습니다!");
                 dialog.dispose();

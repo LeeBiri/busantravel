@@ -24,5 +24,21 @@ public class TravelPlanMemberDAO {
         } finally {
         	pool.freeConnection(con, pstmt);
         }
-    }	
+    }
+
+    public static void deleteByPlanId(String planId) {
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        String sql = "DELETE FROM travel_plan_member WHERE plan_id = ?";
+        try {
+            con = pool.getConnection();
+            pstmt = con.prepareStatement(sql);
+            pstmt.setString(1, planId);
+            pstmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            pool.freeConnection(con, pstmt);
+        }
+    }
 }

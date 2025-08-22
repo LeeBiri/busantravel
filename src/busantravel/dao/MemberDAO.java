@@ -7,10 +7,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 public class MemberDAO {
-	static DBConnectionMgr pool= DBConnectionMgr.getInstance();
+	private DBConnectionMgr pool = DBConnectionMgr.getInstance();
 	
-	// id와 pw를 확인하고 해당하는 Member 객체를 반환
-	public static Member getMember(String id, String pw) {
+	public Member getMember(String id, String pw) {
 		Connection con = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -40,9 +39,34 @@ public class MemberDAO {
 		return member;
 	}
 
+	public Member getMemberById(String id) {
+		Connection con = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		String sql = "SELECT M_ID, M_NAME, M_PASSWORD, M_EMAIL FROM MEMBER WHERE M_ID = ?";
+		Member member = null;
+		try {
+			con = pool.getConnection();
+			pstmt = con.prepareStatement(sql);
+			pstmt.setString(1, id);
+			rs = pstmt.executeQuery();
+			if (rs.next()) {
+				member = new Member(
+					rs.getString("M_ID"),
+					rs.getString("M_NAME"),
+					rs.getString("M_PASSWORD"),
+					rs.getString("M_EMAIL")
+				);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			pool.freeConnection(con, pstmt, rs);
+		}
+		return member;
+	}
 	
-	//회원가입
-	public static boolean register(Member member) {
+	public boolean register(Member member) {
 		Connection con = null;
 		PreparedStatement pstmt = null;
 		String sql = null;
@@ -65,8 +89,7 @@ public class MemberDAO {
 		return flag;
 	}
 	
-	//중복체크
-	public static boolean checkID(String id) {
+	public boolean checkID(String id) {
 		Connection con = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -91,7 +114,7 @@ public class MemberDAO {
 		return duplicated;
 	}
 	
-	public static boolean deleteId(String id, String pw) {
+	public boolean deleteId(String id, String pw) {
 		String checkSql = "SELECT COUNT(*) FROM member WHERE m_id = ? AND m_password = ?";
 		String updateChecklistSql = "UPDATE checklist SET creator_id = '탈퇴한 사용자' WHERE creator_id = ?";
 		String updateInterestSql = "UPDATE interest SET m_id = '탈퇴한 사용자' WHERE m_id = ?";
@@ -154,7 +177,7 @@ public class MemberDAO {
 		return flag;
 	}
 
-	public static boolean updateId(Member member) {
+	public boolean updateId(Member member) {
 		String sql = "UPDATE member SET m_name = ?, m_password = ?, m_email = ? WHERE m_id = ?";
 		boolean flag = false;
         try {

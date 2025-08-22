@@ -11,6 +11,7 @@ public class Review {
     private int visibility; // 0: public, 1: private
     private Date createdAt;
     private List<String> photoUris;
+    private String memberNickname;
 
     public Review() {
     }
@@ -80,5 +81,13 @@ public class Review {
 
     public void setPhotoUris(List<String> photoUris) {
         this.photoUris = photoUris;
+    }
+
+    public String getMemberNickname() {
+        return memberNickname;
+    }
+
+    public void setMemberNickname(String memberNickname) {
+        this.memberNickname = memberNickname;
     }
 }
