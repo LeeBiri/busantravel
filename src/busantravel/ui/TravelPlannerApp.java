@@ -28,7 +28,6 @@ public class TravelPlannerApp {
     private PlanTripPanel planTripPanel; // '여행 계획' 패널 인스턴스
 
     private ChecklistPanel checklistPanel;
-    private MyPagePanel myPagePanel;
     private JPanel authButtonsPanel;
     private JButton loginButton;
     private JButton signUpButton;
@@ -277,20 +276,6 @@ public class TravelPlannerApp {
         contentPanel.add(fullSchedulePanel, "fullSchedule");
 
         currentTab = "fullSchedule";
-        updateContent();
-        updateTopPanelTitle();
-        updateNavButtonStyles();
-    }
-
-    public void switchToMyPage() {
-        if (myPagePanel != null) {
-            contentPanel.remove(myPagePanel);
-        }
-
-        myPagePanel = new MyPagePanel(frame, this); 
-        contentPanel.add(myPagePanel, "mypage");
-
-        currentTab = "mypage";
         updateContent();
         updateTopPanelTitle();
         updateNavButtonStyles();
