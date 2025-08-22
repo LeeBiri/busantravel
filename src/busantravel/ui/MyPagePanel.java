@@ -32,6 +32,7 @@ public class MyPagePanel extends JPanel {
     private String loggedInUserId;
     private TravelPlannerApp mainApp;
     private PlaceDAO placeDAO;
+    private TravelPlanService travelPlanService;
 
     public MyPagePanel(JFrame frame, TravelPlannerApp mainApp) {
         loadJalnanFont();
@@ -39,6 +40,7 @@ public class MyPagePanel extends JPanel {
         setBackground(Color.WHITE);
         loggedInUserId = MemberSession.getId();
         this.mainApp = mainApp;
+        this.travelPlanService = new TravelPlanService();
         JPanel menuPanel = createMenuPanel();
         add(menuPanel, BorderLayout.WEST);
         placeDAO = new PlaceDAO();
@@ -187,7 +189,7 @@ public class MyPagePanel extends JPanel {
         panel.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 0, new Color(200, 200, 200)));
         panel.setBackground(Color.WHITE);
         
-        JPanel item1 = createStatsItem("" + TravelPlanService.getAllPlansByMember(loggedInUserId).size(), "총 여행 수");
+        JPanel item1 = createStatsItem("" + travelPlanService.getAllPlansByMember(loggedInUserId).size(), "총 여행 수");
         item1.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(200, 200, 200)));
         
         JPanel item2 = createStatsItem("" + InterestService.getInterestById(loggedInUserId).size(), "관심장소 수");
@@ -250,10 +252,10 @@ public class MyPagePanel extends JPanel {
         JPanel statsPanel = new JPanel(new GridLayout(1, 2));
         statsPanel.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, new Color(200, 200, 200)));
         
-        JPanel upcomingStatsPanel = createStatsItem("" + TravelPlanService.getUpcomingPlansByMember(loggedInUserId).size(), "다가오는 여행");
+        JPanel upcomingStatsPanel = createStatsItem("" + travelPlanService.getUpcomingPlansByMember(loggedInUserId).size(), "다가오는 여행");
         upcomingStatsPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(200, 200, 200)));
         
-        JPanel pastStatsPanel = createStatsItem("" + TravelPlanService.getPastPlansByMember(loggedInUserId).size(), "지난 여행");
+        JPanel pastStatsPanel = createStatsItem("" + travelPlanService.getPastPlansByMember(loggedInUserId).size(), "지난 여행");
         
         statsPanel.add(upcomingStatsPanel);
         statsPanel.add(pastStatsPanel);
@@ -264,8 +266,8 @@ public class MyPagePanel extends JPanel {
         listAreaPanel.setBackground(Color.WHITE);
         listAreaPanel.setBorder(new EmptyBorder(20, 0, 0, 0));
         
-        java.util.List<TravelPlan> pastTravelPlan = TravelPlanService.getPastPlansByMember(loggedInUserId);
-        java.util.List<TravelPlan> upcomingTravelPlan = TravelPlanService.getUpcomingPlansByMember(loggedInUserId);
+        java.util.List<TravelPlan> pastTravelPlan = travelPlanService.getPastPlansByMember(loggedInUserId);
+        java.util.List<TravelPlan> upcomingTravelPlan = travelPlanService.getUpcomingPlansByMember(loggedInUserId);
 
         listAreaPanel.add(createTravelListArea("다가오는 여행", upcomingTravelPlan.size(), upcomingTravelPlan));
         listAreaPanel.add(createTravelListArea("지난 여행", pastTravelPlan.size(), pastTravelPlan));
@@ -504,7 +506,7 @@ public class MyPagePanel extends JPanel {
         btnWithdrawal.addActionListener(e -> {
             int confirm = showStyledConfirm("정말로 회원 탈퇴를 하시겠습니까? 모든 정보가 삭제됩니다.", "회원 탈퇴 확인");
             if (confirm == JOptionPane.YES_OPTION) {
-                if (TravelPlanService.getUpcomingPlansByMember(loggedInUserId).isEmpty()) {
+                if (travelPlanService.getUpcomingPlansByMember(loggedInUserId).isEmpty()) {
                     MemberService.deleteId(loggedInUserId, MemberSession.getCurrentUser().getM_password());
                     showStyledMessage("회원 탈퇴 했습니다..", "탈퇴");
                     MemberSession.logout();
