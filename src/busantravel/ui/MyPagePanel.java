@@ -15,6 +15,8 @@ import busantravel.service.MemberService;
 import busantravel.service.TravelPlanService;
 import busantravel.util.FontManager;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.InputStream;
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -439,4 +441,94 @@ public class MyPagePanel extends JPanel {
         label.setFont(jalnanFont.deriveFont(Font.PLAIN, 20f));
         return JOptionPane.showConfirmDialog(this, label, title, JOptionPane.YES_NO_OPTION);
     }
+
+
+    private JPanel createFavoritePlaceBox(String name, String thumbUrl) {
+        JPanel card = new JPanel();
+        card.setLayout(new BoxLayout(card, BoxLayout.X_AXIS));
+        card.setBackground(Color.WHITE);
+        card.setPreferredSize(new Dimension(460, 70));
+        card.setMaximumSize(new Dimension(460, 70));
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
+                new EmptyBorder(10, 10, 10, 10)
+        ));
+
+        // 이미지 영역
+        JLabel imageLabel = new JLabel();
+        imageLabel.setPreferredSize(new Dimension(48, 48));
+        imageLabel.setMaximumSize(new Dimension(48, 48));
+        imageLabel.setMinimumSize(new Dimension(48, 48));
+        try {
+            if (thumbUrl != null && !thumbUrl.isEmpty()) {
+                URL imageUrl = new URL(thumbUrl);
+                ImageIcon originalIcon = new ImageIcon(imageUrl);
+                Image scaledImage = originalIcon.getImage().getScaledInstance(48, 48, Image.SCALE_SMOOTH);
+                imageLabel.setIcon(new ImageIcon(scaledImage));
+            } else {
+                imageLabel.setText("No Image");
+                imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            }
+        } catch (Exception e) {
+            imageLabel.setText("X");
+            imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        }
+
+        // 텍스트 영역
+        JPanel textPanel = new JPanel();
+        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+        textPanel.setBackground(Color.WHITE);
+        textPanel.setBorder(new EmptyBorder(5, 15, 5, 5));
+
+        JLabel nameLabel = new JLabel(name);
+        nameLabel.setFont(jalnanFont.deriveFont(Font.BOLD, 16f));
+
+        textPanel.add(nameLabel);
+
+        // 컴포넌트 배치
+        card.add(imageLabel);
+        card.add(textPanel);
+        card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        card.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // 타입과 placeId를 통해 재조회
+                for (Interest interest : InterestService.getInterestById(loggedInUserId)) {
+                    Object place = placeDAO.getPlaceByTypeAndId(interest.getP_type(), interest.getP_id());
+                    String pName = "";
+
+                    if (place instanceof Tourist && ((Tourist) place).getT_place().equals(name)) {
+                        pName = ((Tourist) place).getT_place();
+                    } else if (place instanceof Restaurant && ((Restaurant) place).getR_place().equals(name)) {
+                        pName = ((Restaurant) place).getR_place();
+                    } else if (place instanceof Lodging && ((Lodging) place).getL_place().equals(name)) {
+                        pName = ((Lodging) place).getL_place();
+                    } else if (place instanceof Festival && ((Festival) place).getF_name().equals(name)) {
+                        pName = ((Festival) place).getF_name();
+                    }
+
+                    if (!pName.isEmpty()) {
+                        // 🎯 PlaceCard 다이얼로그 재사용
+                        new PlaceCard(null, interest.getP_id(), pName, interest.getP_type(), thumbUrl, PlaceCard.ViewType.GRID, jalnanFont)
+                            .showPlaceDetailDialog(null, pName, interest.getP_type());
+                        break;
+                    }
+                }
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                card.setBackground(new Color(245, 245, 245));
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                card.setBackground(Color.WHITE);
+            }
+        });
+        return card;
+    }
+
+
 }
+

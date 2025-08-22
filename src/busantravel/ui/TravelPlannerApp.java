@@ -19,11 +19,14 @@ public class TravelPlannerApp {
     private JLabel currentTitleLabel;
     private JLabel logoLabel;
     private FullSchedulePanel fullSchedulePanel;
-    private SchedulePanel schedulePanel;
-    private HomePanel homePanel;
-    private MainBannerPanel mainBannerPanel;
-    private ReviewPanel reviewPanel;
-    private PlanTripPanel planTripPanel;
+
+    private SchedulePanel schedulePanel; // '일정' 탭 패널
+    private HomePanel homePanel; // '여행 홈' 탭 패널
+    private MainBannerPanel mainBannerPanel; // '저장' 버튼 클릭 시 보여줄 MainBannerPanel
+    private JPanel reviewPanel; // '후기' 탭을 위한 임시 패널
+    private MyPagePanel myPagePanel; // 마이페이지 패널
+    private PlanTripPanel planTripPanel; // '여행 계획' 패널 인스턴스
+
     private ChecklistPanel checklistPanel;
     private MyPagePanel myPagePanel;
     private JPanel authButtonsPanel;
@@ -126,6 +129,7 @@ public class TravelPlannerApp {
         contentPanel.add(schedulePanel, "schedule");
         contentPanel.add(homePanel, "search");
         contentPanel.add(myPagePanel, "myPage");
+
 
         mainPanel.add(contentPanel, BorderLayout.CENTER);
 
@@ -249,7 +253,8 @@ public class TravelPlannerApp {
             case "review": return "후기";
             case "fullSchedule": return "일정 상세";
             case "checklist": return "체크리스트";
-            case "myPage": return "마이페이지";
+            case "mypage": return "마이페이지";
+
             default: return "";
         }
     }
@@ -272,6 +277,20 @@ public class TravelPlannerApp {
         contentPanel.add(fullSchedulePanel, "fullSchedule");
 
         currentTab = "fullSchedule";
+        updateContent();
+        updateTopPanelTitle();
+        updateNavButtonStyles();
+    }
+
+    public void switchToMyPage() {
+        if (myPagePanel != null) {
+            contentPanel.remove(myPagePanel);
+        }
+
+        myPagePanel = new MyPagePanel(frame, this); 
+        contentPanel.add(myPagePanel, "mypage");
+
+        currentTab = "mypage";
         updateContent();
         updateTopPanelTitle();
         updateNavButtonStyles();
@@ -338,6 +357,7 @@ public class TravelPlannerApp {
             authButtonsPanel.add(logoutButton);
 
         } else {
+
             loginButton = new JButton("로그인");
             signUpButton = new JButton("회원가입");
 
@@ -352,10 +372,10 @@ public class TravelPlannerApp {
 
             loginButton.addActionListener(e -> {
                 new LoginDialog(frame, this, () -> {
-                    refreshAuthButtons();
-                    updateContent();
-                    updateTopPanelTitle();
-                    updateNavButtonStyles();
+                    refreshAuthButtons();            // 로그인/로그아웃 버튼 새로고침
+                    updateContent();                 // 패널 업데이트 (여기서 schedulePanel 새로고침됨)
+                    updateTopPanelTitle();           // 제목 바꾸기
+                    updateNavButtonStyles();         // 네비게이션 스타일 갱신
                 }).showDialog();
             });
             signUpButton.addActionListener(e -> new SignUpDialog(frame, this).showDialog());
@@ -364,10 +384,9 @@ public class TravelPlannerApp {
             authButtonsPanel.add(signUpButton);
         }
 
-        authButtonsPanel.revalidate();
-        authButtonsPanel.repaint();
+    authButtonsPanel.revalidate();
+    authButtonsPanel.repaint();
     }
-
     public void refreshAuthButtons() {
         initAuthButtons();
     }
