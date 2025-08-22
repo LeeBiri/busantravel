@@ -162,8 +162,8 @@ public class SchedulePanel extends JPanel {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(Color.WHITE);
 
-        JLabel label = new JLabel("생성된 여행이 없습니다");
-        label.setFont(jalnanFont.deriveFont(Font.BOLD, 22f));
+        JLabel label = new JLabel("생성된 여행 일정이 없습니다");
+        label.setFont(jalnanFont.deriveFont(Font.PLAIN, 32f));
         label.setAlignmentX(Component.CENTER_ALIGNMENT);
         label.setForeground(new Color(90, 90, 90));
 
@@ -176,14 +176,14 @@ public class SchedulePanel extends JPanel {
         createBtn.setMaximumSize(size);
         createBtn.setMinimumSize(size);
         createBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
-        createBtn.setFont(jalnanFont.deriveFont(Font.BOLD, 20f));
+        createBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 20f));
         createBtn.setMargin(new Insets(20, 40, 20, 40));
 
         joinBtn.setPreferredSize(size);
         joinBtn.setMaximumSize(size);
         joinBtn.setMinimumSize(size);
         joinBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
-        joinBtn.setFont(jalnanFont.deriveFont(Font.BOLD, 20f));
+        joinBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 20f));
         joinBtn.setMargin(new Insets(20, 40, 20, 40)); 
 
         createBtn.setBackground(ColorConstants.ACCENT);
@@ -240,7 +240,7 @@ public class SchedulePanel extends JPanel {
         textPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
 
         JLabel title = new JLabel(plan.getPlan_title());
-        title.setFont(jalnanFont.deriveFont(Font.BOLD, 16f));
+        title.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
 
         String dateRange = plan.getPlan_period_start().toLocalDate() + " - " +
                             plan.getPlan_period_end().toLocalDate();

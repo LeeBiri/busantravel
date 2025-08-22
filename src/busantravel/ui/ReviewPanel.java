@@ -2,12 +2,15 @@ package busantravel.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -16,16 +19,19 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
 
 import busantravel.auth.MemberSession;
 import busantravel.dao.ReviewDAO;
 import busantravel.model.Review;
+import busantravel.util.FontManager;
 
 public class ReviewPanel extends JPanel {
 
     private JPanel reviewsContainerPanel;
     private ReviewDAO reviewDAO;
     private JLabel reviewListTitle;
+    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
     public ReviewPanel() {
         this.reviewDAO = new ReviewDAO();
@@ -39,6 +45,7 @@ public class ReviewPanel extends JPanel {
         reviewsContainerPanel = new JPanel();
         reviewsContainerPanel.setLayout(new BoxLayout(reviewsContainerPanel, BoxLayout.Y_AXIS));
         reviewsContainerPanel.setBackground(Color.WHITE);
+        reviewsContainerPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
         JScrollPane reviewsScrollPane = new JScrollPane(reviewsContainerPanel);
         reviewsScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -51,18 +58,16 @@ public class ReviewPanel extends JPanel {
         reviewListPanel.setBackground(Color.WHITE);
 
         reviewListTitle = new JLabel("전체 후기");
-        reviewListTitle.setFont(new Font("맑은 고딕", Font.BOLD, 20));
-        reviewListTitle.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        reviewListTitle.setFont(FontManager.getJalnanFont(24f));
+        reviewListTitle.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         reviewListPanel.add(reviewListTitle, BorderLayout.NORTH);
         reviewListPanel.add(reviewsScrollPane, BorderLayout.CENTER);
 
         String memberId = MemberSession.getId();
         if (memberId != null && !memberId.isEmpty()) {
-            // Logged in: Use JSplitPane
             JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
             splitPane.setLeftComponent(reviewListPanel);
 
-            // Use the new ProfileSidePanel class
             ProfileSidePanel profileSidePanel = new ProfileSidePanel(this);
             splitPane.setRightComponent(profileSidePanel);
 
@@ -71,11 +76,10 @@ public class ReviewPanel extends JPanel {
 
             add(splitPane, BorderLayout.CENTER);
         } else {
-            // Not logged in: Show only the review list
             add(reviewListPanel, BorderLayout.CENTER);
         }
 
-        loadAllReviews(); // Load all reviews by default
+        loadAllReviews();
     }
 
     public void loadAllReviews() {
@@ -97,26 +101,31 @@ public class ReviewPanel extends JPanel {
         reviewsContainerPanel.removeAll();
         for (Review review : reviews) {
             reviewsContainerPanel.add(createReviewCard(review));
+            reviewsContainerPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         }
         reviewsContainerPanel.revalidate();
         reviewsContainerPanel.repaint();
     }
 
     public void refreshReviews() {
-        loadAllReviews();
+        if (reviewListTitle.getText().equals("내 후기")) {
+            loadMyReviews();
+        } else {
+            loadAllReviews();
+        }
     }
 
     private JPanel createReviewCard(Review review) {
-        JPanel card = new JPanel(new BorderLayout());
+        JPanel card = new JPanel(new BorderLayout(15, 0));
         card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY),
-                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+            BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1),
+            new EmptyBorder(15, 15, 15, 15)
         ));
         card.setBackground(Color.WHITE);
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 150));
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 180));
 
         JPanel imagePanel = new JPanel();
-        imagePanel.setPreferredSize(new Dimension(120, 120));
+        imagePanel.setPreferredSize(new Dimension(150, 150));
         imagePanel.setBackground(Color.GRAY);
         JLabel imageLabel = new JLabel("사진");
         imagePanel.add(imageLabel);
@@ -126,17 +135,41 @@ public class ReviewPanel extends JPanel {
         infoPanel.setBackground(Color.WHITE);
 
         JLabel titleLabel = new JLabel(review.getTitle());
-        titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 18));
+        titleLabel.setFont(FontManager.getJalnanFont(18f));
+        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        String previewContent = review.getContent().split("\n")[0];
-        if (previewContent.length() > 50) {
-            previewContent = previewContent.substring(0, 50) + "...";
+        String previewContent = review.getContent().replaceAll("\\n", " ").replaceAll("\\s+", " ");
+        if (previewContent.length() > 80) {
+            previewContent = previewContent.substring(0, 80) + "...";
         }
-        JLabel contentLabel = new JLabel(previewContent);
-        contentLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+        JLabel contentLabel = new JLabel("<html><p style='width:100%'>" + previewContent + "</p></html>");
+        contentLabel.setFont(FontManager.getJalnanFont(14f));
+        contentLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JPanel metaPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        metaPanel.setBackground(Color.WHITE);
+        metaPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        String authorText = review.getMemberNickname();
+        if (authorText == null || authorText.trim().isEmpty()) {
+            authorText = review.getMemberId();
+        }
+        JLabel authorLabel = new JLabel(authorText);
+        authorLabel.setFont(FontManager.getJalnanFont(12f));
+        authorLabel.setForeground(Color.GRAY);
+        
+        JLabel dateLabel = new JLabel(" | " + sdf.format(review.getCreatedAt()));
+        dateLabel.setFont(FontManager.getJalnanFont(12f));
+        dateLabel.setForeground(Color.GRAY);
+
+        metaPanel.add(authorLabel);
+        metaPanel.add(dateLabel);
 
         infoPanel.add(titleLabel);
+        infoPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         infoPanel.add(contentLabel);
+        infoPanel.add(Box.createVerticalGlue());
+        infoPanel.add(metaPanel);
 
         card.add(imagePanel, BorderLayout.WEST);
         card.add(infoPanel, BorderLayout.CENTER);
@@ -145,12 +178,11 @@ public class ReviewPanel extends JPanel {
         buttonPanel.setBackground(Color.WHITE);
         
         JButton readButton = new JButton("리뷰 읽기");
-        readButton.setFont(new Font("맑은 고딕", Font.BOLD, 12));
+        readButton.setFont(FontManager.getJalnanFont(12f));
         readButton.setBackground(ColorConstants.ACCENT);
         readButton.setForeground(Color.WHITE);
         readButton.addActionListener(e -> {
-            ReviewDetailPopup popup = new ReviewDetailPopup((JFrame) SwingUtilities.getWindowAncestor(this), review);
-            popup.setVisible(true);
+            new ReviewDetailPopup((JFrame) SwingUtilities.getWindowAncestor(this), review).setVisible(true);
         });
         buttonPanel.add(readButton);
 
@@ -159,7 +191,7 @@ public class ReviewPanel extends JPanel {
 
         if (isAuthor) {
             JButton editButton = new JButton("후기 편집");
-            editButton.setFont(new Font("맑은 고딕", Font.BOLD, 12));
+            editButton.setFont(FontManager.getJalnanFont(12f));
             editButton.setBackground(ColorConstants.ACCENT);
             editButton.setForeground(Color.WHITE);
             editButton.addActionListener(e -> {

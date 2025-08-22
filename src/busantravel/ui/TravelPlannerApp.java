@@ -352,7 +352,7 @@ public class TravelPlannerApp {
             contentPanel.remove(fullSchedulePanel);
         }
 
-        Runnable onBackCallback = () -> switchToFullSchedule(plan);
+        Runnable onBackCallback = this::goToScheduleTab;
         fullSchedulePanel = new FullSchedulePanel(this, plan, onBackCallback);
         contentPanel.add(fullSchedulePanel, "fullSchedule");
 
@@ -383,7 +383,7 @@ public class TravelPlannerApp {
             contentPanel.remove(fullSchedulePanel);
         }
         
-        Runnable onBackCallback = () -> switchToFullSchedule(plan);
+        Runnable onBackCallback = this::goToScheduleTab;
         
         fullSchedulePanel = new FullSchedulePanel(this, plan, onBackCallback);
         contentPanel.add(fullSchedulePanel, "fullSchedule");
