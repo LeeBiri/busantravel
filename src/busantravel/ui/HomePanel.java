@@ -5,14 +5,12 @@ import busantravel.model.Festival;
 import busantravel.model.Lodging;
 import busantravel.model.Restaurant;
 import busantravel.model.Tourist;
-
-import javax.swing.*;
 import java.awt.*;
-import busantravel.ui.ColorConstants;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.swing.*;
 
 /**
  * 애플리케이션의 메인 화면을 구성하는 패널 클래스입니다.
@@ -232,22 +230,27 @@ public class HomePanel extends JPanel {
             }
 
             for (Object place : places) {
+                String placeId = "";
                 String placeName = "";
                 String thumbnail = "";
                 if (place instanceof Tourist) {
+                    placeId = ((Tourist) place).getT_id();
                     placeName = ((Tourist) place).getT_place();
                     thumbnail = ((Tourist) place).getT_thum();
                 } else if (place instanceof Restaurant) {
+                    placeId = ((Restaurant) place).getR_id();
                     placeName = ((Restaurant) place).getR_place();
                     thumbnail = ((Restaurant) place).getR_thum();
                 } else if (place instanceof Lodging) {
+                    placeId = ((Lodging) place).getL_id();
                     placeName = ((Lodging) place).getL_place();
                     thumbnail = ((Lodging) place).getL_thum();
                 } else if (place instanceof Festival) {
+                    placeId = ((Festival) place).getF_id();
                     placeName = ((Festival) place).getF_name();
                     thumbnail = ((Festival) place).getF_thum();
                 }
-                contentPanel.add(new PlaceCard(frame, placeName, category, thumbnail, viewType, jalnanFont));
+                contentPanel.add(new PlaceCard(frame, placeId, placeName, category, thumbnail, viewType, jalnanFont));
             }
             
             if (viewType == PlaceCard.ViewType.LIST) {
@@ -311,22 +314,27 @@ public class HomePanel extends JPanel {
             }
 
             for (Object place : places) {
+                String placeId = "";
                 String placeName = "";
                 String thumbnail = "";
                 if (place instanceof Tourist) {
+                    placeId = ((Tourist) place).getT_id();
                     placeName = ((Tourist) place).getT_place();
                     thumbnail = ((Tourist) place).getT_thum();
                 } else if (place instanceof Restaurant) {
+                    placeId = ((Restaurant) place).getR_id();
                     placeName = ((Restaurant) place).getR_place();
                     thumbnail = ((Restaurant) place).getR_thum();
                 } else if (place instanceof Lodging) {
+                    placeId = ((Lodging) place).getL_id();
                     placeName = ((Lodging) place).getL_place();
                     thumbnail = ((Lodging) place).getL_thum();
                 } else if (place instanceof Festival) {
+                    placeId = ((Festival) place).getF_id();
                     placeName = ((Festival) place).getF_name();
                     thumbnail = ((Festival) place).getF_thum();
                 }
-                contentPanel.add(new PlaceCard(frame, placeName, selectedCategory, thumbnail, viewType, jalnanFont));
+                contentPanel.add(new PlaceCard(frame, placeId, placeName, selectedCategory, thumbnail, viewType, jalnanFont));
             }
 
             if (viewType == PlaceCard.ViewType.LIST) {

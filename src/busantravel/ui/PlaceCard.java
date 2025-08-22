@@ -1,6 +1,9 @@
 package busantravel.ui;
 
+import busantravel.auth.MemberSession;
 import busantravel.dao.PlaceDAO;
+import busantravel.model.Interest;
+import busantravel.service.InterestService;
 import busantravel.util.Coordinate;
 import busantravel.util.ImageCache;
 import busantravel.util.StaticMapGenerator;
@@ -13,8 +16,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PlaceCard extends JPanel {
+    private String placeId;
     private PlaceDAO placeDAO;
     private Font jalnanFont;
     private TmapApiHandler tmapApiHandler;
@@ -27,7 +32,8 @@ public class PlaceCard extends JPanel {
         LIST
     }
 
-    public PlaceCard(JFrame frame, String placeName, String category, String thumbnail, ViewType viewType, Font customFont) {
+    public PlaceCard(JFrame frame, String placeId, String placeName, String category, String thumbnail, ViewType viewType, Font customFont) {
+        this.placeId = placeId;
         this.placeDAO = new PlaceDAO();
         this.tmapApiHandler = new TmapApiHandler(API_KEY);
         this.staticMapGenerator = new StaticMapGenerator(API_KEY);
@@ -99,7 +105,7 @@ public class PlaceCard extends JPanel {
         descriptionArea.addMouseListener(adapter);
     }
 
-    private void showPlaceDetailDialog(JFrame frame, String placeName, String category) {
+    public void showPlaceDetailDialog(JFrame frame, String placeName, String category) {
         JDialog detailDialog = new JDialog(frame, placeName + " 상세 정보", true);
         detailDialog.setSize(1180, 850);
         detailDialog.setLocationRelativeTo(frame);
@@ -170,8 +176,8 @@ public class PlaceCard extends JPanel {
         
         rightPanel.add(infoAndMapPanel, BorderLayout.CENTER);
 
-        JButton saveBtn = new JButton("저장하기");
-        setupSaveButton(saveBtn, placeName);
+        JButton saveBtn = new JButton("찜하기");
+        setupSaveButton(saveBtn, placeName, category);
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setBackground(Color.WHITE);
         buttonPanel.add(saveBtn);
@@ -401,14 +407,44 @@ public class PlaceCard extends JPanel {
         button.setBorderPainted(false);
     }
 
-    private void setupSaveButton(JButton button, String placeName) {
-        button.setBackground(ColorConstants.ACCENT);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setFont(new Font("맑은 고딕", Font.BOLD, 15));
-        button.addActionListener(e -> JOptionPane.showMessageDialog(this, placeName + " 저장 완료! 저장된 장소 탭에서 확인하세요."));
+private void setupSaveButton(JButton button, String placeName, String category) {
+    button.setBackground(ColorConstants.ACCENT);
+    button.setForeground(Color.WHITE);
+    button.setFocusPainted(false);
+    button.setBorderPainted(false);
+    button.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
+
+    String memberId = MemberSession.getId();
+    AtomicBoolean alreadySaved = new AtomicBoolean(false);
+
+    java.util.List<Interest> interests = InterestService.getInterestById(memberId);
+    for (Interest interest : interests) {
+        if (interest.getP_id().equals(placeId) && interest.getP_type().equals(category)) {
+            alreadySaved.set(true);;
+            break;
+        }
     }
+
+    // 초기 텍스트 세팅
+    button.setText(alreadySaved.get() ? "찜 해제" : "찜하기");
+
+    button.addActionListener(e -> {
+        if (alreadySaved.get()) {
+            // 저장 해제
+            InterestService.deleteInterest(new Interest(memberId, placeId, category));
+                JOptionPane.showMessageDialog(this, placeName + "을(를) 찜 목록에서 제거했습니다.");
+                button.setText("찜하기");
+                alreadySaved.set(false);
+        } else {
+            // 저장 등록
+            InterestService.insertInterest(memberId, placeId, category);
+
+            JOptionPane.showMessageDialog(this, placeName + "을(를) 찜했습니다!");
+            button.setText("찜 해제");
+        }
+});
+}
+
 
     private MouseAdapter createMouseAdapter(JFrame frame, String placeName, String category) {
         return new MouseAdapter() {

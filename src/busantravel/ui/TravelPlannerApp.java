@@ -27,6 +27,7 @@ public class TravelPlannerApp {
     private HomePanel homePanel; // '여행 홈' 탭 패널
     private MainBannerPanel mainBannerPanel; // '저장' 버튼 클릭 시 보여줄 MainBannerPanel
     private JPanel reviewPanel; // '후기' 탭을 위한 임시 패널
+    private MyPagePanel myPagePanel; // 마이페이지 패널
     private PlanTripPanel planTripPanel; // '여행 계획' 패널 인스턴스
     private ChecklistPanel checklistPanel;
     private JPanel authButtonsPanel; // 로그인, 회원가입, 마이페이지, 로그아웃을 담는 패널
@@ -153,6 +154,7 @@ public class TravelPlannerApp {
         contentPanel.add(homePanel, "search"); // "여행 홈" 패널을 "search" 식별자로 변경 (새로운 "검색")
         contentPanel.add(reviewPanel, "review");
 
+
         mainPanel.add(contentPanel, BorderLayout.CENTER);
 
         // 네비게이션 바
@@ -218,7 +220,7 @@ public class TravelPlannerApp {
     /**
      * 현재 선택된 탭(`currentTab`)에 따라 메인 컨텐츠 패널의 내용을 업데이트(전환)합니다.
      */
-    private void updateContent() {
+    public void updateContent() {
         contentCardLayout.show(contentPanel, currentTab);
 
         if ("home".equals(currentTab)) {
@@ -308,6 +310,7 @@ public class TravelPlannerApp {
             case "review": return "후기";
             case "fullSchedule": return "일정 상세";
             case "checklist": return "체크리스트";
+            case "mypage": return "마이페이지";
             default: return "";
         }
     }
@@ -347,6 +350,20 @@ public class TravelPlannerApp {
         contentPanel.add(fullSchedulePanel, "fullSchedule");
 
         currentTab = "fullSchedule";
+        updateContent();
+        updateTopPanelTitle();
+        updateNavButtonStyles();
+    }
+
+    public void switchToMyPage() {
+        if (myPagePanel != null) {
+            contentPanel.remove(myPagePanel);
+        }
+
+        myPagePanel = new MyPagePanel(frame, this); 
+        contentPanel.add(myPagePanel, "mypage");
+
+        currentTab = "mypage";
         updateContent();
         updateTopPanelTitle();
         updateNavButtonStyles();
@@ -410,48 +427,54 @@ public class TravelPlannerApp {
                 refreshAuthButtons();
             });
 
-            myPageButton.addActionListener(e -> {
-                JOptionPane.showMessageDialog(frame, "마이페이지는 아직 준비 중입니다.");
-        });
+            myPageButton.addActionListener(e -> switchToMyPage());
 
-        authButtonsPanel.add(myPageButton);
-        authButtonsPanel.add(logoutButton);
+            authButtonsPanel.add(myPageButton);
+            authButtonsPanel.add(logoutButton);
 
-    } else {
-        // 비로그인 상태일 경우: 로그인 + 회원가입
-        loginButton = new JButton("로그인");
-        signUpButton = new JButton("회원가입");
+        } else {
+            // 비로그인 상태일 경우: 로그인 + 회원가입
+            loginButton = new JButton("로그인");
+            signUpButton = new JButton("회원가입");
 
-        loginButton.setFont(FontManager.getJalnanFont(12f));
-        signUpButton.setFont(FontManager.getJalnanFont(12f));
-        loginButton.setBackground(new Color(240, 240, 240));
-        signUpButton.setBackground(new Color(240, 240, 240));
-        loginButton.setForeground(new Color(50, 50, 50));
-        signUpButton.setForeground(new Color(50, 50, 50));
-        loginButton.setFocusPainted(false);
-        signUpButton.setFocusPainted(false);
+            loginButton.setFont(FontManager.getJalnanFont(12f));
+            signUpButton.setFont(FontManager.getJalnanFont(12f));
+            loginButton.setBackground(new Color(240, 240, 240));
+            signUpButton.setBackground(new Color(240, 240, 240));
+            loginButton.setForeground(new Color(50, 50, 50));
+            signUpButton.setForeground(new Color(50, 50, 50));
+            loginButton.setFocusPainted(false);
+            signUpButton.setFocusPainted(false);
 
-        loginButton.addActionListener(e -> {
-            new LoginDialog(frame, this, () -> {
-                refreshAuthButtons();            // 로그인/로그아웃 버튼 새로고침
-                updateContent();                 // 패널 업데이트 (여기서 schedulePanel 새로고침됨)
-                updateTopPanelTitle();           // 제목 바꾸기
-                updateNavButtonStyles();         // 네비게이션 스타일 갱신
-            }).showDialog();
-        });
-        signUpButton.addActionListener(e -> new SignUpDialog(frame, this).showDialog());
+            loginButton.addActionListener(e -> {
+                new LoginDialog(frame, this, () -> {
+                    refreshAuthButtons();            // 로그인/로그아웃 버튼 새로고침
+                    updateContent();                 // 패널 업데이트 (여기서 schedulePanel 새로고침됨)
+                    updateTopPanelTitle();           // 제목 바꾸기
+                    updateNavButtonStyles();         // 네비게이션 스타일 갱신
+                }).showDialog();
+            });
+            signUpButton.addActionListener(e -> new SignUpDialog(frame, this).showDialog());
 
-        authButtonsPanel.add(loginButton);
-        authButtonsPanel.add(signUpButton);
-    }
+            authButtonsPanel.add(loginButton);
+            authButtonsPanel.add(signUpButton);
+        }
 
     authButtonsPanel.revalidate();
     authButtonsPanel.repaint();
-}
+    }
 
-public void refreshAuthButtons() {
-    initAuthButtons();
-}
+    public void refreshAuthButtons() {
+        initAuthButtons();
+    }
 
+    public void switchToHome() {
+        currentTab = "home";
+        updateContent();
+        updateTopPanelTitle();
+        updateNavButtonStyles();
+    }
+
+    
 
 }
