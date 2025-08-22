@@ -28,7 +28,6 @@ public class TravelPlannerApp {
     private PlanTripPanel planTripPanel; // '여행 계획' 패널 인스턴스
 
     private ChecklistPanel checklistPanel;
-    private MyPagePanel myPagePanel;
     private JPanel authButtonsPanel;
     private JButton loginButton;
     private JButton signUpButton;
@@ -398,11 +397,4 @@ public class TravelPlannerApp {
         updateNavButtonStyles();
     }
 
-    public void switchToMyPage() {
-        currentTab = "myPage";
-        myPagePanel.refreshData();
-        updateContent();
-        updateTopPanelTitle();
-        updateNavButtonStyles();
-    }
 }
