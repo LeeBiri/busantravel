@@ -26,7 +26,6 @@ import javax.swing.border.EmptyBorder;
 import busantravel.dao.ReviewDAO;
 import busantravel.dao.ReviewPhotoDAO;
 import busantravel.model.Review;
-import busantravel.model.ReviewPhoto;
 
 public class ReviewPopup extends JDialog {
 
@@ -54,6 +53,45 @@ public class ReviewPopup extends JDialog {
         if (review != null) {
             loadReviewData();
         }
+    }
+
+    /** ✅ 최종 단일 버전: 후기 저장 + 사진(BLOB) 저장 */
+    private void submitReview() {
+        if (!busantravel.auth.MemberSession.isLoggedIn()) {
+            JOptionPane.showMessageDialog(this, "로그인이 필요합니다.", "알림", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String title = titleField.getText();
+        String content = contentArea.getText();
+        int visibility = "전체 공개".equals(visibilityComboBox.getSelectedItem()) ? 0 : 1;
+
+        String reviewId;
+
+        if (review == null) { // 새 후기
+            Review newReview = new Review();
+            reviewId = UUID.randomUUID().toString().replace("-", "").substring(0, 20);
+            newReview.setReviewId(reviewId);
+            newReview.setMemberId(busantravel.auth.MemberSession.getId());
+            newReview.setTitle(title);
+            newReview.setContent(content);
+            newReview.setVisibility(visibility);
+            reviewDAO.addReview(newReview);               // ① 후기 저장
+        } else { // 수정
+            review.setTitle(title);
+            review.setContent(content);
+            review.setVisibility(visibility);
+            reviewDAO.updateReview(review);               // ① 후기 수정
+            reviewId = review.getReviewId();
+            // 이전 사진 제거 후 다시 저장하고 싶을 때:
+            reviewPhotoDAO.deletePhotosByReviewId(reviewId);
+        }
+
+        // ② 선택된 사진들을 BLOB으로 저장
+        reviewPhotoDAO.insertPhotos(reviewId, selectedPhotos);
+
+        if (onDispose != null) onDispose.run();
+        dispose();
     }
 
     private void initializeUI() {
@@ -98,16 +136,13 @@ public class ReviewPopup extends JDialog {
         photoSectionPanel.add(addPhotoButton, BorderLayout.NORTH);
         photoSectionPanel.add(photoScrollPane, BorderLayout.CENTER);
 
-
         // Options Panel
         JPanel optionsPanel = new JPanel(new GridLayout(1, 2, 10, 10));
         optionsPanel.setBackground(Color.WHITE);
-        
         JLabel visibilityLabel = new JLabel("공개 설정");
         visibilityLabel.setFont(new Font("맑은 고딕", Font.BOLD, 14));
         String[] visibilities = {"전체 공개", "비공개"};
         visibilityComboBox = new JComboBox<>(visibilities);
-
         optionsPanel.add(visibilityLabel);
         optionsPanel.add(visibilityComboBox);
 
@@ -115,7 +150,7 @@ public class ReviewPopup extends JDialog {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setBackground(Color.WHITE);
         submitButton = new JButton(review == null ? "후기 등록하기" : "수정하기");
-        
+
         // Style buttons
         Font buttonFont = new Font("맑은 고딕", Font.BOLD, 14);
         submitButton.setFont(buttonFont);
@@ -137,7 +172,7 @@ public class ReviewPopup extends JDialog {
         JPanel formPanel = new JPanel(new BorderLayout(10, 10));
         formPanel.setBackground(Color.WHITE);
         formPanel.add(titlePanel, BorderLayout.NORTH);
-        
+
         JPanel centerPanel = new JPanel(new GridLayout(2, 1, 10, 10));
         centerPanel.setBackground(Color.WHITE);
         centerPanel.add(contentPanel);
@@ -164,46 +199,13 @@ public class ReviewPopup extends JDialog {
         }
     }
 
-    private void submitReview() {
-        if (!busantravel.auth.MemberSession.isLoggedIn()) {
-            JOptionPane.showMessageDialog(this, "로그인이 필요합니다.", "알림", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        String title = titleField.getText();
-        String content = contentArea.getText();
-        int visibility = "전체 공개".equals(visibilityComboBox.getSelectedItem()) ? 0 : 1;
-
-        if (review == null) { // New review
-            Review newReview = new Review();
-            String reviewId = UUID.randomUUID().toString().substring(0, 20);
-            newReview.setReviewId(reviewId);
-            newReview.setMemberId(busantravel.auth.MemberSession.getId());
-            newReview.setTitle(title);
-            newReview.setContent(content);
-            newReview.setVisibility(visibility);
-            reviewDAO.addReview(newReview);
-        } else { // Update review
-            review.setTitle(title);
-            review.setContent(content);
-            review.setVisibility(visibility);
-            reviewDAO.updateReview(review);
-        }
-
-        if (onDispose != null) {
-            onDispose.run();
-        }
-        dispose();
-    }
-
     private void deleteReview() {
         if (review != null) {
             int result = JOptionPane.showConfirmDialog(this, "정말로 이 후기를 삭제하시겠습니까?", "삭제 확인", JOptionPane.YES_NO_OPTION);
             if (result == JOptionPane.YES_OPTION) {
                 reviewDAO.deleteReview(review.getReviewId());
                 reviewPhotoDAO.deletePhotosByReviewId(review.getReviewId());
-                if (onDispose != null) {
-                    onDispose.run();
-                }
+                if (onDispose != null) onDispose.run();
                 dispose();
             }
         }

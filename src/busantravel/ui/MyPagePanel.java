@@ -14,8 +14,6 @@ import busantravel.service.MemberService;
 import busantravel.service.TravelPlanService;
 
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.InputStream;
 import java.net.URL;
 import java.time.LocalDateTime;
