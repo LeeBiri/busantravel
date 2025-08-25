@@ -413,36 +413,46 @@ public class PlaceCard extends JPanel {
         button.setBackground(ColorConstants.ACCENT);
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
+        button.setFont(jalnanFont.deriveFont(Font.BOLD, 15f));
+        button.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(ColorConstants.ACCENT.darker(), 1),
+            BorderFactory.createEmptyBorder(5, 15, 5, 15)
+        ));
 
-        String memberId = MemberSession.getId();
-        AtomicBoolean alreadySaved = new AtomicBoolean(false);
+        if (MemberSession.isLoggedIn()) {
+            java.util.List<Interest> interests = InterestService.getInterestById(MemberSession.getId());
+            boolean isInterested = interests.stream().anyMatch(i -> i.getP_id().equals(placeId) && i.getP_type().equals(category));
 
-        for (Interest interest : InterestService.getInterestById(memberId)) {
-            if (interest.getP_id().equals(placeId) && interest.getP_type().equals(category)) {
-                alreadySaved.set(true);
-                break;
+            if (isInterested) {
+                button.setText("찜 취소");
+            } else {
+                button.setText("찜하기");
             }
+        } else {
+            button.setText("찜하기");
         }
-        button.setText(alreadySaved.get() ? "찜 해제" : "찜하기");
 
         button.addActionListener(e -> {
-            if (alreadySaved.get()) {
-                // 해제
-                InterestService.deleteInterest(new Interest(memberId, placeId, category));
-                JOptionPane.showMessageDialog(this, placeName + "을(를) 찜 목록에서 제거했습니다.");
-                if (mainApp != null && mainApp.getMyPagePanel() != null) {
-                    mainApp.getMyPagePanel().reloadFavoritePlacePanel();
-                }
+            if (!MemberSession.isLoggedIn()) {
+                JOptionPane.showMessageDialog(this, "로그인이 필요한 서비스입니다.", "알림", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            java.util.List<Interest> interests = InterestService.getInterestById(MemberSession.getId());
+            Interest existingInterest = interests.stream()
+                .filter(i -> i.getP_id().equals(placeId) && i.getP_type().equals(category))
+                .findFirst().orElse(null);
+
+            if (existingInterest != null) {
+                // 찜 취소
+                InterestService.deleteInterest(existingInterest);
+                JOptionPane.showMessageDialog(this, placeName + " 찜을 취소했습니다!");
                 button.setText("찜하기");
-                alreadySaved.set(false);
             } else {
-                // 등록
-                InterestService.insertInterest(memberId, placeId, category);
-                JOptionPane.showMessageDialog(this, placeName + "을(를) 찜했습니다!");
-                button.setText("찜 해제");
-                alreadySaved.set(true);
+                // 찜하기
+                InterestService.insertInterest(MemberSession.getId(), placeId, category);
+                JOptionPane.showMessageDialog(this, placeName + "을 찜했습니다!");
+                button.setText("찜 취소");
             }
         });
     }

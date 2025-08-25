@@ -37,11 +37,6 @@ import javax.swing.*;
 import javax.swing.border.LineBorder;
 import javax.swing.border.MatteBorder;
 
-/**
- * 사용자가 여행 일정을 계획하는 주 UI 패널입니다.
- * 이 패널은 추천 장소 목록, 선택된 장소 목록, 그리고 지도를 표시하는 세 개의 열로 구성됩니다.
- * 사용자는 날짜를 선택하고, 추천 장소를 자신의 일정에 추가, 삭제, 교체할 수 있습니다.
- */
 public class PlanTripPanel extends JPanel {
 
     private final TravelPlannerApp mainApp;
@@ -91,16 +86,6 @@ public class PlanTripPanel extends JPanel {
         "911EB4", "46F0F0", "F032E6", "BCF60C", "FABEBE"
     );
 
-    /**
-     * PlanTripPanel의 새 인스턴스를 생성합니다.
-     *
-     * @param startDate 여행 시작 날짜와 시간
-     * @param endDate   여행 종료 날짜와 시간
-     * @param mainApp   메인 애플리케이션(TravelPlannerApp)의 참조
-     * @param tripTitle 여행 계획의 제목
-     * @param planId    여행 계획 ID
-     * @param onBack    '뒤로가기' 버튼 클릭 시 실행될 콜백
-     */
     public PlanTripPanel(LocalDateTime startDate, LocalDateTime endDate,
                          TravelPlannerApp mainApp, String tripTitle, String planId, int dayIndex, Runnable onBack) {
         this.startDate = startDate.toLocalDate();
@@ -111,7 +96,6 @@ public class PlanTripPanel extends JPanel {
         this.onBack = onBack;
         this.scheduledPlaces = ScheduledPlaceService.getSchedulesByPlanId(planId);
 
-        // Pre-assign colors to existing unique places
         Set<String> uniquePlaceKeys = new LinkedHashSet<>();
         for (ScheduledPlace sp : this.scheduledPlaces) {
             uniquePlaceKeys.add(sp.getP_type() + ":" + sp.getP_id());
@@ -156,24 +140,15 @@ public class PlanTripPanel extends JPanel {
         refreshSelectedList();
     }
 
-    /**
-     * 현재 여행 계획의 제목을 반환합니다.
-     * @return 여행 제목 문자열
-     */
     public String getTripTitle() { return tripTitle; }
     public String getPlanId() { return planId; }
 
-    /* ── Top Bar ─────────────────────────────────────────────── */
-    /**
-     * 패널의 상단 바(날짜 선택 콤보박스, 뒤로가기 버튼)를 구성합니다.
-     */
     private void buildTopBar() {
         loadFont();
         JPanel top = new JPanel(new BorderLayout());
         top.setBackground(new Color(245, 242, 238));
         top.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
 
-        // 왼쪽: 제목 + 날짜 선택
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
         left.setOpaque(false);
 
@@ -199,7 +174,6 @@ public class PlanTripPanel extends JPanel {
         left.add(dayComboBox);
         top.add(left, BorderLayout.WEST);
 
-        // 오른쪽: 뒤로 가기 + 저장
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         right.setOpaque(false);
 
@@ -223,10 +197,6 @@ public class PlanTripPanel extends JPanel {
         add(top, BorderLayout.NORTH);
     }
 
-    /**
-     * 패널의 본문 영역을 구성합니다.
-     * 추천 장소, 나의 여행 계획, 지도 영역으로 나누어진 3단 레이아웃을 생성합니다.
-     */
     private void buildBody() {
         loadFont();
         JPanel grid = new JPanel(new GridBagLayout());
@@ -238,11 +208,9 @@ public class PlanTripPanel extends JPanel {
         gbc.insets = new Insets(0, 8, 0, 8);
         gbc.weighty = 1;
 
-        // ─ Left: 추천 장소 ─
         JPanel left = boxedColumn(null);
         left.setPreferredSize(new Dimension(COLUMN_LEFT_WIDTH, 0));
 
-        // 제목 + 카테고리 버튼을 하나의 헤더에 넣어서 NORTH에 단 한 번만 추가 
         JPanel leftHeader = new JPanel();
         leftHeader.setOpaque(false);
         leftHeader.setLayout(new BoxLayout(leftHeader, BoxLayout.Y_AXIS));
@@ -286,7 +254,6 @@ public class PlanTripPanel extends JPanel {
         gbc.gridx = 0; gbc.weightx = 0.30;
         grid.add(left, gbc);
 
-        // ─ Center: 나의 여행 계획 ─
         JPanel center = boxedColumn(null);
         center.setPreferredSize(new Dimension(COLUMN_CENTER_WIDTH, 0));
 
@@ -329,7 +296,6 @@ public class PlanTripPanel extends JPanel {
         gbc.gridx = 1; gbc.weightx = 0.34;
         grid.add(center, gbc);
 
-        // ─ Right: 지도 ─
         JPanel right = boxedColumn(null);
         right.setPreferredSize(new Dimension(520, 0));
         mapLabel = new JLabel("일정에 장소를 추가하면 지도가 표시됩니다.", SwingConstants.CENTER);
@@ -343,12 +309,6 @@ public class PlanTripPanel extends JPanel {
         add(grid, BorderLayout.CENTER);
     }
 
-    /**
-     * 제목과 테두리가 있는 박스 형태의 컬럼 패널을 생성합니다.
-     *
-     * @param title 컬럼 상단에 표시될 제목 (null일 경우 생략)
-     * @return 스타일이 적용된 JPanel 객체
-     */
     private JPanel boxedColumn(String title) {
         loadFont();
         JPanel p = new JPanel(new BorderLayout());
@@ -366,50 +326,25 @@ public class PlanTripPanel extends JPanel {
         return p;
     }
 
-    /* ── Load places ─────────────────────────────────── */
-    /**
-     * 지정된 카테고리에 해당하는 장소 목록을 로드하여 좌측 추천 장소 패널에 표시합니다.
-     *
-     * @param category 로드할 장소의 카테고리
-     */
     private void loadPlacesFor(String category) {
         placeListPanel.removeAll();
 
         if ("찜".equals(category)) {
-            // 찜한 관심 장소만 가져옴
-            List<Interest> myInterests = InterestService.getInterestById(MemberSession.getId());
-            Set<String> savedKeys = myInterests.stream()
-            .map(i -> i.getP_type() + ":" + i.getP_id())
-            .collect(Collectors.toSet());
-
-        List<Object> filtered = new ArrayList<>();
-
-        // 2. 찜한 키에 해당하는 장소만 필터링
-        for (String type : List.of("관광지", "맛집", "숙소", "축제")) {
-            List<Object> all = placeDAO.getPlacesByCategory(type);
-            for (Object o : all) {
-                PlaceData pd = PlaceData.from(o);
-                String key = pd.type + ":" + pd.id;
-                if (savedKeys.contains(key)) {
-                    filtered.add(o);
-                    // 🔥 중요: 상세 정보 인덱스에 등록!
-                    placeNameIndex.put(key, pd.name);
-                    placeThumbIndex.put(key, pd.thumbUrl);
-                    placeAddrIndex.put(key, pd.addr);
-                }
+            if (!busantravel.auth.MemberSession.isLoggedIn()) {
+                JOptionPane.showMessageDialog(this, "로그인이 필요한 서비스입니다.", "알림", JOptionPane.INFORMATION_MESSAGE);
+                selectedCategory = "관광지";
+                updateCategoryBarStyles();
+                loadPlacesFor(selectedCategory);
+                return;
             }
-        }
-
-        // 3. 결과 저장
-        currentCategoryPlaces = filtered;
-
-        if (filtered.isEmpty()) {
-            JLabel msg = new JLabel("찜한 장소가 없습니다.", SwingConstants.CENTER);
-            msg.setFont(jalnanFont.deriveFont(Font.PLAIN, 13f));
-            msg.setForeground(new Color(130, 130, 130));
-            placeListPanel.add(msg);
-        }
-    } else {
+            InterestService interestService = new InterestService();
+            List<busantravel.model.Interest> interests = interestService.getInterestById(busantravel.auth.MemberSession.getId());
+            List<Object> savedPlaces = new ArrayList<>();
+            for (busantravel.model.Interest interest : interests) {
+                savedPlaces.add(placeDAO.getPlaceByTypeAndId(interest.getP_type(), interest.getP_id()));
+            }
+            currentCategoryPlaces = savedPlaces;
+        } else {
             currentCategoryPlaces = placeDAO.getPlacesByCategory(category);
         }
 
@@ -436,13 +371,6 @@ public class PlanTripPanel extends JPanel {
         placeListPanel.repaint();
     }
 
-    /**
-     * 좌측 추천 장소 목록에 표시될 개별 행(Row) UI를 생성합니다.
-     * 각 행은 썸네일, 장소 이름, 주소, 추가 버튼으로 구성됩니다.
-     *
-     * @param obj 장소 정보를 담고 있는 데이터 객체 (Tourist, Restaurant 등)
-     * @return 생성된 행 JPanel 객체
-     */
     private JPanel buildListRow(Object obj) {
         loadFont();
         PlaceData pd = PlaceData.from(obj);
@@ -486,7 +414,6 @@ public class PlanTripPanel extends JPanel {
         plus.setBorder(new LineBorder(ACCENT_DARK, 1, true));
         plus.addActionListener(e -> {
             LocalDate d = getSelectedDate();
-            // 동일한 장소가 이미 해당 날짜에 존재하는지 확인
             boolean alreadyExists = scheduledPlaces.stream()
                 .anyMatch(existing ->
                     existing.getP_id().equals(pd.id) &&
@@ -502,7 +429,7 @@ public class PlanTripPanel extends JPanel {
                 return;
             }
 
-            LocalDateTime visit = LocalDateTime.of(d, LocalTime.MIDNIGHT); // 시간 정보 제거, 자정으로 설정
+            LocalDateTime visit = LocalDateTime.of(d, LocalTime.MIDNIGHT);
             ScheduledPlace sp = new ScheduledPlace(
                 planId,
                 pd.id, pd.type,
@@ -510,7 +437,6 @@ public class PlanTripPanel extends JPanel {
                 nextOrder(d)
             );
             
-            // 새 장소에 대해 핀에 랜덤 색상을 할당
             String key = sp.getP_type() + ":" + sp.getP_id();
             if (!scheduledPlaceColors.containsKey(key)) {
                 int colorIndex = scheduledPlaceColors.size();
@@ -535,13 +461,6 @@ public class PlanTripPanel extends JPanel {
         return row;
     }
 
-    /**
-     * 가운데 '나의 여행 계획' 목록에 표시될 개별 행(Row) UI를 생성합니다.
-     * 각 행은 썸네일, 장소 이름, 삭제/교체 버튼으로 구성됩니다.
-     *
-     * @param sp 계획된 장소 정보를 담고 있는 ScheduledPlace 객체
-     * @return 생성된 행 JPanel 객체
-     */
     private JPanel buildCenterRow(ScheduledPlace sp) {
         loadFont();
         String key = sp.getP_type() + ":" + sp.getP_id();
@@ -636,10 +555,6 @@ public class PlanTripPanel extends JPanel {
         return row;
     }
 
-    /**
-     * '나의 여행 계획' 패널(가운데 열)을 새로고침합니다.
-     * 현재 선택된 날짜에 해당하는 계획된 장소들만 필터링하여 표시합니다.
-     */
     private void refreshSelectedList() {
         selectedPlacePanel.removeAll();
         LocalDate sel = getSelectedDate();
@@ -655,16 +570,6 @@ public class PlanTripPanel extends JPanel {
         updateMap();
     }
 
-    /* ── Async + Cache image loader ───────────────────────── */
-    /**
-     * 지정된 URL의 이미지를 로드하여 썸네일 JLabel을 생성합니다.
-     * 이미지 로딩에 실패하거나 URL이 유효하지 않을 경우, "No Img" 플레이스홀더를 표시합니다.
-     *
-     * @param url 썸네일 이미지의 URL
-     * @param w   썸네일 너비
-     * @param h   썸네일 높이
-     * @return 생성된 썸네일 JLabel 객체
-     */
     private JLabel buildThumb(String url, int w, int h) {
         JLabel lbl = noImg(w, h);
         if (url == null || url.isBlank()) return lbl;
@@ -696,13 +601,6 @@ public class PlanTripPanel extends JPanel {
         return new ImageIcon(icon.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH));
     }
 
-    /**
-     * 이미지가 없을 때 표시할 플레이스홀더 JLabel을 생성합니다.
-     *
-     * @param w 플레이스홀더 너비
-     * @param h 플레이스홀더 높이
-     * @return "No Img" 텍스트가 포함된 JLabel 객체
-     */
     private JLabel noImg(int w, int h) {
         loadFont();
         JLabel n = new JLabel("No Img", SwingConstants.CENTER);
@@ -713,14 +611,6 @@ public class PlanTripPanel extends JPanel {
         return n;
     }
 
-    /* ── UI Style helpers ───────────────────────────────── */
-    /**
-     * 내용이 너무 길 경우 말줄임표(...)로 처리되는 JLabel을 생성합니다.
-     *
-     * @param htmlOrText  JLabel 내부에 표시될 HTML 또는 일반 텍스트
-     * @param maxCssWidth 최대 너비 (CSS 픽셀 단위)
-     * @return 생성된 JLabel 객체
-     */
     private JLabel ellipsisLabel(String htmlOrText, int maxCssWidth) {
         String body;
         if (htmlOrText != null && htmlOrText.toLowerCase().startsWith("<html>")) {
@@ -736,17 +626,8 @@ public class PlanTripPanel extends JPanel {
         return l;
     }
 
-    /**
-     * HTML 태그를 제거하는 유틸리티 메서드입니다.
-     * @param s 원본 HTML 문자열
-     * @return 태그가 제거된 문자열
-     */
     private String stripTags(String s) { return s.replaceAll("\\<.*?\\>", ""); }
 
-    /**
-     * JComboBox에 일관된 스타일을 적용합니다.
-     * @param cb 스타일을 적용할 JComboBox 객체
-     */
     private void styleCombo(JComboBox<?> cb) {
         loadFont();
         cb.setFont(jalnanFont.deriveFont(Font.PLAIN, 14f));
@@ -754,10 +635,6 @@ public class PlanTripPanel extends JPanel {
         cb.setBorder(new LineBorder(new Color(220, 210, 200), 1, true));
     }
 
-    /**
-     * JScrollPane에 일관된 스타일을 적용합니다.
-     * @param sp 스타일을 적용할 JScrollPane 객체
-     */
     private void styleScroll(JScrollPane sp) {
         sp.setBorder(new LineBorder(PANEL_BORDER, 1, true));
         sp.getVerticalScrollBar().setUnitIncrement(18);
@@ -767,11 +644,6 @@ public class PlanTripPanel extends JPanel {
         sp.getHorizontalScrollBar().setUI(new MatteScrollBarUI());
     }
 
-    /**
-     * 카테고리 선택 버튼(칩)에 스타일을 적용합니다.
-     * @param b        스타일을 적용할 JButton 객체
-     * @param selected 해당 버튼이 현재 선택되었는지 여부
-     */
     private void styleCategoryChip(JButton b, boolean selected) {
         loadFont();
         b.setFocusPainted(false);
@@ -782,9 +654,6 @@ public class PlanTripPanel extends JPanel {
         b.setPreferredSize(new Dimension(64, 30));
     }
 
-    /**
-     * 카테고리 바의 모든 버튼 스타일을 현재 선택된 카테고리에 맞춰 업데이트합니다.
-     */
     private void updateCategoryBarStyles() {
         for (Component c : categoryBar.getComponents()) {
             if (c instanceof JButton b) {
@@ -793,10 +662,6 @@ public class PlanTripPanel extends JPanel {
         }
     }
 
-    /**
-     * 단색 배경의 기본 버튼 스타일을 적용합니다.
-     * @param b 스타일을 적용할 JButton 객체
-     */
     private void styleSolidButton(JButton b) {
         loadFont();
         b.setFocusPainted(false);
@@ -806,10 +671,7 @@ public class PlanTripPanel extends JPanel {
         b.setFont(jalnanFont.deriveFont(Font.BOLD, 13f));
         b.setPreferredSize(new Dimension(72, 32));
     }
-    /**
-     * 파란색 계열의 주요 액션 버튼 스타일을 적용합니다.
-     * @param b 스타일을 적용할 JButton 객체
-     */
+
     private void stylePrimaryButton(JButton b) {
         loadFont();
         b.setFocusPainted(false);
@@ -819,10 +681,7 @@ public class PlanTripPanel extends JPanel {
         b.setFont(jalnanFont.deriveFont(Font.BOLD, 12f));
         b.setPreferredSize(new Dimension(56, 28));
     }
-    /**
-     * 붉은색 계열의 위험/삭제 버튼 스타일을 적용합니다.
-     * @param b 스타일을 적용할 JButton 객체
-     */
+
     private void styleDangerButton(JButton b) {
         loadFont();
         b.setFocusPainted(false);
@@ -832,10 +691,7 @@ public class PlanTripPanel extends JPanel {
         b.setFont(jalnanFont.deriveFont(Font.BOLD, 12f));
         b.setPreferredSize(new Dimension(56, 28));
     }
-    /**
-     * 배경이 거의 없고 테두리만 있는 '고스트' 버튼 스타일을 적용합니다.
-     * @param b 스타일을 적용할 JButton 객체
-     */
+
     private void styleGhostButton(JButton b) {
         loadFont();
         b.setFocusPainted(false);
@@ -896,35 +752,19 @@ public class PlanTripPanel extends JPanel {
         paginationControls.repaint();
     }
 
-    /**
-     * 날짜 선택 콤보박스에서 현재 선택된 날짜를 가져옵니다.
-     * @return 선택된 날짜의 LocalDate 객체
-     */
     private LocalDate getSelectedDate() {
         int idx = Math.max(0, dayComboBox.getSelectedIndex());
         return startDate.plusDays(idx);
     }
 
-    /**
-     * 특정 날짜에 새로 추가될 장소의 순서 번호를 계산합니다.
-     * @param d 순서를 계산할 날짜
-     * @return 해당 날짜의 다음 순서 번호
-     */
     private int nextOrder(LocalDate d) {
         return (int) scheduledPlaces.stream()
                 .filter(sp -> sp.getScheduled_date().toLocalDate().equals(d))
                 .count() + 1;
     }
 
-    /**
-     * null 문자열을 빈 문자열로 안전하게 변환합니다.
-     * @param s 변환할 문자열
-     * @return 원본 문자열 또는 빈 문자열
-     */
     private static String safe(String s) { return s == null ? "" : s; }
 
-
-    //지도 추가
     private void updateMap() {
         LocalDate selectedDate = getSelectedDate();
         List<ScheduledPlace> todaysPlaces = scheduledPlaces.stream()
@@ -940,7 +780,7 @@ public class PlanTripPanel extends JPanel {
         new Thread(() -> {
             List<Coordinate> coordinates = new ArrayList<>();
             List<String> markerList = new ArrayList<>();
-            Random rand = new Random(); // For fallback color generation
+            Random rand = new Random();
 
             for (ScheduledPlace sp : todaysPlaces) {
                 String placeAddr = placeAddrIndex.get(sp.getP_type() + ":" + sp.getP_id());
@@ -968,13 +808,13 @@ public class PlanTripPanel extends JPanel {
             if (!coordinates.isEmpty()) {
                 Coordinate center = calculateCenter(coordinates);
                 
-                int zoom = 11; // 기본 줌 레벨
+                int zoom = 11;
                 if (coordinates.size() > 1) {
                     double maxDistance = calculateMaxDistance(coordinates);
                     if (maxDistance >= 24) {
-                        zoom = 9; // 24km 이상이면 줌 레벨 2 감소
+                        zoom = 9;
                     } else if (maxDistance >= 14) {
-                        zoom = 10; // 14km 이상이면 줌 레벨 1 감소
+                        zoom = 10;
                     }
                 }
 
@@ -998,7 +838,7 @@ public class PlanTripPanel extends JPanel {
     }
 
     private double calculateDistance(Coordinate c1, Coordinate c2) {
-        final int R = 6371; // 지구 반지름 (km)
+        final int R = 6371;
         double lat1 = c1.getLatitude();
         double lon1 = c1.getLongitude();
         double lat2 = c2.getLatitude();
@@ -1016,7 +856,6 @@ public class PlanTripPanel extends JPanel {
     }
 
     private double calculateMaxDistance(List<Coordinate> coordinates) {
-        // 리스트에 있는 모든 핀 조합(예: 3개 핀의 경우 1-2, 1-3, 2-3) 간의 거리를 계산하여 최대 거리를 찾습니다.
         double maxDistance = 0;
         for (int i = 0; i < coordinates.size(); i++) {
             for (int j = i + 1; j < coordinates.size(); j++) {
@@ -1031,7 +870,7 @@ public class PlanTripPanel extends JPanel {
 
     private Coordinate calculateCenter(List<Coordinate> coordinates) {
         if (coordinates == null || coordinates.isEmpty()) {
-            return new Coordinate(35.1581, 129.0596); // Default to Busan center
+            return new Coordinate(35.1581, 129.0596);
         }
         if (coordinates.size() == 1) {
             return coordinates.get(0);
@@ -1044,7 +883,6 @@ public class PlanTripPanel extends JPanel {
         return new Coordinate(sumLat / coordinates.size(), sumLon / coordinates.size());
     }
 
-    /* ImageCache (내부) */
     private static class ImageCache {
         private static ImageCache instance;
         private final Map<String, ImageIcon> memoryCache = new HashMap<>();
@@ -1059,18 +897,16 @@ public class PlanTripPanel extends JPanel {
             return instance;
         }
         public ImageIcon getImage(String key) {
-            // 메모리 캐시 있으면 바로 반환 (가장 빠름)
             ImageIcon icon = memoryCache.get(key);
             if (icon != null) return icon;
 
-            // 없으면 디스크 캐시 확인
             File imageFile = cacheDir.resolve(getFileName(key)).toFile();
             if (imageFile.exists()) {
                 try {
                     BufferedImage img = ImageIO.read(imageFile);
                     if (img != null) {
                         icon = new ImageIcon(img);
-                        memoryCache.put(key, icon); // 메모리 캐시에 다시 적재
+                        memoryCache.put(key, icon);
                         return icon;
                     }
                 } catch (IOException e) {
@@ -1078,7 +914,7 @@ public class PlanTripPanel extends JPanel {
                 }
             }
 
-            return null; // 디스크에도 없으면 null
+            return null;
         }
 
         public void putImage(String key, Image image) {
@@ -1104,9 +940,8 @@ public class PlanTripPanel extends JPanel {
                 byte[] digest = md.digest(key.getBytes(StandardCharsets.UTF_8));
                 StringBuilder sb = new StringBuilder(digest.length * 2);
                 for (byte b : digest) sb.append(String.format("%02x", b));
-                return sb.toString() + ".png";  // 짧고 안전한 파일명
+                return sb.toString() + ".png";
             } catch (Exception e) {
-                // 해시 실패 시 fallback: 해시코드로
                 return Integer.toHexString(key.hashCode()) + ".png";
             }
         }
@@ -1114,13 +949,12 @@ public class PlanTripPanel extends JPanel {
         private static BufferedImage toBufferedImage(Image img) {
             if (img instanceof BufferedImage) return (BufferedImage) img;
 
-            // ImageIcon's constructor waits for the image to be loaded.
             ImageIcon icon = new ImageIcon(img);
             int width = icon.getIconWidth();
             int height = icon.getIconHeight();
 
             if (width <= 0 || height <= 0) {
-                return null; // Invalid image, cannot convert
+                return null;
             }
 
             BufferedImage bimage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
@@ -1131,21 +965,12 @@ public class PlanTripPanel extends JPanel {
         }
     }
 
-    /* PlaceData */
-    /**
-     * 다양한 장소 모델 객체(Tourist, Restaurant 등)의 공통 데이터를 추출하여 담는
-     * 내부 정적 DTO 클래스입니다.
-     */
     private static class PlaceData {
         final String id, name, addr, type, thumbUrl;
         private PlaceData(String id, String name, String addr, String type, String thumbUrl) {
             this.id=id; this.name=name; this.addr=addr; this.type=type; this.thumbUrl=thumbUrl;
         }
-        /**
-         * 다양한 타입의 장소 객체로부터 PlaceData 인스턴스를 생성하는 정적 팩토리 메서드입니다.
-         * @param o 원본 장소 객체 (Tourist, Restaurant 등)
-         * @return 생성된 PlaceData 객체
-         */
+
         static PlaceData from(Object o) {
             if (o instanceof Tourist t)   return new PlaceData(t.getT_id(), t.getT_place(), t.getT_addr(), "관광지", t.getT_thum());
             if (o instanceof Restaurant r) return new PlaceData(r.getR_id(), r.getR_place(), r.getR_addr(), "맛집", r.getR_thum());
@@ -1159,7 +984,7 @@ public class PlanTripPanel extends JPanel {
         try {
             InputStream is = getClass().getResourceAsStream("/busantravel/resources/Jalnan2TTF.ttf");
             if (is != null) {
-                jalnanFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(14f); // 기본 크기 14로 설정
+                jalnanFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(14f);
                 GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
                 ge.registerFont(jalnanFont);
             } else {

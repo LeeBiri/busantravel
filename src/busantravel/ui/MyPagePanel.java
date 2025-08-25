@@ -460,7 +460,7 @@ public class MyPagePanel extends JPanel {
                     thumbUrl = f.getF_thum();
                 }
 
-                JPanel box = createFavoritePlaceBox(placeName, thumbUrl);
+                JPanel box = createFavoritePlaceBox(placeName, thumbUrl, interest);
                 listPanel.add(box);
             }
         }
@@ -740,7 +740,7 @@ public class MyPagePanel extends JPanel {
         return JOptionPane.showConfirmDialog(this, label, title, JOptionPane.YES_NO_OPTION);
     }
 
-    private JPanel createFavoritePlaceBox(String name, String thumbUrl) {
+    private JPanel createFavoritePlaceBox(String name, String thumbUrl, Interest interest) {
         JPanel card = new JPanel();
         card.setLayout(new BoxLayout(card, BoxLayout.X_AXIS));
         card.setBackground(Color.WHITE);
@@ -781,32 +781,49 @@ public class MyPagePanel extends JPanel {
 
         card.add(imageLabel);
         card.add(textPanel);
+        card.add(Box.createHorizontalGlue());
+
+        JButton deleteButton = new JButton("삭제");
+        deleteButton.setFont(jalnanFont.deriveFont(Font.PLAIN, 14f));
+        deleteButton.setBackground(new Color(230, 110, 110));
+        deleteButton.setForeground(Color.WHITE);
+        deleteButton.setFocusPainted(false);
+        deleteButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        deleteButton.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(this, "정말로 삭제하시겠습니까?", "삭제 확인", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                InterestService.deleteInterest(interest);
+                reloadFavoritePlacePanel();
+            }
+        });
+        card.add(deleteButton);
 
         // 💡 마우스 클릭 시 상세보기 다이얼로그 호출
         card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         card.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
-                // 타입과 placeId를 통해 재조회
-                for (Interest interest : InterestService.getInterestById(loggedInUserId)) {
-                    Object place = placeDAO.getPlaceByTypeAndId(interest.getP_type(), interest.getP_id());
-                    String pName = "";
+                if (e.getSource() != deleteButton) {
+                    // 타입과 placeId를 통해 재조회
+                    for (Interest currentInterest : InterestService.getInterestById(loggedInUserId)) {
+                        if (currentInterest.getM_id().equals(interest.getM_id()) &&
+                            currentInterest.getP_id().equals(interest.getP_id()) &&
+                            currentInterest.getP_type().equals(interest.getP_type())) {
+                            Object place = placeDAO.getPlaceByTypeAndId(currentInterest.getP_type(), currentInterest.getP_id());
+                            String pName = "";
 
-                    if (place instanceof Tourist && ((Tourist) place).getT_place().equals(name)) {
-                        pName = ((Tourist) place).getT_place();
-                    } else if (place instanceof Restaurant && ((Restaurant) place).getR_place().equals(name)) {
-                        pName = ((Restaurant) place).getR_place();
-                    } else if (place instanceof Lodging && ((Lodging) place).getL_place().equals(name)) {
-                        pName = ((Lodging) place).getL_place();
-                    } else if (place instanceof Festival && ((Festival) place).getF_name().equals(name)) {
-                        pName = ((Festival) place).getF_name();
-                    }
+                            if (place instanceof Tourist) pName = ((Tourist) place).getT_place();
+                            else if (place instanceof Restaurant) pName = ((Restaurant) place).getR_place();
+                            else if (place instanceof Lodging) pName = ((Lodging) place).getL_place();
+                            else if (place instanceof Festival) pName = ((Festival) place).getF_name();
 
-                    if (!pName.isEmpty()) {
-                        // 🎯 PlaceCard 다이얼로그 재사용
-                        new PlaceCard((JFrame) SwingUtilities.getWindowAncestor(MyPagePanel.this), interest.getP_id(), pName, interest.getP_type(), thumbUrl, PlaceCard.ViewType.GRID, jalnanFont, mainApp)
-                            .showPlaceDetailDialog((JFrame) SwingUtilities.getWindowAncestor(MyPagePanel.this), pName, interest.getP_type());
-                        break;
+                            if (!pName.isEmpty()) {
+                                // 🎯 PlaceCard 다이얼로그 재사용
+                                new PlaceCard((JFrame) SwingUtilities.getWindowAncestor(MyPagePanel.this), currentInterest.getP_id(), pName, currentInterest.getP_type(), thumbUrl, PlaceCard.ViewType.GRID, jalnanFont, mainApp)
+                                    .showPlaceDetailDialog((JFrame) SwingUtilities.getWindowAncestor(MyPagePanel.this), pName, currentInterest.getP_type());
+                                break;
+                            }
+                        }
                     }
                 }
             }
