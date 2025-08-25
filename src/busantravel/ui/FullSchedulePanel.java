@@ -1,8 +1,10 @@
 package busantravel.ui;
 
 import busantravel.dao.PlaceDAO;
+import busantravel.dao.TravelPlanMemberDAO;
 import busantravel.model.Festival;
 import busantravel.model.Lodging;
+import busantravel.model.Member;
 import busantravel.model.Restaurant;
 import busantravel.model.ScheduledPlace;
 import busantravel.model.Tourist;
@@ -96,6 +98,11 @@ public class FullSchedulePanel extends JPanel {
         membersBtn.setBackground(ColorConstants.ACCENT);
         membersBtn.setForeground(Color.WHITE);
         membersBtn.setFocusPainted(false);
+        membersBtn.addActionListener(e -> {
+            List<Member> members = TravelPlanMemberDAO.findMembersByPlanId(plan.getPlan_id());
+            MemberListDialog dialog = new MemberListDialog((JFrame) SwingUtilities.getWindowAncestor(this), members);
+            dialog.setVisible(true);
+        });
 
         buttonPanel.add(checklistBtn);
         buttonPanel.add(membersBtn);

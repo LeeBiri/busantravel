@@ -13,13 +13,11 @@ import busantravel.service.InterestService;
 import busantravel.service.MemberService;
 import busantravel.service.ReviewService;
 import busantravel.service.TravelPlanService;
-
 import java.awt.*;
 import java.io.InputStream;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
@@ -823,8 +821,7 @@ public class MyPagePanel extends JPanel {
             int confirm = JOptionPane.showConfirmDialog(this, "정말로 삭제하시겠습니까?", "삭제 확인", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
                 InterestService.deleteInterest(interest);
-                refreshData();
-                contentCardLayout.show(contentPanel, "favorite");
+                reloadFavoritePlacePanel();
             }
         });
         card.add(deleteButton);
@@ -850,7 +847,7 @@ public class MyPagePanel extends JPanel {
 
                             if (!pName.isEmpty()) {
                                 // 🎯 PlaceCard 다이얼로그 재사용
-                                new PlaceCard((JFrame) SwingUtilities.getWindowAncestor(MyPagePanel.this), currentInterest.getP_id(), pName, currentInterest.getP_type(), thumbUrl, PlaceCard.ViewType.GRID, jalnanFont)
+                                new PlaceCard((JFrame) SwingUtilities.getWindowAncestor(MyPagePanel.this), currentInterest.getP_id(), pName, currentInterest.getP_type(), thumbUrl, PlaceCard.ViewType.GRID, jalnanFont, mainApp)
                                     .showPlaceDetailDialog((JFrame) SwingUtilities.getWindowAncestor(MyPagePanel.this), pName, currentInterest.getP_type());
                                 break;
                             }
@@ -871,4 +868,22 @@ public class MyPagePanel extends JPanel {
         });
         return card;
     }
+
+    public void reloadFavoritePlacePanel() {
+        for (Component comp : contentPanel.getComponents()) {
+            if (comp.getName() != null && comp.getName().equals("favorite")) {
+                contentPanel.remove(comp);
+                break;
+            }
+        }
+        JPanel favoritePanel = createFavoritePlacePanel();
+        favoritePanel.setName("favorite");
+        contentPanel.add(favoritePanel, "favorite");
+
+        contentCardLayout.show(contentPanel, "favorite");
+        contentPanel.revalidate();
+        contentPanel.repaint();
+    }
+
+
 }

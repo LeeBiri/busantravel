@@ -16,6 +16,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PlaceCard extends JPanel {
     private String placeId;
@@ -24,6 +25,7 @@ public class PlaceCard extends JPanel {
     private TmapApiHandler tmapApiHandler;
     private StaticMapGenerator staticMapGenerator;
     private int currentZoom = 14;
+    private TravelPlannerApp mainApp;
     private static final String API_KEY = "h5baCQSfp37eFmXohbwx23t7n1KLSIcn3RyFtMcg"; // TMAP API Key
 
     public enum ViewType {
@@ -31,12 +33,13 @@ public class PlaceCard extends JPanel {
         LIST
     }
 
-    public PlaceCard(JFrame frame, String placeId, String placeName, String category, String thumbnail, ViewType viewType, Font customFont) {
+    public PlaceCard(JFrame frame, String placeId, String placeName, String category, String thumbnail, ViewType viewType, Font customFont, TravelPlannerApp mainApp) {
         this.placeId = placeId;
         this.placeDAO = new PlaceDAO();
         this.tmapApiHandler = new TmapApiHandler(API_KEY);
         this.staticMapGenerator = new StaticMapGenerator(API_KEY);
         this.jalnanFont = customFont;
+        this.mainApp = mainApp;
         if (viewType == ViewType.GRID) {
             setupGridView(frame, placeName, category, thumbnail);
         } else {
