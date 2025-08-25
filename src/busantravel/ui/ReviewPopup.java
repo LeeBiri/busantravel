@@ -12,6 +12,7 @@ import java.util.UUID;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -21,11 +22,19 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
 import busantravel.dao.ReviewDAO;
 import busantravel.dao.ReviewPhotoDAO;
 import busantravel.model.Review;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.BorderFactory;
+import java.awt.image.BufferedImage;
+import java.awt.Image;
+
 
 public class ReviewPopup extends JDialog {
 
@@ -210,19 +219,73 @@ public class ReviewPopup extends JDialog {
             }
         }
     }
+    private boolean isImageFile(File f) {
+    String name = f.getName().toLowerCase();
+    return name.endsWith(".jpg") || name.endsWith(".jpeg") ||
+           name.endsWith(".png") || name.endsWith(".gif")  ||
+           name.endsWith(".bmp") || name.endsWith(".webp"); // webp는 JVM마다 미지원일 수 있음
+}
+
+private JComponent createThumbTile(File file) {
+    int W = 160, H = 120; // 썸네일 크기
+    ImageIcon icon = null;
+
+    try {
+        // 선명한 축소를 위해 ImageIO 사용 (webp는 미지원일 수 있음)
+        BufferedImage src = ImageIO.read(file);
+        if (src != null) {
+            double r = Math.min((double) W / src.getWidth(), (double) H / src.getHeight());
+            int w = Math.max(1, (int)Math.round(src.getWidth() * r));
+            int h = Math.max(1, (int)Math.round(src.getHeight() * r));
+            Image scaled = src.getScaledInstance(w, h, Image.SCALE_SMOOTH);
+            icon = new ImageIcon(scaled);
+        }
+    } catch (Exception ignore) {}
+
+    if (icon == null) {
+        // ImageIO가 못 읽는 포맷(webp 등)은 Toolkit 경로 로딩으로 폴백
+        icon = new ImageIcon(file.getAbsolutePath());
+        Image scaled = icon.getImage().getScaledInstance(W, H, Image.SCALE_SMOOTH);
+        icon = new ImageIcon(scaled);
+    }
+
+    JLabel img = new JLabel(icon);
+    img.setHorizontalAlignment(SwingConstants.CENTER);
+
+    JLabel name = new JLabel(file.getName());
+    name.setHorizontalAlignment(SwingConstants.CENTER);
+    name.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+
+    JPanel tile = new JPanel(new BorderLayout(4, 4));
+    tile.setBackground(Color.WHITE);
+    tile.setBorder(BorderFactory.createLineBorder(new Color(230,230,230)));
+    tile.add(img, BorderLayout.CENTER);
+    tile.add(name, BorderLayout.SOUTH);
+    return tile;
+}
 
     private void addPhoto() {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setMultiSelectionEnabled(true);
-        int result = fileChooser.showOpenDialog(this);
-        if (result == JFileChooser.APPROVE_OPTION) {
-            File[] files = fileChooser.getSelectedFiles();
-            for (File file : files) {
-                selectedPhotos.add(file);
-                photoPanel.add(new JLabel(file.getName()));
-                photoPanel.revalidate();
-                photoPanel.repaint();
-            }
-        }
+    JFileChooser chooser = new JFileChooser();
+    chooser.setMultiSelectionEnabled(true);
+    chooser.setAcceptAllFileFilterUsed(false);
+    chooser.setFileFilter(new FileNameExtensionFilter(
+            "이미지 파일 (jpg, jpeg, png, gif, bmp, webp)",
+            "jpg","jpeg","png","gif","bmp","webp"));
+
+    int result = chooser.showOpenDialog(this);
+    if (result != JFileChooser.APPROVE_OPTION) return;
+
+    File[] files = chooser.getSelectedFiles().length > 0
+            ? chooser.getSelectedFiles()
+            : new File[]{ chooser.getSelectedFile() };
+
+    for (File file : files) {
+        if (!isImageFile(file)) continue; // 확장자 체크
+        selectedPhotos.add(file);
+        photoPanel.add(createThumbTile(file)); // ← 썸네일 붙이기
     }
+    photoPanel.revalidate();
+    photoPanel.repaint();
+}
+
 }

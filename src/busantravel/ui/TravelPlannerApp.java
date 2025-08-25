@@ -30,7 +30,7 @@ public class TravelPlannerApp {
     private JButton signUpButton;
     private JButton logoutButton;
     private JButton myPageButton;
-
+    private MyPagePanel myPagePanel;
     private String currentTab = "home";
 
     public static void main(String[] args) {
