@@ -186,6 +186,9 @@ public class TravelPlannerApp {
         if ("schedule".equals(currentTab)) {
             schedulePanel.getController().refreshRoomLists();
         }
+        if ("myPage".equals(currentTab)) {
+            myPagePanel.refreshData();
+        }
         if ("review".equals(currentTab)) {
             if (reviewPanel != null) {
                 contentPanel.remove(reviewPanel);
@@ -331,7 +334,12 @@ public class TravelPlannerApp {
                 refreshAuthButtons();
             });
 
-            myPageButton.addActionListener(e -> switchToMyPage());
+            myPageButton.addActionListener(e -> {
+                currentTab = "myPage";
+                updateContent();
+                updateTopPanelTitle();
+                updateNavButtonStyles();
+            });
 
             authButtonsPanel.add(myPageButton);
             authButtonsPanel.add(logoutButton);
@@ -378,11 +386,4 @@ public class TravelPlannerApp {
         updateNavButtonStyles();
     }
 
-    public void switchToMyPage() {
-        currentTab = "myPage";
-        myPagePanel.refreshData();
-        updateContent();
-        updateTopPanelTitle();
-        updateNavButtonStyles();
-    }
 }

@@ -104,7 +104,7 @@ public class PlaceCard extends JPanel {
         descriptionArea.addMouseListener(adapter);
     }
 
-    private void showPlaceDetailDialog(JFrame frame, String placeName, String category) {
+    public void showPlaceDetailDialog(JFrame frame, String placeName, String category) {
         JDialog detailDialog = new JDialog(frame, placeName + " 상세 정보", true);
         detailDialog.setSize(1180, 850);
         detailDialog.setLocationRelativeTo(frame);
