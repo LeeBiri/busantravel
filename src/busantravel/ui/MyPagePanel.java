@@ -11,6 +11,7 @@ import busantravel.model.Tourist;
 import busantravel.model.TravelPlan;
 import busantravel.service.InterestService;
 import busantravel.service.MemberService;
+import busantravel.service.ReviewService;
 import busantravel.service.TravelPlanService;
 
 import java.awt.*;
@@ -34,6 +35,10 @@ public class MyPagePanel extends JPanel {
     private String loggedInUserId;
     private TravelPlannerApp mainApp;
     private PlaceDAO placeDAO;
+    private ReviewService reviewService;
+    private JLabel nicknameLabel;
+    private JPanel statsPanel;
+
 
     public MyPagePanel(JFrame frame, TravelPlannerApp mainApp) {
         loadJalnanFont();
@@ -47,6 +52,7 @@ public class MyPagePanel extends JPanel {
         add(menuPanel, BorderLayout.WEST);
 
         placeDAO = new PlaceDAO();
+        reviewService = new ReviewService();
         contentCardLayout = new CardLayout();
         contentPanel = new JPanel(contentCardLayout);
         contentPanel.setBackground(Color.WHITE);
@@ -54,13 +60,44 @@ public class MyPagePanel extends JPanel {
         contentPanel.add(createHomePanel(), "home");
         contentPanel.add(createTravelListPanel(), "travelList");
         contentPanel.add(createFavoritePlacePanel(), "favorite");
-        contentPanel.add(createReviewPanel(), "review");
         contentPanel.add(createMemberInfoPanel(), "info");
         contentPanel.add(createChangePasswordPanel(), "changePw");
 
         add(contentPanel, BorderLayout.CENTER);
         contentCardLayout.show(contentPanel, "home");
     }
+
+    public void refreshData() {
+        loggedInUserId = MemberSession.getId();
+        if (loggedInUserId == null) {
+            return;
+        }
+        
+        nicknameLabel.setText(MemberSession.getName() + " 님, 환영합니다!");
+
+        statsPanel.removeAll();
+        JPanel item1 = createStatsItem("" + TravelPlanService.getAllPlansByMember(loggedInUserId).size(), "총 여행 수");
+        item1.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(200, 200, 200)));
+        JPanel item2 = createStatsItem("" + InterestService.getInterestById(loggedInUserId).size(), "관심장소 수");
+        item2.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(200, 200, 200)));
+        JPanel item3 = createStatsItem("" + reviewService.getReviewCountByMember(loggedInUserId), "내가 쓴 리뷰 수");
+        statsPanel.add(item1);
+        statsPanel.add(item2);
+        statsPanel.add(item3);
+        statsPanel.revalidate();
+        statsPanel.repaint();
+
+        // Recreate and re-add all dynamic panels to ensure they are up-to-date
+        contentPanel.removeAll();
+        contentPanel.add(createHomePanel(), "home");
+        contentPanel.add(createTravelListPanel(), "travelList");
+        contentPanel.add(createFavoritePlacePanel(), "favorite");
+        contentPanel.add(createMemberInfoPanel(), "info");
+        contentPanel.add(createChangePasswordPanel(), "changePw");
+        contentPanel.revalidate();
+        contentPanel.repaint();
+    }
+
 
     private void loadJalnanFont() {
         try {
@@ -152,14 +189,14 @@ public class MyPagePanel extends JPanel {
         profilePanel.setBackground(Color.WHITE);
         profilePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel nickname = new JLabel(MemberSession.getName() + " 님, 환영합니다!");
-        nickname.setFont(jalnanFont.deriveFont(Font.BOLD, 28f));
-        profilePanel.add(nickname);
+        nicknameLabel = new JLabel((MemberSession.getName() != null ? MemberSession.getName() : "") + " 님, 환영합니다!");
+        nicknameLabel.setFont(jalnanFont.deriveFont(Font.BOLD, 28f));
+        profilePanel.add(nicknameLabel);
 
         topPanel.add(profilePanel);
         topPanel.add(Box.createVerticalStrut(40));
 
-        JPanel statsPanel = createStatsPanel();
+        statsPanel = createStatsPanel();
         statsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         topPanel.add(statsPanel);
 
@@ -175,15 +212,10 @@ public class MyPagePanel extends JPanel {
         JButton btnFavorite = createMainFeatureButton("저장한 관심 장소", "heart.png");
         btnFavorite.addActionListener(e -> contentCardLayout.show(contentPanel, "favorite"));
 
-        JButton btnReview = createMainFeatureButton("내가 쓴 리뷰", "note.png");
-        btnReview.addActionListener(e -> contentCardLayout.show(contentPanel, "review"));
-
         middlePanel.add(Box.createHorizontalGlue());
         middlePanel.add(btnTravelList);
         middlePanel.add(Box.createRigidArea(new Dimension(50, 0)));
         middlePanel.add(btnFavorite);
-        middlePanel.add(Box.createRigidArea(new Dimension(50, 0)));
-        middlePanel.add(btnReview);
         middlePanel.add(Box.createHorizontalGlue());
 
         panel.add(topPanel, BorderLayout.NORTH);
@@ -197,17 +229,20 @@ public class MyPagePanel extends JPanel {
         panel.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 0, new Color(200, 200, 200)));
         panel.setBackground(Color.WHITE);
 
-        JPanel item1 = createStatsItem("" + TravelPlanService.getAllPlansByMember(loggedInUserId).size(), "총 여행 수");
-        item1.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(200, 200, 200)));
+        String userId = MemberSession.getId();
+        if (userId != null) {
+            JPanel item1 = createStatsItem("" + TravelPlanService.getAllPlansByMember(userId).size(), "총 여행 수");
+            item1.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(200, 200, 200)));
 
-        JPanel item2 = createStatsItem("" + InterestService.getInterestById(loggedInUserId).size(), "관심장소 수");
-        item2.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(200, 200, 200)));
+            JPanel item2 = createStatsItem("" + InterestService.getInterestById(userId).size(), "관심장소 수");
+            item2.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(200, 200, 200)));
 
-        JPanel item3 = createStatsItem("", "내가 쓴 리뷰 수");
+            JPanel item3 = createStatsItem("" + reviewService.getReviewCountByMember(userId), "내가 쓴 리뷰 수");
 
-        panel.add(item1);
-        panel.add(item2);
-        panel.add(item3);
+            panel.add(item1);
+            panel.add(item2);
+            panel.add(item3);
+        }
 
         return panel;
     }
@@ -443,34 +478,6 @@ public class MyPagePanel extends JPanel {
         return panel;
     }
 
-    private JPanel createReviewPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(new EmptyBorder(60, 80, 60, 80));
-
-        JLabel title = new JLabel("내가 쓴 리뷰");
-        title.setFont(jalnanFont.deriveFont(Font.BOLD, 30f));
-        panel.add(title, BorderLayout.NORTH);
-
-        JPanel listPanel = new JPanel(new GridLayout(0, 1, 0, 25));
-        listPanel.setBackground(Color.WHITE);
-        listPanel.setBorder(new EmptyBorder(40, 0, 0, 0));
-
-        for (int i = 1; i <= 5; i++) {
-            JLabel review = new JLabel("리뷰 " + i + " - 내용 요약...");
-            review.setFont(jalnanFont.deriveFont(Font.PLAIN, 20f));
-            listPanel.add(review);
-        }
-
-        JScrollPane scroll = new JScrollPane(listPanel);
-        scroll.setBorder(null);
-
-        panel.add(scroll, BorderLayout.CENTER);
-        panel.add(createGoBackButtonPanel(), BorderLayout.SOUTH);
-
-        return panel;
-    }
-
     private JPanel createMemberInfoPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.WHITE);
@@ -504,7 +511,7 @@ public class MyPagePanel extends JPanel {
         panel.add(lblIdValue, gbc);
 
         JLabel lblName = new JLabel("이름");
-        JTextField tfName = new JTextField(20);
+        JTextField tfName = new JTextField(MemberSession.getName(), 20);
         lblName.setFont(jalnanFont.deriveFont(Font.PLAIN, 24f));
         tfName.setFont(jalnanFont.deriveFont(Font.PLAIN, 20f));
 
@@ -725,8 +732,6 @@ public class MyPagePanel extends JPanel {
         JOptionPane.showMessageDialog(this, label, title, JOptionPane.INFORMATION_MESSAGE);
     }
 
->>>>>>> origin/master
-}
     private int showStyledConfirm(String message, String title) {
         JLabel label = new JLabel(message);
         label.setFont(jalnanFont.deriveFont(Font.PLAIN, 20f));
@@ -798,8 +803,8 @@ public class MyPagePanel extends JPanel {
 
                     if (!pName.isEmpty()) {
                         // 🎯 PlaceCard 다이얼로그 재사용
-                        new PlaceCard(null, interest.getP_id(), pName, interest.getP_type(), thumbUrl, PlaceCard.ViewType.GRID, jalnanFont)
-                            .showPlaceDetailDialog(null, pName, interest.getP_type());
+                        new PlaceCard((JFrame) SwingUtilities.getWindowAncestor(MyPagePanel.this), interest.getP_id(), pName, interest.getP_type(), thumbUrl, PlaceCard.ViewType.GRID, jalnanFont)
+                            .showPlaceDetailDialog((JFrame) SwingUtilities.getWindowAncestor(MyPagePanel.this), pName, interest.getP_type());
                         break;
                     }
                 }
@@ -815,10 +820,6 @@ public class MyPagePanel extends JPanel {
                 card.setBackground(Color.WHITE);
             }
         });
-
         return card;
     }
-}
-=======
->>>>>>> origin/master
 }

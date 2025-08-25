@@ -30,6 +30,7 @@ public class TravelPlannerApp {
     private JButton signUpButton;
     private JButton logoutButton;
     private JButton myPageButton;
+    private MyPagePanel myPagePanel;
 
     private String currentTab = "home";
 
@@ -185,6 +186,9 @@ public class TravelPlannerApp {
         
         if ("schedule".equals(currentTab)) {
             schedulePanel.getController().refreshRoomLists();
+        }
+        if ("myPage".equals(currentTab)) {
+            myPagePanel.refreshData();
         }
         if ("review".equals(currentTab)) {
             if (reviewPanel != null) {

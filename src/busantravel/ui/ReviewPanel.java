@@ -92,7 +92,7 @@ public class ReviewPanel extends JPanel {
         String memberId = MemberSession.getId();
         if (memberId != null && !memberId.isEmpty()) {
             reviewListTitle.setText("내 후기");
-            List<Review> reviews = reviewDAO.getReviewsByMember(memberId);
+            List<Review> reviews = reviewDAO.getReviewsByMemberId(memberId);
             displayReviews(reviews);
         }
     }
@@ -150,7 +150,7 @@ public class ReviewPanel extends JPanel {
         metaPanel.setBackground(Color.WHITE);
         metaPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
-        String authorText = review.getMemberNickname();
+        String authorText = review.getMemberId();
         if (authorText == null || authorText.trim().isEmpty()) {
             authorText = review.getMemberId();
         }

@@ -101,7 +101,29 @@ public class ReviewDAO {
         return review;
     }
 
-    public List<Review> getReviewsByMember(String memberId) {
+    public int getReviewCountByMemberId(String memberId) {
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        String sql = "SELECT COUNT(*) FROM travel_review WHERE m_id = ?";
+        int count = 0;
+        try {
+            con = pool.getConnection();
+            pstmt = con.prepareStatement(sql);
+            pstmt.setString(1, memberId);
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            pool.freeConnection(con, pstmt, rs);
+        }
+        return count;
+    }
+
+    public List<Review> getReviewsByMemberId(String memberId) {
         Connection con = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
