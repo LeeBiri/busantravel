@@ -331,7 +331,12 @@ public class TravelPlannerApp {
                 refreshAuthButtons();
             });
 
-            myPageButton.addActionListener(e -> switchToMyPage());
+            myPageButton.addActionListener(e -> {
+                currentTab = "myPage";
+                updateContent();
+                updateTopPanelTitle();
+                updateNavButtonStyles();
+            });
 
             authButtonsPanel.add(myPageButton);
             authButtonsPanel.add(logoutButton);
