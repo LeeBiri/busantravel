@@ -14,8 +14,6 @@ import busantravel.service.MemberService;
 import busantravel.service.TravelPlanService;
 
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.InputStream;
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -727,6 +725,8 @@ public class MyPagePanel extends JPanel {
         JOptionPane.showMessageDialog(this, label, title, JOptionPane.INFORMATION_MESSAGE);
     }
 
+>>>>>>> origin/master
+}
     private int showStyledConfirm(String message, String title) {
         JLabel label = new JLabel(message);
         label.setFont(jalnanFont.deriveFont(Font.PLAIN, 20f));
@@ -778,9 +778,9 @@ public class MyPagePanel extends JPanel {
 
         // 💡 마우스 클릭 시 상세보기 다이얼로그 호출
         card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        card.addMouseListener(new MouseAdapter() {
+        card.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseClicked(java.awt.event.MouseEvent e) {
                 // 타입과 placeId를 통해 재조회
                 for (Interest interest : InterestService.getInterestById(loggedInUserId)) {
                     Object place = placeDAO.getPlaceByTypeAndId(interest.getP_type(), interest.getP_id());
@@ -806,17 +806,19 @@ public class MyPagePanel extends JPanel {
             }
 
             @Override
-            public void mouseEntered(MouseEvent e) {
+            public void mouseEntered(java.awt.event.MouseEvent e) {
                 card.setBackground(new Color(245, 245, 245));
             }
 
             @Override
-            public void mouseExited(MouseEvent e) {
+            public void mouseExited(java.awt.event.MouseEvent e) {
                 card.setBackground(Color.WHITE);
             }
         });
 
         return card;
     }
-
+}
+=======
+>>>>>>> origin/master
 }
