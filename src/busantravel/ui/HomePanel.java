@@ -250,7 +250,7 @@ public class HomePanel extends JPanel {
                     placeName = ((Festival) place).getF_name();
                     thumbnail = ((Festival) place).getF_thum();
                 }
-                contentPanel.add(new PlaceCard(frame, placeId, placeName, category, thumbnail, viewType, jalnanFont));
+                contentPanel.add(new PlaceCard(frame, placeId, placeName, category, thumbnail, viewType, jalnanFont, null));
             }
             
             if (viewType == PlaceCard.ViewType.LIST) {
@@ -334,7 +334,7 @@ public class HomePanel extends JPanel {
                     placeName = ((Festival) place).getF_name();
                     thumbnail = ((Festival) place).getF_thum();
                 }
-                contentPanel.add(new PlaceCard(frame, placeId, placeName, selectedCategory, thumbnail, viewType, jalnanFont));
+                contentPanel.add(new PlaceCard(frame, placeId, placeName, selectedCategory, thumbnail, viewType, jalnanFont, null));
             }
 
             if (viewType == PlaceCard.ViewType.LIST) {

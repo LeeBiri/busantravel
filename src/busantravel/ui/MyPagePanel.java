@@ -13,13 +13,11 @@ import busantravel.service.InterestService;
 import busantravel.service.MemberService;
 import busantravel.service.ReviewService;
 import busantravel.service.TravelPlanService;
-
 import java.awt.*;
 import java.io.InputStream;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
@@ -803,7 +801,7 @@ public class MyPagePanel extends JPanel {
 
                     if (!pName.isEmpty()) {
                         // 🎯 PlaceCard 다이얼로그 재사용
-                        new PlaceCard((JFrame) SwingUtilities.getWindowAncestor(MyPagePanel.this), interest.getP_id(), pName, interest.getP_type(), thumbUrl, PlaceCard.ViewType.GRID, jalnanFont)
+                        new PlaceCard((JFrame) SwingUtilities.getWindowAncestor(MyPagePanel.this), interest.getP_id(), pName, interest.getP_type(), thumbUrl, PlaceCard.ViewType.GRID, jalnanFont, mainApp)
                             .showPlaceDetailDialog((JFrame) SwingUtilities.getWindowAncestor(MyPagePanel.this), pName, interest.getP_type());
                         break;
                     }
@@ -822,4 +820,22 @@ public class MyPagePanel extends JPanel {
         });
         return card;
     }
+
+    public void reloadFavoritePlacePanel() {
+        for (Component comp : contentPanel.getComponents()) {
+            if (comp.getName() != null && comp.getName().equals("favorite")) {
+                contentPanel.remove(comp);
+                break;
+            }
+        }
+        JPanel favoritePanel = createFavoritePlacePanel();
+        favoritePanel.setName("favorite");
+        contentPanel.add(favoritePanel, "favorite");
+
+        contentCardLayout.show(contentPanel, "favorite");
+        contentPanel.revalidate();
+        contentPanel.repaint();
+    }
+
+
 }
