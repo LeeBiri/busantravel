@@ -37,7 +37,7 @@ public class ReviewDetailPopup extends JDialog {
         this.review = review;
 
         if (review == null) {
-            JOptionPane.showMessageDialog(parent, "리뷰 정보가 없습니다.", "알림", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(parent, "후기 정보가 없습니다.", "알림", JOptionPane.WARNING_MESSAGE);
             dispose();
             return;
         }

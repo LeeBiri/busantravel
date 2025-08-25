@@ -60,9 +60,9 @@ public class ProfileSidePanel extends JPanel {
         contentPanel.setOpaque(false);
 
         // Review filter buttons
-        contentPanel.add(createStyledButton("내가 작성한 리뷰 보기", e -> reviewPanel.loadMyReviews()));
+        contentPanel.add(createStyledButton("내가 작성한 후기 보기", e -> reviewPanel.loadMyReviews()));
         contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        contentPanel.add(createStyledButton("전체 리뷰 보기", e -> reviewPanel.loadAllReviews()));
+        contentPanel.add(createStyledButton("전체 후기 보기", e -> reviewPanel.loadAllReviews()));
 
         // Past trips list
         JLabel pastTripsTitle = new JLabel("지난 일정 목록");

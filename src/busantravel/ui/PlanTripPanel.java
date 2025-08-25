@@ -6,6 +6,7 @@ import busantravel.model.Lodging;
 import busantravel.model.Restaurant;
 import busantravel.model.ScheduledPlace;
 import busantravel.model.Tourist;
+import busantravel.service.InterestService;
 import busantravel.service.ScheduledPlaceService;
 import busantravel.util.ApiHandler;
 import busantravel.util.Coordinate;
@@ -107,6 +108,17 @@ public class PlanTripPanel extends JPanel {
         this.planId = planId;
         this.onBack = onBack;
         this.scheduledPlaces = ScheduledPlaceService.getSchedulesByPlanId(planId);
+
+        // Pre-populate placeNameIndex and placeThumbIndex for existing scheduled places
+        for (ScheduledPlace sp : this.scheduledPlaces) {
+            String key = sp.getP_type() + ":" + sp.getP_id();
+            if (!placeNameIndex.containsKey(key)) {
+                Object place = placeDAO.getPlaceByTypeAndId(sp.getP_type(), sp.getP_id());
+                PlaceData pd = PlaceData.from(place);
+                placeNameIndex.put(key, pd.name);
+                placeThumbIndex.put(key, pd.thumbUrl);
+            }
+        }
 
         // Pre-assign colors to existing unique places
         Set<String> uniquePlaceKeys = new LinkedHashSet<>();
@@ -360,12 +372,22 @@ public class PlanTripPanel extends JPanel {
         placeListPanel.removeAll();
 
         if ("저장".equals(category)) {
-            List<Object> merged = new ArrayList<>();
-            merged.addAll(placeDAO.getPlacesByCategory("관광지"));
-            merged.addAll(placeDAO.getPlacesByCategory("맛집"));
-            merged.addAll(placeDAO.getPlacesByCategory("숙소"));
-            merged.addAll(placeDAO.getPlacesByCategory("축제"));
-            currentCategoryPlaces = merged;
+            if (!busantravel.auth.MemberSession.isLoggedIn()) {
+                JOptionPane.showMessageDialog(this, "로그인이 필요한 서비스입니다.", "알림", JOptionPane.INFORMATION_MESSAGE);
+                // "저장"이 아닌 다른 카테고리로 전환하거나, 목록을 비운 상태로 유지
+                // 예를 들어, 기본 카테고리인 "관광지"로 전환
+                selectedCategory = "관광지";
+                updateCategoryBarStyles();
+                loadPlacesFor(selectedCategory); // 재귀 호출이지만, 카테고리가 변경되었으므로 한 번만 실행됨
+                return;
+            }
+            InterestService interestService = new InterestService();
+            List<busantravel.model.Interest> interests = interestService.getInterestById(busantravel.auth.MemberSession.getId());
+            List<Object> savedPlaces = new ArrayList<>();
+            for (busantravel.model.Interest interest : interests) {
+                savedPlaces.add(placeDAO.getPlaceByTypeAndId(interest.getP_type(), interest.getP_id()));
+            }
+            currentCategoryPlaces = savedPlaces;
         } else {
             currentCategoryPlaces = placeDAO.getPlacesByCategory(category);
         }

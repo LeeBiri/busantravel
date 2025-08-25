@@ -30,7 +30,7 @@ public class HomePanel extends JPanel {
     private JPanel paginationPanel; // 페이지네이션 UI를 담는 패널
 
     private int currentPage = 1; // 현재 페이지 번호
-    private int pageSize = 24; // 한 페이지에 보여줄 항목 수
+    private int pageSize = 25; // 한 페이지에 보여줄 항목 수
     private int totalPages = 1; // 전체 페이지 수
     private String currentSearchQuery = null; // 현재 검색어 저장
 
@@ -206,7 +206,7 @@ public class HomePanel extends JPanel {
             this.pageSize = 10;
             gridPanel.setLayout(new BoxLayout(gridPanel, BoxLayout.Y_AXIS));
         } else {
-            this.pageSize = 24;
+            this.pageSize = 25;
             gridPanel.setLayout(new GridLayout(0, 5, 30, 30));
         }
 
@@ -291,7 +291,7 @@ public class HomePanel extends JPanel {
             gridPanel.setLayout(new BoxLayout(gridPanel, BoxLayout.Y_AXIS));
             viewType = PlaceCard.ViewType.LIST;
         } else {
-            this.pageSize = 24;
+            this.pageSize = 25;
             gridPanel.setLayout(new GridLayout(0, 5, 30, 30));
             viewType = PlaceCard.ViewType.GRID;
         }

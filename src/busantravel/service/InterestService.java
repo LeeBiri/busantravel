@@ -18,4 +18,3 @@ public class InterestService {
         InterestDAO.deleteInterest(intereset);
     }
 }
-
