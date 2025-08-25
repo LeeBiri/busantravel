@@ -1,11 +1,14 @@
 package busantravel.ui;
 
+import busantravel.auth.MemberSession;
 import busantravel.dao.PlaceDAO;
 import busantravel.model.Festival;
+import busantravel.model.Interest;
 import busantravel.model.Lodging;
 import busantravel.model.Restaurant;
 import busantravel.model.ScheduledPlace;
 import busantravel.model.Tourist;
+import busantravel.service.InterestService;
 import busantravel.service.ScheduledPlaceService;
 import busantravel.util.ApiHandler;
 import busantravel.util.Coordinate;
@@ -66,7 +69,7 @@ public class PlanTripPanel extends JPanel {
     private final StaticMapGenerator mapGenerator;
     private static final String TMAP_API_KEY = "h5baCQSfp37eFmXohbwx23t7n1KLSIcn3RyFtMcg";
 
-    private String selectedCategory = "저장"; // 현재 선택된 카테고리
+    private String selectedCategory = "찜"; // 현재 선택된 카테고리
     private int currentPage = 1;
     private static final int ITEMS_PER_PAGE = 20;
     private JPanel paginationControls;
@@ -136,6 +139,19 @@ public class PlanTripPanel extends JPanel {
             dayComboBox.setSelectedIndex(dayIndex - 1);
         }
         
+        for (ScheduledPlace sp : scheduledPlaces) {
+            String type = sp.getP_type();
+            String id = sp.getP_id();
+            Object place = placeDAO.getPlaceByTypeAndId(type, id);
+            if (place != null) {
+                PlaceData pd = PlaceData.from(place);
+                String key = pd.type + ":" + pd.id;
+                placeNameIndex.put(key, pd.name);
+                placeThumbIndex.put(key, pd.thumbUrl);
+                placeAddrIndex.put(key, pd.addr);
+            }
+        }
+
         loadPlacesFor(selectedCategory);
         refreshSelectedList();
     }
@@ -240,7 +256,7 @@ public class PlanTripPanel extends JPanel {
 
         categoryBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 6));
         categoryBar.setOpaque(false);
-        for (String c : new String[]{"저장","관광지","맛집","숙소"}) {
+        for (String c : new String[]{"찜","관광지","맛집","숙소"}) {
             JButton b = new JButton(c);
             styleCategoryChip(b, c.equals(selectedCategory));
             b.addActionListener(e -> {
@@ -359,14 +375,41 @@ public class PlanTripPanel extends JPanel {
     private void loadPlacesFor(String category) {
         placeListPanel.removeAll();
 
-        if ("저장".equals(category)) {
-            List<Object> merged = new ArrayList<>();
-            merged.addAll(placeDAO.getPlacesByCategory("관광지"));
-            merged.addAll(placeDAO.getPlacesByCategory("맛집"));
-            merged.addAll(placeDAO.getPlacesByCategory("숙소"));
-            merged.addAll(placeDAO.getPlacesByCategory("축제"));
-            currentCategoryPlaces = merged;
-        } else {
+        if ("찜".equals(category)) {
+            // 찜한 관심 장소만 가져옴
+            List<Interest> myInterests = InterestService.getInterestById(MemberSession.getId());
+            Set<String> savedKeys = myInterests.stream()
+            .map(i -> i.getP_type() + ":" + i.getP_id())
+            .collect(Collectors.toSet());
+
+        List<Object> filtered = new ArrayList<>();
+
+        // 2. 찜한 키에 해당하는 장소만 필터링
+        for (String type : List.of("관광지", "맛집", "숙소", "축제")) {
+            List<Object> all = placeDAO.getPlacesByCategory(type);
+            for (Object o : all) {
+                PlaceData pd = PlaceData.from(o);
+                String key = pd.type + ":" + pd.id;
+                if (savedKeys.contains(key)) {
+                    filtered.add(o);
+                    // 🔥 중요: 상세 정보 인덱스에 등록!
+                    placeNameIndex.put(key, pd.name);
+                    placeThumbIndex.put(key, pd.thumbUrl);
+                    placeAddrIndex.put(key, pd.addr);
+                }
+            }
+        }
+
+        // 3. 결과 저장
+        currentCategoryPlaces = filtered;
+
+        if (filtered.isEmpty()) {
+            JLabel msg = new JLabel("찜한 장소가 없습니다.", SwingConstants.CENTER);
+            msg.setFont(jalnanFont.deriveFont(Font.PLAIN, 13f));
+            msg.setForeground(new Color(130, 130, 130));
+            placeListPanel.add(msg);
+        }
+    } else {
             currentCategoryPlaces = placeDAO.getPlacesByCategory(category);
         }
 

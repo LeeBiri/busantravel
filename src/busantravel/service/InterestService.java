@@ -11,7 +11,7 @@ public class InterestService {
     }
 
     public static List<Interest> getInterestById(String m_id) {
-        return InterestDAO.getInterestById(MemberSession.getId());
+        return InterestDAO.getInterestById(m_id);
     }
 
     public static void deleteInterest(Interest intereset) {
