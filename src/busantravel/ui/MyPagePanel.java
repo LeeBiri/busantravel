@@ -523,6 +523,9 @@ public class MyPagePanel extends JPanel {
 
         JLabel lblEmail = new JLabel("이메일");
         JTextField tfEmail = new JTextField(20);
+        if (MemberSession.getCurrentUser() != null) {
+            tfEmail.setText(MemberSession.getCurrentUser().getM_email());
+        }
         lblEmail.setFont(jalnanFont.deriveFont(Font.PLAIN, 24f));
         tfEmail.setFont(jalnanFont.deriveFont(Font.PLAIN, 20f));
 
