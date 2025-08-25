@@ -386,4 +386,7 @@ public class TravelPlannerApp {
         updateNavButtonStyles();
     }
 
+    public MyPagePanel getMyPagePanel() {
+        return myPagePanel;
+    }
 }
