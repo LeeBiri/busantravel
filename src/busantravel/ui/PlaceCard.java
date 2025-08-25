@@ -168,13 +168,14 @@ public class PlaceCard extends JPanel {
         titleLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 26f));
         rightPanel.add(titleLabel, BorderLayout.NORTH);
 
-        JPanel infoAndMapPanel = new JPanel();
-        infoAndMapPanel.setLayout(new BoxLayout(infoAndMapPanel, BoxLayout.Y_AXIS));
+        JPanel infoAndMapPanel = new JPanel(new BorderLayout());
         infoAndMapPanel.setBackground(Color.WHITE);
 
-        infoAndMapPanel.add(createDetailsPanel(detailInfo, category));
-        infoAndMapPanel.add(Box.createVerticalStrut(10));
-        infoAndMapPanel.add(createMapPanel(detailInfo));
+        Component detailsPanel = createDetailsPanel(detailInfo, category);
+        detailsPanel.setPreferredSize(new Dimension(0, 250)); // Set preferred height
+        infoAndMapPanel.add(detailsPanel, BorderLayout.NORTH);
+        
+        infoAndMapPanel.add(createMapPanel(detailInfo), BorderLayout.CENTER);
         
         rightPanel.add(infoAndMapPanel, BorderLayout.CENTER);
 
@@ -225,6 +226,7 @@ public class PlaceCard extends JPanel {
         infoScrollPane.getVerticalScrollBar().setUI(new MatteScrollBarUI());
         infoScrollPane.getHorizontalScrollBar().setUI(new MatteScrollBarUI());
         infoScrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);
+        infoScrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, 200)); // Prevent vertical expansion
         return infoScrollPane;
     }
 

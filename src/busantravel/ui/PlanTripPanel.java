@@ -328,7 +328,6 @@ public class PlanTripPanel extends JPanel {
 
     private void loadPlacesFor(String category) {
         placeListPanel.removeAll();
-
         if ("찜".equals(category)) {
             if (!busantravel.auth.MemberSession.isLoggedIn()) {
                 JOptionPane.showMessageDialog(this, "로그인이 필요한 서비스입니다.", "알림", JOptionPane.INFORMATION_MESSAGE);

@@ -65,16 +65,15 @@ public class ReviewPanel extends JPanel {
 
         String memberId = MemberSession.getId();
         if (memberId != null && !memberId.isEmpty()) {
-            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-            splitPane.setLeftComponent(reviewListPanel);
-
+            JPanel mainPanel = new JPanel(new BorderLayout());
+            mainPanel.setBackground(Color.WHITE);
+            
+            mainPanel.add(reviewListPanel, BorderLayout.CENTER);
+            
             ProfileSidePanel profileSidePanel = new ProfileSidePanel(this);
-            splitPane.setRightComponent(profileSidePanel);
+            mainPanel.add(profileSidePanel, BorderLayout.EAST);
 
-            splitPane.setResizeWeight(0.9);
-            splitPane.setBorder(null);
-
-            add(splitPane, BorderLayout.CENTER);
+            add(mainPanel, BorderLayout.CENTER);
         } else {
             add(reviewListPanel, BorderLayout.CENTER);
         }
@@ -177,7 +176,7 @@ public class ReviewPanel extends JPanel {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setBackground(Color.WHITE);
         
-        JButton readButton = new JButton("리뷰 읽기");
+        JButton readButton = new JButton("후기 읽기");
         readButton.setFont(FontManager.getJalnanFont(12f));
         readButton.setBackground(ColorConstants.ACCENT);
         readButton.setForeground(Color.WHITE);

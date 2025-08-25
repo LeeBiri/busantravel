@@ -30,6 +30,7 @@ public class MyPagePanel extends JPanel {
     private JButton btnHome, btnModifyInfo, btnChangePwd, btnLogout;
     private JPanel contentPanel;
     private CardLayout contentCardLayout;
+    private String currentMenu = "home";
     private String loggedInUserId;
     private TravelPlannerApp mainApp;
     private PlaceDAO placeDAO;
@@ -78,7 +79,7 @@ public class MyPagePanel extends JPanel {
         item1.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(200, 200, 200)));
         JPanel item2 = createStatsItem("" + InterestService.getInterestById(loggedInUserId).size(), "관심장소 수");
         item2.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(200, 200, 200)));
-        JPanel item3 = createStatsItem("" + reviewService.getReviewCountByMember(loggedInUserId), "내가 쓴 리뷰 수");
+        JPanel item3 = createStatsItem("" + reviewService.getReviewCountByMember(loggedInUserId), "내가 쓴 후기 수");
         statsPanel.add(item1);
         statsPanel.add(item2);
         statsPanel.add(item3);
@@ -94,6 +95,9 @@ public class MyPagePanel extends JPanel {
         contentPanel.add(createChangePasswordPanel(), "changePw");
         contentPanel.revalidate();
         contentPanel.repaint();
+
+        currentMenu = "home";
+        updateMenuStyles();
     }
 
 
@@ -119,7 +123,7 @@ public class MyPagePanel extends JPanel {
         panel.setBorder(BorderFactory.createEmptyBorder(50, 60, 0, 20));
 
         JLabel lblMyInfo = new JLabel("나의 정보");
-        lblMyInfo.setFont(jalnanFont.deriveFont(Font.BOLD, 28f));
+        lblMyInfo.setFont(jalnanFont.deriveFont(Font.PLAIN, 28f));
         lblMyInfo.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         panel.add(lblMyInfo);
@@ -130,9 +134,21 @@ public class MyPagePanel extends JPanel {
         btnChangePwd = createMenuButton("비밀번호 변경");
         btnLogout = createMenuButton("로그아웃");
 
-        btnHome.addActionListener(e -> contentCardLayout.show(contentPanel, "home"));
-        btnModifyInfo.addActionListener(e -> contentCardLayout.show(contentPanel, "info"));
-        btnChangePwd.addActionListener(e -> contentCardLayout.show(contentPanel, "changePw"));
+        btnHome.addActionListener(e -> {
+            currentMenu = "home";
+            updateMenuStyles();
+            contentCardLayout.show(contentPanel, "home");
+        });
+        btnModifyInfo.addActionListener(e -> {
+            currentMenu = "info";
+            updateMenuStyles();
+            contentCardLayout.show(contentPanel, "info");
+        });
+        btnChangePwd.addActionListener(e -> {
+            currentMenu = "changePw";
+            updateMenuStyles();
+            contentCardLayout.show(contentPanel, "changePw");
+        });
         btnLogout.addActionListener(e -> {
             MemberSession.logout();
             JOptionPane.showMessageDialog(this, "로그아웃 되었습니다.");
@@ -142,12 +158,16 @@ public class MyPagePanel extends JPanel {
         });
 
         panel.add(btnHome);
-        panel.add(Box.createRigidArea(new Dimension(0, 25)));
+        panel.add(new JSeparator());
         panel.add(btnModifyInfo);
-        panel.add(Box.createRigidArea(new Dimension(0, 25)));
+        panel.add(new JSeparator());
         panel.add(btnChangePwd);
-        panel.add(Box.createRigidArea(new Dimension(0, 25)));
+        panel.add(new JSeparator());
         panel.add(btnLogout);
+
+        panel.add(Box.createVerticalGlue());
+
+        updateMenuStyles();
 
         return panel;
     }
@@ -157,21 +177,25 @@ public class MyPagePanel extends JPanel {
         button.setFont(jalnanFont.deriveFont(Font.PLAIN, 20f));
         button.setForeground(new Color(60, 60, 60));
         button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createEmptyBorder(15, 10, 15, 10));
+        button.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         button.setContentAreaFilled(false);
         button.setAlignmentX(Component.LEFT_ALIGNMENT);
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setForeground(mainColor);
-            }
-
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setForeground(new Color(60, 60, 60));
-            }
-        });
         return button;
+    }
+
+    private void updateMenuStyles() {
+        JButton[] buttons = {btnHome, btnModifyInfo, btnChangePwd, btnLogout};
+        String[] menuKeys = {"home", "info", "changePw", "logout"};
+
+        for (int i = 0; i < buttons.length; i++) {
+            if (menuKeys[i].equals(currentMenu)) {
+                buttons[i].setForeground(mainColor);
+            } else {
+                buttons[i].setForeground(new Color(60, 60, 60));
+            }
+        }
     }
 
     private JPanel createHomePanel() {
@@ -188,7 +212,7 @@ public class MyPagePanel extends JPanel {
         profilePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         nicknameLabel = new JLabel((MemberSession.getName() != null ? MemberSession.getName() : "") + " 님, 환영합니다!");
-        nicknameLabel.setFont(jalnanFont.deriveFont(Font.BOLD, 28f));
+        nicknameLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 28f));
         profilePanel.add(nicknameLabel);
 
         topPanel.add(profilePanel);
@@ -235,7 +259,7 @@ public class MyPagePanel extends JPanel {
             JPanel item2 = createStatsItem("" + InterestService.getInterestById(userId).size(), "관심장소 수");
             item2.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(200, 200, 200)));
 
-            JPanel item3 = createStatsItem("" + reviewService.getReviewCountByMember(userId), "내가 쓴 리뷰 수");
+            JPanel item3 = createStatsItem("" + reviewService.getReviewCountByMember(userId), "내가 쓴 후기 수");
 
             panel.add(item1);
             panel.add(item2);
@@ -251,7 +275,7 @@ public class MyPagePanel extends JPanel {
         itemPanel.setPreferredSize(new Dimension(0, 150));
 
         JLabel valueLabel = new JLabel(value, SwingConstants.CENTER);
-        valueLabel.setFont(jalnanFont.deriveFont(Font.BOLD, 35f));
+        valueLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 35f));
         valueLabel.setForeground(mainColor);
 
         JLabel labelLabel = new JLabel(label, SwingConstants.CENTER);
@@ -268,13 +292,17 @@ public class MyPagePanel extends JPanel {
         panel.setBackground(Color.WHITE);
 
         JButton btnBack = new JButton("뒤로가기");
-        btnBack.setFont(jalnanFont.deriveFont(Font.BOLD, 18f));
+        btnBack.setFont(jalnanFont.deriveFont(Font.PLAIN, 18f));
         btnBack.setBackground(mainColor);
         btnBack.setForeground(Color.WHITE);
         btnBack.setFocusPainted(false);
         btnBack.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        btnBack.addActionListener(e -> contentCardLayout.show(contentPanel, "home"));
+        btnBack.addActionListener(e -> {
+            currentMenu = "home";
+            updateMenuStyles();
+            contentCardLayout.show(contentPanel, "home");
+        });
         panel.add(btnBack);
 
         return panel;
@@ -286,7 +314,7 @@ public class MyPagePanel extends JPanel {
         panel.setBorder(new EmptyBorder(60, 80, 60, 80));
 
         JLabel title = new JLabel("나의 여행 일정");
-        title.setFont(jalnanFont.deriveFont(Font.BOLD, 30f));
+        title.setFont(jalnanFont.deriveFont(Font.PLAIN, 30f));
         panel.add(title, BorderLayout.NORTH);
 
         JPanel content = new JPanel(new BorderLayout());
@@ -338,7 +366,7 @@ public class MyPagePanel extends JPanel {
         panel.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
 
         JLabel titleLabel = new JLabel(categoryTitle);
-        titleLabel.setFont(jalnanFont.deriveFont(Font.BOLD, 22f));
+        titleLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 22f));
         titleLabel.setBorder(new EmptyBorder(10, 10, 10, 10));
         panel.add(titleLabel, BorderLayout.NORTH);
 
@@ -384,13 +412,13 @@ public class MyPagePanel extends JPanel {
 
         JLabel iconLabel = new JLabel("●");
         iconLabel.setForeground(new Color(150, 150, 255));
-        iconLabel.setFont(jalnanFont.deriveFont(Font.BOLD, 20f));
+        iconLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 20f));
 
         JPanel textPanel = new JPanel(new GridLayout(0, 1));
         textPanel.setBackground(Color.WHITE);
 
         JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(jalnanFont.deriveFont(Font.BOLD, 18f));
+        titleLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 18f));
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String formattedStart = startDate.format(formatter);
@@ -410,7 +438,7 @@ public class MyPagePanel extends JPanel {
         contentPanel.add(textPanel);
 
         JLabel arrowLabel = new JLabel(">");
-        arrowLabel.setFont(jalnanFont.deriveFont(Font.BOLD, 24f));
+        arrowLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 24f));
 
         itemPanel.add(contentPanel, BorderLayout.WEST);
         itemPanel.add(arrowLabel, BorderLayout.EAST);
@@ -424,7 +452,7 @@ public class MyPagePanel extends JPanel {
         panel.setBorder(new EmptyBorder(60, 80, 60, 80));
 
         JLabel title = new JLabel("저장한 관심 장소");
-        title.setFont(jalnanFont.deriveFont(Font.BOLD, 30f));
+        title.setFont(jalnanFont.deriveFont(Font.PLAIN, 30f));
         panel.add(title, BorderLayout.NORTH);
 
         JPanel listPanel = new JPanel(new WrapLayout(FlowLayout.LEFT, 20, 20));
@@ -488,7 +516,7 @@ public class MyPagePanel extends JPanel {
         gbc.anchor = GridBagConstraints.CENTER;
 
         JLabel title = new JLabel("회원 정보 수정");
-        title.setFont(jalnanFont.deriveFont(Font.BOLD, 36f));
+        title.setFont(jalnanFont.deriveFont(Font.PLAIN, 36f));
         gbc.gridx = 0;
         gbc.gridy = 0;
         panel.add(title, gbc);
@@ -499,7 +527,7 @@ public class MyPagePanel extends JPanel {
         JLabel lblId = new JLabel("아이디");
         JLabel lblIdValue = new JLabel(loggedInUserId);
         lblId.setFont(jalnanFont.deriveFont(Font.PLAIN, 24f));
-        lblIdValue.setFont(jalnanFont.deriveFont(Font.BOLD, 24f));
+        lblIdValue.setFont(jalnanFont.deriveFont(Font.PLAIN, 24f));
         lblIdValue.setForeground(Color.GRAY);
 
         gbc.gridx = 0;
@@ -592,7 +620,7 @@ public class MyPagePanel extends JPanel {
         gbc.anchor = GridBagConstraints.CENTER;
 
         JLabel title = new JLabel("비밀번호 변경");
-        title.setFont(jalnanFont.deriveFont(Font.BOLD, 36f));
+        title.setFont(jalnanFont.deriveFont(Font.PLAIN, 36f));
         gbc.gridx = 0;
         gbc.gridy = 0;
         panel.add(title, gbc);
@@ -673,7 +701,7 @@ public class MyPagePanel extends JPanel {
 
     private JButton createMainFeatureButton(String text, String iconPath) {
         JButton btn = new JButton(text);
-        btn.setFont(jalnanFont.deriveFont(Font.BOLD, 22f));
+        btn.setFont(jalnanFont.deriveFont(Font.PLAIN, 22f));
         btn.setBackground(mainColor);
         btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
@@ -703,7 +731,7 @@ public class MyPagePanel extends JPanel {
 
     private JButton createActionButton(String text, Color color) {
         JButton btn = new JButton(text);
-        btn.setFont(jalnanFont.deriveFont(Font.BOLD, 20f));
+        btn.setFont(jalnanFont.deriveFont(Font.PLAIN, 20f));
         btn.setBackground(color);
         btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
@@ -776,7 +804,7 @@ public class MyPagePanel extends JPanel {
         textPanel.setBorder(new EmptyBorder(5, 15, 5, 5));
 
         JLabel nameLabel = new JLabel(name);
-        nameLabel.setFont(jalnanFont.deriveFont(Font.BOLD, 16f));
+        nameLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
         textPanel.add(nameLabel);
 
         card.add(imageLabel);
