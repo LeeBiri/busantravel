@@ -7,9 +7,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 public class MemberDAO {
-	private DBConnectionMgr pool = DBConnectionMgr.getInstance();
+	private static DBConnectionMgr pool = DBConnectionMgr.getInstance();
 	
-	public Member getMember(String id, String pw) {
+	public static Member getMember(String id, String pw) {
 		Connection con = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -39,7 +39,7 @@ public class MemberDAO {
 		return member;
 	}
 
-	public Member getMemberById(String id) {
+	public static Member getMemberById(String id) {
 		Connection con = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -66,7 +66,7 @@ public class MemberDAO {
 		return member;
 	}
 	
-	public boolean register(Member member) {
+	public static boolean register(Member member) {
 		Connection con = null;
 		PreparedStatement pstmt = null;
 		String sql = null;
@@ -89,7 +89,7 @@ public class MemberDAO {
 		return flag;
 	}
 	
-	public boolean checkID(String id) {
+	public static boolean checkID(String id) {
 		Connection con = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -114,7 +114,7 @@ public class MemberDAO {
 		return duplicated;
 	}
 	
-	public boolean deleteId(String id, String pw) {
+	public static boolean deleteId(String id, String pw) {
 		String checkSql = "SELECT COUNT(*) FROM member WHERE m_id = ? AND m_password = ?";
 		String updateChecklistSql = "UPDATE checklist SET creator_id = '탈퇴한 사용자' WHERE creator_id = ?";
 		String updateInterestSql = "UPDATE interest SET m_id = '탈퇴한 사용자' WHERE m_id = ?";
@@ -177,7 +177,7 @@ public class MemberDAO {
 		return flag;
 	}
 
-	public boolean updateId(Member member) {
+	public static boolean updateId(Member member) {
 		String sql = "UPDATE member SET m_name = ?, m_password = ?, m_email = ? WHERE m_id = ?";
 		boolean flag = false;
         try {

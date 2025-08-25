@@ -383,11 +383,4 @@ public class TravelPlannerApp {
         updateNavButtonStyles();
     }
 
-    public void switchToMyPage() {
-        currentTab = "myPage";
-        myPagePanel.refreshData();
-        updateContent();
-        updateTopPanelTitle();
-        updateNavButtonStyles();
-    }
 }
