@@ -413,21 +413,6 @@ public class PlanTripPanel extends JPanel {
         plus.setBorder(new LineBorder(ACCENT_DARK, 1, true));
         plus.addActionListener(e -> {
             LocalDate d = getSelectedDate();
-            boolean alreadyExists = scheduledPlaces.stream()
-                .anyMatch(existing ->
-                    existing.getP_id().equals(pd.id) &&
-                    existing.getP_type().equals(pd.type) &&
-                    existing.getScheduled_date().toLocalDate().equals(d)
-                );
-
-            if (alreadyExists) {
-                JOptionPane.showMessageDialog(this,
-                        "이 장소는 이미 선택한 일정에 추가되어 있습니다.",
-                        "중복 추가",
-                        JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
             LocalDateTime visit = LocalDateTime.of(d, LocalTime.MIDNIGHT);
             ScheduledPlace sp = new ScheduledPlace(
                 planId,
