@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * TMAP API 기반 장소 상세 정보를 저장하는 데이터 클래스입니다.
  * Google Places API와의 호환성을 위해 일부 필드와 메소드는 유지되었으나,
- * TMAP API에서 제공하지 않는 정보(평점, 리뷰, 사진)는 기본값을 반환합니다.
+ * TMAP API에서 제공하지 않는 정보(평점, 후기, 사진)는 기본값을 반환합니다.
  *
  * @see ApiHandler
  */

@@ -184,7 +184,6 @@ public class ReviewPanel extends JPanel {
         card.add(imagePanel, BorderLayout.WEST);
         card.add(infoPanel, BorderLayout.CENTER);
 
-        // ===== 하단: 버튼들 =====
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setBackground(Color.WHITE);
 
@@ -215,9 +214,6 @@ public class ReviewPanel extends JPanel {
         return card;
     }
 
-    /* ---------------------- 썸네일 로딩/스케일링 유틸 ---------------------- */
-
-    // 목록 카드에 썸네일 비동기 로딩 (target 라벨에 그려줌)
     private void loadThumbAsync(String reviewId, JLabel target) {
         new SwingWorker<ImageIcon, Void>() {
             @Override

@@ -152,7 +152,7 @@ public class ApiHandler {
             double latitude = Double.parseDouble((String) poi.get("noorLat"));
             double longitude = Double.parseDouble((String) poi.get("noorLon"));
 
-            // TMAP API는 평점, 리뷰, 사진 정보를 제공하지 않으므로 기본값으로 설정
+            // TMAP API는 평점, 후기, 사진 정보를 제공하지 않으므로 기본값으로 설정
             places.add(new PlaceInfo(name, address, 0.0, new ArrayList<>(), latitude, longitude, null));
         }
         return places;

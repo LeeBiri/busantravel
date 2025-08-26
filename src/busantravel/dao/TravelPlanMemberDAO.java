@@ -1,8 +1,12 @@
 package busantravel.dao;
 
 import busantravel.db.DBConnectionMgr;
+import busantravel.model.Member;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TravelPlanMemberDAO {
 	
@@ -41,4 +45,35 @@ public class TravelPlanMemberDAO {
             pool.freeConnection(con, pstmt);
         }
     }
+    
+    // planId의 여행 계획에 참여하고 있는 모든 멤버를 찾기
+    public static List<Member> findMembersByPlanId(String planId) {
+    List<Member> list = new ArrayList<>();
+    String sql = """
+        SELECT m.m_id, m.m_name, m.m_email, m.m_password
+        FROM travel_plan_member tpm
+        LEFT JOIN member m ON tpm.m_id = m.m_id
+        WHERE tpm.plan_id = ?
+        """;
+
+    try (Connection con = pool.getConnection();
+         PreparedStatement ps = con.prepareStatement(sql)) {
+
+        ps.setString(1, planId);
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(new Member(
+                    rs.getString("m_id"),
+                    rs.getString("m_name"),
+                    rs.getString("m_password"),  
+                    rs.getString("m_email")
+                ));
+            }
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return list;
+}
+
 }
