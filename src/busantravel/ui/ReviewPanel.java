@@ -194,7 +194,7 @@ public class ReviewPanel extends JPanel {
             editButton.setBackground(ColorConstants.ACCENT);
             editButton.setForeground(Color.WHITE);
             editButton.addActionListener(e -> {
-                new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this), review, this::refreshReviews).setVisible(true);
+                new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this), review, this::refreshReviews, null).setVisible(true);
             });
             buttonPanel.add(editButton);
         }
