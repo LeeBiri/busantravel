@@ -3,7 +3,9 @@ package busantravel.service;
 import busantravel.dao.ScheduledPlaceDAO;
 import busantravel.model.ScheduledPlace;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 여행 일정(ScheduledPlace) 관련 비즈니스 로직을 처리하는 서비스 클래스입니다.
@@ -69,15 +71,29 @@ public class ScheduledPlaceService {
      * @param planId    저장할 여행 계획의 ID
      * @param schedules 새로운 ScheduledPlace 객체들의 리스트
      */
-    public static void saveSchedulesForPlan(String planId, List<ScheduledPlace> schedules) {
-        // 1. 해당 planId에 대한 기존 일정을 모두 삭제합니다.
+    public static void saveSchedulesForPlan(String planId, List<ScheduledPlace> newSchedules) {
+        // 1. 기존 메모 백업
+        Map<String, String> memoMap = new HashMap<>();
+        List<ScheduledPlace> oldSchedules = getSchedulesByPlanId(planId);
+        for (ScheduledPlace old : oldSchedules) {
+            String key = old.getP_type() + ":" + old.getP_id() + ":" + old.getScheduled_date().toLocalDate() + ":" + old.getVisit_order();
+            memoMap.put(key, old.getSchedule_memo());
+        }
+
+        // 2. 기존 삭제
         scheduledPlaceDAO.deleteAllByPlanId(planId);
 
-        // 2. 새로운 일정 목록을 모두 삽입합니다.
-        for (ScheduledPlace schedule : schedules) {
-            scheduledPlaceDAO.insertSchedule(schedule);
+        // 3. 새로 insert (이때 기존 메모가 있다면 복구)
+        for (ScheduledPlace sp : newSchedules) {
+            String key = sp.getP_type() + ":" + sp.getP_id() + ":" + sp.getScheduled_date().toLocalDate() + ":" + sp.getVisit_order();
+            if (memoMap.containsKey(key) && sp.getSchedule_memo() == null) {
+                sp.setSchedule_memo(memoMap.get(key));
+            }
+            scheduledPlaceDAO.insertSchedule(sp);
         }
     }
+
+
 
     public static void updateDayScheduleOrder(String planId, LocalDate date, List<ScheduledPlace> newSchedule) {
         scheduledPlaceDAO.updateScheduleOrder(newSchedule);

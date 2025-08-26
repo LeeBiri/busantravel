@@ -507,7 +507,8 @@ public class PlanTripPanel extends JPanel {
                 planId,
                 pd.id, pd.type,
                 visit,
-                nextOrder(d)
+                nextOrder(d),
+                null
             );
             
             // 새 장소에 대해 핀에 랜덤 색상을 할당
