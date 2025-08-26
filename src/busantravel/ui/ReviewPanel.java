@@ -24,6 +24,8 @@ import javax.swing.border.EmptyBorder;
 import busantravel.auth.MemberSession;
 import busantravel.dao.ReviewDAO;
 import busantravel.model.Review;
+import busantravel.model.ScheduledPlace;
+import busantravel.service.ScheduledPlaceService;
 import busantravel.util.FontManager;
 
 public class ReviewPanel extends JPanel {
@@ -181,7 +183,7 @@ public class ReviewPanel extends JPanel {
         readButton.setBackground(ColorConstants.ACCENT);
         readButton.setForeground(Color.WHITE);
         readButton.addActionListener(e -> {
-            new ReviewDetailPopup((JFrame) SwingUtilities.getWindowAncestor(this), review).setVisible(true);
+            new ReviewDetailPopup((JFrame) SwingUtilities.getWindowAncestor(this), review, null).setVisible(true);
         });
         buttonPanel.add(readButton);
 
@@ -194,7 +196,9 @@ public class ReviewPanel extends JPanel {
             editButton.setBackground(ColorConstants.ACCENT);
             editButton.setForeground(Color.WHITE);
             editButton.addActionListener(e -> {
-                new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this), review, this::refreshReviews, null).setVisible(true);
+                // Since we reverted Review model, we can't get planId from review object.
+                // We will pass null for scheduledPlaces, so the sidebar will not be shown in edit mode.
+                new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this), review, this::refreshReviews, null, null).setVisible(true);
             });
             buttonPanel.add(editButton);
         }

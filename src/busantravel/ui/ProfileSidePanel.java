@@ -133,7 +133,7 @@ public class ProfileSidePanel extends JPanel {
         writeReviewButton.setFocusPainted(false);
         writeReviewButton.addActionListener(e -> {
             List<ScheduledPlace> scheduledPlaces = ScheduledPlaceService.getSchedulesByPlanId(plan.getPlan_id());
-            new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this), null, reviewPanel::refreshReviews, scheduledPlaces).setVisible(true);
+            new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this), null, reviewPanel::refreshReviews, scheduledPlaces, plan.getPlan_id()).setVisible(true);
         });
         
         JPanel buttonWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));

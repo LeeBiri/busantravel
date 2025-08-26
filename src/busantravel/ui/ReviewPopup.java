@@ -62,16 +62,18 @@ public class ReviewPopup extends JDialog {
     private Runnable onDispose;
     private List<ScheduledPlace> scheduledPlaces;
     private PlaceDAO placeDAO;
+    private String planId;
 
     public ReviewPopup(JFrame parent, Review review, Runnable onDispose) {
-        this(parent, review, onDispose, null);
+        this(parent, review, onDispose, null, null);
     }
 
-    public ReviewPopup(JFrame parent, Review review, Runnable onDispose, List<ScheduledPlace> scheduledPlaces) {
+    public ReviewPopup(JFrame parent, Review review, Runnable onDispose, List<ScheduledPlace> scheduledPlaces, String planId) {
         super(parent, review == null ? "후기 작성" : "후기 수정", true);
         this.review = review;
         this.onDispose = onDispose;
         this.scheduledPlaces = scheduledPlaces;
+        this.planId = planId;
         this.reviewDAO = new ReviewDAO();
         this.reviewPhotoDAO = new ReviewPhotoDAO();
         this.placeDAO = new PlaceDAO();

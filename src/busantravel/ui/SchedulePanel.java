@@ -296,7 +296,7 @@ public class SchedulePanel extends JPanel {
             reviewBtn.setFocusPainted(false);
             reviewBtn.addActionListener(e -> {
                 List<ScheduledPlace> scheduledPlaces = ScheduledPlaceService.getSchedulesByPlanId(plan.getPlan_id());
-                new ReviewPopup(parentFrame, null, () -> controller.refreshRoomLists(), scheduledPlaces).setVisible(true);
+                new ReviewPopup(parentFrame, null, () -> controller.refreshRoomLists(), scheduledPlaces, plan.getPlan_id()).setVisible(true);
             });
 
             JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));

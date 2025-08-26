@@ -1,9 +1,18 @@
 package busantravel.ui;
 
+import busantravel.dao.PlaceDAO;
 import busantravel.dao.ReviewPhotoDAO;
+import busantravel.model.Festival;
+import busantravel.model.Lodging;
+import busantravel.model.Restaurant;
 import busantravel.model.Review;
 import busantravel.model.ReviewPhoto;
-
+import busantravel.model.ScheduledPlace;
+import busantravel.model.Tourist;
+import busantravel.util.FontManager;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.net.URL;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -26,15 +35,18 @@ public class ReviewDetailPopup extends JDialog {
 
     private final Review review;
     private final ReviewPhotoDAO reviewPhotoDAO = new ReviewPhotoDAO();
+    private final List<ScheduledPlace> scheduledPlaces;
+    private final PlaceDAO placeDAO = new PlaceDAO();
 
     private JLabel titleValue;
     private JTextArea contentArea;
     private JLabel visibilityValue;
     private JPanel photoPanel;
 
-    public ReviewDetailPopup(JFrame parent, Review review) {
+    public ReviewDetailPopup(JFrame parent, Review review, List<ScheduledPlace> scheduledPlaces) {
         super(parent, "후기 상세", true);
         this.review = review;
+        this.scheduledPlaces = scheduledPlaces;
 
         if (review == null) {
             JOptionPane.showMessageDialog(parent, "후기 정보가 없습니다.", "알림", JOptionPane.WARNING_MESSAGE);
@@ -45,7 +57,7 @@ public class ReviewDetailPopup extends JDialog {
         initUI();
         loadData();
 
-        setSize(650, 720);
+        setSize(850, 720);
         setLocationRelativeTo(parent);
     }
 
@@ -54,7 +66,15 @@ public class ReviewDetailPopup extends JDialog {
         JPanel main = new JPanel(new BorderLayout(10, 10));
         main.setBorder(new EmptyBorder(16, 16, 16, 16));
         main.setBackground(Color.WHITE);
-        add(main, BorderLayout.CENTER);
+
+        if (scheduledPlaces != null && !scheduledPlaces.isEmpty()) {
+            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, main, createSidebar());
+            splitPane.setDividerLocation(550);
+            splitPane.setResizeWeight(0.7);
+            add(splitPane, BorderLayout.CENTER);
+        } else {
+            add(main, BorderLayout.CENTER);
+        }
 
         // ===== 상단: 제목 + 공개여부 =====
         JPanel top = new JPanel(new BorderLayout(6, 6));
@@ -182,5 +202,89 @@ public class ReviewDetailPopup extends JDialog {
 
     private String safe(String s) {
         return s == null ? "" : s;
+    }
+
+    private JComponent createSidebar() {
+        JPanel sidebar = new JPanel(new BorderLayout());
+        sidebar.setBackground(new Color(245, 245, 245));
+        sidebar.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 1, 0, 0, Color.LIGHT_GRAY),
+            new EmptyBorder(10, 10, 10, 10)
+        ));
+        sidebar.setMinimumSize(new Dimension(250, 0));
+
+        JLabel titleLabel = new JLabel("방문한 장소");
+        titleLabel.setFont(FontManager.getJalnanFont(18f));
+        titleLabel.setBorder(new EmptyBorder(0, 0, 10, 0));
+        sidebar.add(titleLabel, BorderLayout.NORTH);
+
+        JPanel listPanel = new JPanel();
+        listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
+        listPanel.setBackground(new Color(245, 245, 245));
+
+        for (ScheduledPlace scheduledPlace : scheduledPlaces) {
+            Object place = placeDAO.getPlaceByTypeAndId(scheduledPlace.getP_type(), scheduledPlace.getP_id());
+            String placeName = "";
+            String thumbUrl = "";
+
+            if (place instanceof Tourist) {
+                Tourist t = (Tourist) place;
+                placeName = t.getT_place();
+                thumbUrl = t.getT_thum();
+            } else if (place instanceof Restaurant) {
+                Restaurant r = (Restaurant) place;
+                placeName = r.getR_place();
+                thumbUrl = r.getR_thum();
+            } else if (place instanceof Lodging) {
+                Lodging l = (Lodging) place;
+                placeName = l.getL_place();
+                thumbUrl = l.getL_thum();
+            } else if (place instanceof Festival) {
+                Festival f = (Festival) place;
+                placeName = f.getF_name();
+                thumbUrl = f.getF_thum();
+            }
+            listPanel.add(createPlaceEntry(placeName, thumbUrl));
+            listPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        }
+
+        JScrollPane scrollPane = new JScrollPane(listPanel);
+        scrollPane.setBorder(null);
+        scrollPane.getViewport().setBackground(new Color(245, 245, 245));
+        sidebar.add(scrollPane, BorderLayout.CENTER);
+
+        return sidebar;
+    }
+
+    private JPanel createPlaceEntry(String name, String thumbUrl) {
+        JPanel entryPanel = new JPanel(new BorderLayout(10, 0));
+        entryPanel.setBackground(Color.WHITE);
+        entryPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(220, 220, 220)),
+                BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
+        entryPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+
+        JLabel imageLabel = new JLabel();
+        imageLabel.setPreferredSize(new Dimension(60, 60));
+        try {
+            if (thumbUrl != null && !thumbUrl.isEmpty()) {
+                URL imageUrl = new URL(thumbUrl);
+                ImageIcon icon = new ImageIcon(imageUrl);
+                Image scaledImage = icon.getImage().getScaledInstance(60, 60, Image.SCALE_SMOOTH);
+                imageLabel.setIcon(new ImageIcon(scaledImage));
+            } else {
+                imageLabel.setText("No Img");
+            }
+        } catch (Exception e) {
+            imageLabel.setText("Error");
+        }
+        entryPanel.add(imageLabel, BorderLayout.WEST);
+
+        JLabel nameLabel = new JLabel(name);
+        nameLabel.setFont(FontManager.getJalnanGothicFont(14f));
+        entryPanel.add(nameLabel, BorderLayout.CENTER);
+
+        return entryPanel;
     }
 }
