@@ -63,8 +63,8 @@ public class ReviewDetailPopup extends JDialog {
 
     private void initUI() {
         setLayout(new BorderLayout());
-        JPanel main = new JPanel(new BorderLayout(10, 10));
-        main.setBorder(new EmptyBorder(16, 16, 16, 16));
+        JPanel main = new JPanel(new BorderLayout(20, 20));
+        main.setBorder(new EmptyBorder(20, 20, 20, 20));
         main.setBackground(Color.WHITE);
 
         if (scheduledPlaces != null && !scheduledPlaces.isEmpty()) {
@@ -76,73 +76,52 @@ public class ReviewDetailPopup extends JDialog {
             add(main, BorderLayout.CENTER);
         }
 
-        // ===== 상단: 제목 + 공개여부 =====
-        JPanel top = new JPanel(new BorderLayout(6, 6));
-        top.setBackground(Color.WHITE);
-
-        JLabel titleLabel = new JLabel("제목");
-        titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+        // Top Panel
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setOpaque(false);
         titleValue = new JLabel();
-        titleValue.setFont(new Font("맑은 고딕", Font.PLAIN, 16));
+        titleValue.setFont(FontManager.getJalnanFont(24f));
+        topPanel.add(titleValue, BorderLayout.CENTER);
 
-        JPanel titleBox = new JPanel(new BorderLayout());
-        titleBox.setBackground(Color.WHITE);
-        titleBox.add(titleLabel, BorderLayout.NORTH);
-        titleBox.add(titleValue, BorderLayout.CENTER);
-
-        JPanel meta = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        meta.setBackground(Color.WHITE);
-        JLabel visLabel = new JLabel("공개 설정");
-        visLabel.setFont(new Font("맑은 고딕", Font.BOLD, 13));
         visibilityValue = new JLabel();
-        visibilityValue.setFont(new Font("맑은 고딕", Font.PLAIN, 13));
-        meta.add(visLabel);
-        meta.add(visibilityValue);
+        visibilityValue.setFont(FontManager.getJalnanGothicFont(14f));
+        topPanel.add(visibilityValue, BorderLayout.EAST);
+        main.add(topPanel, BorderLayout.NORTH);
 
-        top.add(titleBox, BorderLayout.CENTER);
-        top.add(meta, BorderLayout.SOUTH);
+        // Center Panel
+        JPanel centerPanel = new JPanel();
+        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+        centerPanel.setOpaque(false);
 
-        main.add(top, BorderLayout.NORTH);
-
-        // ===== 중앙: 내용 + 사진 =====
-        JPanel contentPanel = new JPanel(new BorderLayout());
-        contentPanel.setBackground(Color.WHITE);
-        JLabel contentLabel = new JLabel("내용");
-        contentLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
         contentArea = new JTextArea();
-        contentArea.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+        contentArea.setFont(FontManager.getJalnanGothicFont(16f));
         contentArea.setLineWrap(true);
         contentArea.setWrapStyleWord(true);
         contentArea.setEditable(false);
         JScrollPane contentScroll = new JScrollPane(contentArea);
-        contentPanel.add(contentLabel, BorderLayout.NORTH);
-        contentPanel.add(contentScroll, BorderLayout.CENTER);
-
-        JPanel photosSection = new JPanel(new BorderLayout());
-        photosSection.setBackground(Color.WHITE);
-        JLabel photosLabel = new JLabel("사진");
-        photosLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
-        photoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 8));
-        photoPanel.setBackground(Color.WHITE);
+        contentScroll.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220)));
+        
+        photoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        photoPanel.setOpaque(false);
         JScrollPane photoScroll = new JScrollPane(photoPanel);
-        photosSection.add(photosLabel, BorderLayout.NORTH);
-        photosSection.add(photoScroll, BorderLayout.CENTER);
+        photoScroll.setBorder(null);
 
-        JPanel center = new JPanel(new GridLayout(2, 1, 10, 10));
-        center.setBackground(Color.WHITE);
-        center.add(contentPanel);
-        center.add(photosSection);
+        centerPanel.add(contentScroll);
+        centerPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        centerPanel.add(photoScroll);
+        main.add(centerPanel, BorderLayout.CENTER);
 
-        main.add(center, BorderLayout.CENTER);
-
-        // ===== 하단: 닫기 버튼 =====
-        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        bottom.setBackground(Color.WHITE);
+        // Bottom Panel
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottomPanel.setOpaque(false);
         JButton closeBtn = new JButton("닫기");
+        closeBtn.setFont(FontManager.getJalnanFont(14f));
+        closeBtn.setBackground(ColorConstants.ACCENT);
+        closeBtn.setForeground(Color.WHITE);
+        closeBtn.setFocusPainted(false);
         closeBtn.addActionListener(e -> dispose());
-        bottom.add(closeBtn);
-
-        main.add(bottom, BorderLayout.SOUTH);
+        bottomPanel.add(closeBtn);
+        main.add(bottomPanel, BorderLayout.SOUTH);
     }
 
     private void loadData() {
