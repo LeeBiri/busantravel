@@ -113,7 +113,7 @@ public class FullSchedulePanel extends JPanel {
         JPanel scheduleListPanel = createScheduleListPanel();
         JScrollPane scrollPane = new JScrollPane(scheduleListPanel);
         scrollPane.setBorder(null);
-        scrollPane.setPreferredSize(new Dimension(900, 0));
+        scrollPane.setPreferredSize(new Dimension(800, 0));
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.getVerticalScrollBar().setUI(new MatteScrollBarUI());
         scrollPane.getHorizontalScrollBar().setUI(new MatteScrollBarUI());
@@ -369,6 +369,48 @@ public class FullSchedulePanel extends JPanel {
         card.add(Box.createHorizontalStrut(6));
         card.add(imageLabel);
         card.add(infoPanel);
+
+        // rightPanel: 메모와 버튼 감싸는 전체 박스
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 14)); // 좌우15, 상하14 padding
+        rightPanel.setOpaque(false);
+        rightPanel.setPreferredSize(new Dimension(300, 56));
+
+        // 메모 라벨
+        String memo = place.getSchedule_memo();
+        if (memo == null || memo.isBlank()) memo = "메모 없음";
+        String displayMemo = memo.length() > 20 ? memo.substring(0, 20) + "..." : memo;
+
+        JLabel memoLabel = new JLabel(displayMemo);
+        memoLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 13f));
+        memoLabel.setForeground(Color.DARK_GRAY);
+        memoLabel.setToolTipText(memo);
+        memoLabel.setPreferredSize(new Dimension(160, 28)); // 고정폭
+        memoLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+
+        // 메모 수정 버튼
+        JButton editMemoBtn = new JButton("메모 수정");
+        editMemoBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 13f));
+        editMemoBtn.setBackground(new Color(255, 204, 204));
+        editMemoBtn.setFocusPainted(false);
+        editMemoBtn.setForeground(Color.BLACK);
+        editMemoBtn.setPreferredSize(new Dimension(90, 28));
+
+        editMemoBtn.addActionListener(e -> {
+            String newMemo = JOptionPane.showInputDialog(this, "메모를 입력하세요", place.getSchedule_memo());
+            if (newMemo != null) {
+                place.setSchedule_memo(newMemo);
+                ScheduledPlaceService.updateSchedule(place);
+                mainApp.refreshFullSchedule(plan);
+            }
+        });
+
+        // 오른쪽 패널 조립
+        rightPanel.add(memoLabel);
+        rightPanel.add(editMemoBtn);
+
+        card.add(Box.createHorizontalGlue());
+        card.add(rightPanel);
+
 
         return card;
     }

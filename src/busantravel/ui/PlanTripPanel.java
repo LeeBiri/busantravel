@@ -433,7 +433,8 @@ public class PlanTripPanel extends JPanel {
                 planId,
                 pd.id, pd.type,
                 visit,
-                nextOrder(d)
+                nextOrder(d),
+                null
             );
             
             String key = sp.getP_type() + ":" + sp.getP_id();
