@@ -37,6 +37,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import busantravel.dao.PlaceDAO;
 import busantravel.dao.ReviewDAO;
 import busantravel.dao.ReviewPhotoDAO;
+import busantravel.model.ReviewPhoto;
 import busantravel.model.Festival;
 import busantravel.model.Lodging;
 import busantravel.model.Restaurant;
@@ -286,6 +287,20 @@ public class ReviewPopup extends JDialog {
             titleField.setText(review.getTitle());
             contentArea.setText(review.getContent());
             visibilityComboBox.setSelectedItem(review.getVisibility() == 0 ? "전체 공개" : "비공개");
+
+            List<ReviewPhoto> photos = reviewPhotoDAO.getPhotosByReviewId(review.getReviewId());
+            for (ReviewPhoto photo : photos) {
+                try {
+                    File tempFile = File.createTempFile("review_", ".tmp");
+                    java.nio.file.Files.write(tempFile.toPath(), photo.getData());
+                    photoPanel.add(createThumbTile(tempFile));
+                    selectedPhotos.add(tempFile);
+                } catch (java.io.IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            photoPanel.revalidate();
+            photoPanel.repaint();
         }
     }
 
@@ -367,7 +382,7 @@ public class ReviewPopup extends JDialog {
         entryPanel.setBackground(Color.WHITE);
         entryPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(220, 220, 220)),
-                BorderFactory.createEmptyBorder(5, 5, 5, 5)
+                new EmptyBorder(5, 5, 5, 5)
         ));
         entryPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
 
