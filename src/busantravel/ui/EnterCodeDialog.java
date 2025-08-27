@@ -54,6 +54,7 @@ public class EnterCodeDialog extends JDialog {
 
         enterBtn.addActionListener((e) -> {
             String enterCode = codeField.getText().trim();
+            
 
             if (enterCode.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "모든 정보를 입력하세요!", "오류", JOptionPane.WARNING_MESSAGE);
