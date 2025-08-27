@@ -1,45 +1,76 @@
 package busantravel.ui;
 
 import java.awt.*;
+import java.awt.geom.Area;
+import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.net.URL;
-import java.util.ArrayList; // Image 클래스를 위해 추가
+import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.Border;
-import java.awt.geom.Area;
-import java.awt.geom.RoundRectangle2D;
+import javax.swing.plaf.basic.BasicScrollBarUI;
 
 public class MainBannerPanel extends JPanel {
 
     private CardLayout bannerCardLayout;
-    private JPanel bannerArea; // 배너 이미지가 슬라이드될 영역
+    private JPanel bannerArea;
     private Timer autoSlideTimer;
     private int currentBannerIndex = 0;
 
     private List<Banner> banners;
     private Font jalnanFont;
 
-    private JPanel scheduleTitlePanel; // "부산여행 일정 BEST" 타이틀 영역
-    private JPanel scheduleButtonPanel; // 일정 버튼들을 담는 패널
+    private JPanel scheduleTitlePanel;
+    private JPanel scheduleButtonPanel;
     private List<JButton> scheduleButtons;
-    private List<Schedule> schedules; // 일정 데이터 리스트
+    private List<Schedule> schedules;
+    
+    // ColorConstants 클래스가 없으므로 임시로 정의
+    private static class ColorConstants {
+        public static final Color ACCENT = new Color(0, 150, 255);
+    }
+    
+    // MatteScrollBarUI 클래스가 없으므로 임시로 정의
+    private static class MatteScrollBarUI extends BasicScrollBarUI {
+        @Override
+        protected void configureScrollBarColors() {
+            this.thumbColor = new Color(190, 190, 190);
+            this.trackColor = new Color(240, 240, 240);
+        }
+
+        @Override
+        protected JButton createDecreaseButton(int orientation) {
+            return createZeroButton();
+        }
+
+        @Override
+        protected JButton createIncreaseButton(int orientation) {
+            return createZeroButton();
+        }
+
+        private JButton createZeroButton() {
+            JButton button = new JButton();
+            Dimension zeroDim = new Dimension(0, 0);
+            button.setPreferredSize(zeroDim);
+            button.setMinimumSize(zeroDim);
+            button.setMaximumSize(zeroDim);
+            return button;
+        }
+    }
 
     public MainBannerPanel() {
-        loadJalnanFont(); // 폰트 로드
+        loadJalnanFont();
 
-        // MainBannerPanel 자체는 BorderLayout을 사용하고, 중앙에 스크롤 가능한 contentPanel을 넣음
         setLayout(new BorderLayout());
 
-        // 전체 콘텐츠를 담을 패널 (BoxLayout 사용하여 세로로 쌓음)
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        contentPanel.setBackground(Color.WHITE); // 배경색 통일
+        contentPanel.setBackground(Color.WHITE);
 
         // --- 1. 배너 영역 초기화 ---
         banners = new ArrayList<>();
-        // 배너 데이터 추가 (경로, 부제목, 제목)
         banners.add(new Banner("/busantravel/resources/bluelinepark.jpg", "부산 블루라인파크", "멋진 해안선을 따라 떠나는 테마 여행"));
         banners.add(new Banner("/busantravel/resources/gamcheon2.jpg", "감천문화마을", "부산의 독특한 색채와 풍경"));
         banners.add(new Banner("/busantravel/resources/busanbridge.jpg", "부산항대교", "부산 바다를 잇는 웅장한 다리"));
@@ -49,136 +80,125 @@ public class MainBannerPanel extends JPanel {
 
         bannerCardLayout = new CardLayout();
         bannerArea = new JPanel(bannerCardLayout);
-        bannerArea.setPreferredSize(new Dimension(0, 540)); // 배너 영역 높이 고정 (가로는 유동적)
-        bannerArea.setMaximumSize(new Dimension(Integer.MAX_VALUE, 540)); // BoxLayout에서 높이 고정 유지
-        bannerArea.setAlignmentX(Component.CENTER_ALIGNMENT); // BoxLayout에서 중앙 정렬
+        bannerArea.setPreferredSize(new Dimension(0, 540));
+        bannerArea.setMaximumSize(new Dimension(Integer.MAX_VALUE, 540));
+        bannerArea.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         for (int i = 0; i < banners.size(); i++) {
             bannerArea.add(createBannerCard(banners.get(i)), String.valueOf(i));
         }
-        contentPanel.add(bannerArea); // 전체 콘텐츠 패널에 배너 영역 추가
+        contentPanel.add(bannerArea);
 
         // --- 2. 일정 추천 타이틀 영역 ---
         scheduleTitlePanel = new JPanel();
         scheduleTitlePanel.setLayout(new BoxLayout(scheduleTitlePanel, BoxLayout.Y_AXIS));
         scheduleTitlePanel.setBackground(Color.WHITE);
-        scheduleTitlePanel.setBorder(BorderFactory.createEmptyBorder(20, 40, 10, 40)); // 상하좌우 여백
-        scheduleTitlePanel.setAlignmentX(Component.CENTER_ALIGNMENT); // BoxLayout에서 중앙 정렬
+        scheduleTitlePanel.setBorder(BorderFactory.createEmptyBorder(20, 40, 10, 40));
+        scheduleTitlePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel mainTitle = new JLabel("부산여행 일정 BEST");
+        JLabel mainTitle = new JLabel("부산 꼭 가봐야하는 곳 BEST");
         mainTitle.setFont(jalnanFont.deriveFont(Font.PLAIN, 28f));
         mainTitle.setForeground(new Color(50, 50, 50));
-        mainTitle.setAlignmentX(Component.LEFT_ALIGNMENT); // 텍스트 좌측 정렬
+        mainTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel subTitle = new JLabel("후회없는 부산여행을 위한 코스 추천");
+        JLabel subTitle = new JLabel("후회없는 부산여행을 위한 가이드");
         subTitle.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
         subTitle.setForeground(new Color(120, 120, 120));
-        subTitle.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0)); // 위쪽 여백
-        subTitle.setAlignmentX(Component.LEFT_ALIGNMENT); // 텍스트 좌측 정렬
+        subTitle.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0));
+        subTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         scheduleTitlePanel.add(mainTitle);
         scheduleTitlePanel.add(subTitle);
-        contentPanel.add(scheduleTitlePanel); // 전체 콘텐츠 패널에 타이틀 영역 추가
+        contentPanel.add(scheduleTitlePanel);
 
         // --- 3. 일정 추천 버튼 영역 ---
         schedules = new ArrayList<>();
-        schedules.add(new Schedule("/busantravel/resources/0.png", "당일치기"));
-        schedules.add(new Schedule("/busantravel/resources/1,2.png", "1박2일"));
-        schedules.add(new Schedule("/busantravel/resources/2,3.png", "2박3일"));
-        schedules.add(new Schedule("/busantravel/resources/3,4.png", "3박4일"));
-        schedules.add(new Schedule("/busantravel/resources/4,5.png", "4박5일"));
+        schedules.add(new Schedule("/busantravel/resources/Haeundae.png", "해운대"));
+        schedules.add(new Schedule("/busantravel/resources/Gwangalli2.png", "광안리"));
+        schedules.add(new Schedule("/busantravel/resources/Seomyeon.png", "서면"));
+        schedules.add(new Schedule("/busantravel/resources/Nampo.png", "남포"));
+        schedules.add(new Schedule("/busantravel/resources/Yeongdo.png", "영도"));
 
-        scheduleButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 15)); // 수평 간격 30, 수직 간격 15
+        scheduleButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 30, 15));
         scheduleButtonPanel.setBackground(Color.WHITE);
-        scheduleButtonPanel.setBorder(BorderFactory.createEmptyBorder(10, 40, 40, 40)); // 상하좌우 여백
-        scheduleButtonPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 220)); // 높이 고정 유지
-        scheduleButtonPanel.setAlignmentX(Component.CENTER_ALIGNMENT); // BoxLayout에서 중앙 정렬
+        scheduleButtonPanel.setBorder(BorderFactory.createEmptyBorder(10, 40, 40, 40));
+        scheduleButtonPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 220));
+        scheduleButtonPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         scheduleButtons = new ArrayList<>();
         for (Schedule s : schedules) {
-            JButton btn = createSquareButton(s, 180); // 버튼 크기 180x180
+            JButton btn = createSquareButton(s, 180);
             scheduleButtons.add(btn);
             scheduleButtonPanel.add(btn);
         }
-        contentPanel.add(scheduleButtonPanel); // 전체 콘텐츠 패널에 버튼 영역 추가
+        contentPanel.add(scheduleButtonPanel);
 
-        // --- JScrollPane으로 contentPanel을 감싸 MainBannerPanel에 추가 ---
         JScrollPane scrollPane = new JScrollPane(contentPanel);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED); // 세로 스크롤바 필요 시 자동 표시
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER); // 가로 스크롤바는 표시 안 함
-        scrollPane.setBorder(BorderFactory.createEmptyBorder()); // 스크롤팬 자체 테두리 제거
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
         scrollPane.getVerticalScrollBar().setUI(new MatteScrollBarUI());
         scrollPane.getHorizontalScrollBar().setUI(new MatteScrollBarUI());
 
-        add(scrollPane, BorderLayout.CENTER); // MainBannerPanel의 중앙에 스크롤팬 추가
+        add(scrollPane, BorderLayout.CENTER);
 
-        // 자동 슬라이드 타이머 (5초 간격)
         autoSlideTimer = new Timer(5000, e -> nextSlide());
         autoSlideTimer.start();
 
-        bannerCardLayout.show(bannerArea, "0"); // 초기 배너 표시
+        bannerCardLayout.show(bannerArea, "0");
     }
 
-    // nextSlide(): 다음 배너로 화면 전환 로직 (오류 수정됨)
     private void nextSlide() {
         currentBannerIndex = (currentBannerIndex + 1) % banners.size();
         bannerCardLayout.show(bannerArea, String.valueOf(currentBannerIndex));
     }
 
-    // createBannerCard(): 배너 한 장 구성 (사진 + 중앙 하단 반투명 텍스트 박스)
     private JPanel createBannerCard(Banner b) {
-        JPanel panel = new JPanel(null); // null 레이아웃으로 이미지와 텍스트박스 자유롭게 배치
-        panel.setPreferredSize(new Dimension(1500, 540)); // 배너 영역 크기 지정
-        panel.setBackground(new Color(0, 0, 0, 0)); // 투명 배경
+        JPanel panel = new JPanel(null);
+        panel.setPreferredSize(new Dimension(1500, 540));
+        panel.setBackground(new Color(0, 0, 0, 0));
 
-        // 사진을 비율을 유지하면서 크롭하여 채우기
         JLabel imgLabel = new JLabel(scaleImageToFill(b.imagePath, 1500, 540));
-        imgLabel.setBounds(0, 0, 1500, 540); // 패널 크기에 맞춰 이미지 위치 및 크기 지정
+        imgLabel.setBounds(0, 0, 1500, 540);
         panel.add(imgLabel);
 
-        // 텍스트 박스: 사진 중앙 하단에 반투명 박스 (Z-Order 최상단)
         JPanel textBox = new JPanel();
-        textBox.setBounds(0, 45, 500, 100); // X, Y, 너비, 높이 직접 지정 (사진 하단, 가로 중앙)
-        textBox.setBackground(new Color(0, 0, 0, 200)); // 약 80% 불투명 흰색 배경
-        textBox.setLayout(new BoxLayout(textBox, BoxLayout.Y_AXIS)); // 세로 정렬
-        textBox.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20)); // 내부 여백
-        textBox.setOpaque(true); // 배경색 적용을 위해 Opaque 설정 (필수)
+        textBox.setBounds(0, 45, 500, 100);
+        textBox.setBackground(new Color(0, 0, 0, 200));
+        textBox.setLayout(new BoxLayout(textBox, BoxLayout.Y_AXIS));
+        textBox.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        textBox.setOpaque(true);
 
-        // 텍스트 중앙 정렬
-        JLabel subtitleLabel = new JLabel(b.subtitle, SwingConstants.CENTER); // 수평 중앙 정렬
+        JLabel subtitleLabel = new JLabel(b.subtitle, SwingConstants.CENTER);
         subtitleLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 34f));
         subtitleLabel.setForeground(new Color(255, 255, 255));
         subtitleLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 0));
-        subtitleLabel.setAlignmentX(Component.LEFT_ALIGNMENT); // BoxLayout에서 중앙 정렬
+        subtitleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel titleLabel = new JLabel(b.title, SwingConstants.CENTER); // 수평 중앙 정렬
+        JLabel titleLabel = new JLabel(b.title, SwingConstants.CENTER);
         titleLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 23f));
-        titleLabel.setForeground(new Color(255, 255, 255, 200)); 
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 0)); // 위쪽 여백
-        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT); // BoxLayout에서 중앙 정렬
+        titleLabel.setForeground(new Color(255, 255, 255, 200));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 0));
+        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         textBox.add(subtitleLabel);
         textBox.add(titleLabel);
         panel.add(textBox);
 
-        // 텍스트 박스가 사진 위에 보이도록 Z-Order 조정 (나중에 추가된 컴포넌트가 위에 놓이므로 순서 재지정)
-        panel.setComponentZOrder(textBox, 0); // textBox를 가장 위로 (0이 최상위 레이어)
-        panel.setComponentZOrder(imgLabel, 1); // imgLabel을 textBox 바로 아래 (1은 그 다음 레이어)
+        panel.setComponentZOrder(textBox, 0);
+        panel.setComponentZOrder(imgLabel, 1);
 
         return panel;
     }
 
-    // createSquareButton(): 둥근 모서리를 가진 정사각형 일정 추천 버튼 생성
     private JButton createSquareButton(Schedule s, int size) {
         ImageIcon icon = loadAndScaleImage(s.imagePath, size, size);
 
-        // 둥근 모서리를 위해 JButton을 상속하는 익명 클래스 사용
         JButton btn = new JButton(icon) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                // 둥근 사각형으로 클리핑 영역 설정
                 g2.setClip(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 25, 25));
                 super.paintComponent(g2);
                 g2.dispose();
@@ -188,7 +208,6 @@ public class MainBannerPanel extends JPanel {
         btn.setPreferredSize(new Dimension(size, size));
         btn.setLayout(new BorderLayout());
 
-        // 텍스트 배경의 아래쪽 모서리만 둥글게 처리하기 위한 커스텀 JLabel
         JLabel overlayLabel = new JLabel(s.labelText, SwingConstants.CENTER) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -196,33 +215,30 @@ public class MainBannerPanel extends JPanel {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(getBackground());
 
-                // 아래쪽 모서리만 둥근 사각형 생성
                 Area area = new Area(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 25, 25));
                 area.add(new Area(new Rectangle(0, 0, getWidth(), getHeight() / 2)));
                 g2.fill(area);
                 
                 g2.dispose();
-                super.paintComponent(g); // 텍스트 렌더링
+                super.paintComponent(g);
             }
         };
-        overlayLabel.setOpaque(false); // 배경은 paintComponent에서 직접 그리므로 false로 설정
+        overlayLabel.setOpaque(false);
         overlayLabel.setForeground(Color.WHITE);
         overlayLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 18f));
         overlayLabel.setBackground(new Color(0, 0, 0, 140));
         btn.add(overlayLabel, BorderLayout.SOUTH);
 
         btn.setFocusPainted(false);
-        btn.setContentAreaFilled(false); // 배경을 투명하게 하여 클리핑된 이미지가 보이도록 함
+        btn.setContentAreaFilled(false);
         
-        // 커스텀 둥근 테두리 생성
         final RoundedBorder roundedBorder = new RoundedBorder(Color.LIGHT_GRAY, 1, 25);
         btn.setBorder(roundedBorder);
 
-        // 호버 효과를 위한 MouseListener 추가
         btn.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                roundedBorder.setColor(ColorConstants.ACCENT); // 악센트 컬러 사용
-                roundedBorder.setThickness(3); // 두께 3으로 변경
+                roundedBorder.setColor(ColorConstants.ACCENT);
+                roundedBorder.setThickness(3);
                 overlayLabel.setBackground(new Color(0, 0, 0, 180));
                 btn.repaint();
             }
@@ -235,14 +251,13 @@ public class MainBannerPanel extends JPanel {
             }
         });
 
-        btn.addActionListener(e -> JOptionPane.showMessageDialog(this,
-                s.labelText + " 일정 추천 내용은 준비 중입니다.",
-                "일정 추천", JOptionPane.INFORMATION_MESSAGE));
+        btn.addActionListener(e -> {
+            showAreaDetailPopup(s.labelText);
+        });
 
         return btn;
     }
 
-    // scaleImageToFill(): 이미지를 지정된 크기에 맞춰 비율을 유지하며 크롭하여 채움
     private ImageIcon scaleImageToFill(String path, int targetWidth, int targetHeight) {
         try {
             URL url = getClass().getResource(path);
@@ -261,27 +276,22 @@ public class MainBannerPanel extends JPanel {
             int scaledHeight;
 
             if (originalAspectRatio > targetAspectRatio) {
-                // 원본 이미지가 더 넓음 -> 높이에 맞춰 스케일링
                 scaledHeight = targetHeight;
                 scaledWidth = (int) (targetHeight * originalAspectRatio);
             } else {
-                // 원본 이미지가 더 높거나 비율이 같음 -> 너비에 맞춰 스케일링
                 scaledWidth = targetWidth;
                 scaledHeight = (int) (targetWidth / originalAspectRatio);
             }
 
-            // 스케일링된 이미지 생성
             BufferedImage scaledImage = new BufferedImage(scaledWidth, scaledHeight, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g2d = scaledImage.createGraphics();
             g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
             g2d.drawImage(originalImage, 0, 0, scaledWidth, scaledHeight, null);
             g2d.dispose();
 
-            // 중앙을 기준으로 크롭할 위치 계산
             int x = (scaledWidth - targetWidth) / 2;
             int y = (scaledHeight - targetHeight) / 2;
 
-            // x, y가 음수가 되지 않도록 보정
             x = Math.max(0, x);
             y = Math.max(0, y);
 
@@ -297,13 +307,11 @@ public class MainBannerPanel extends JPanel {
         }
     }
 
-    // loadAndScaleImage(): 이미지를 지정된 크기 (width, height)로 스케일링 (버튼용)
     private ImageIcon loadAndScaleImage(String path, int width, int height) {
         try {
             URL url = getClass().getResource(path);
             if (url == null) return new ImageIcon();
             ImageIcon oriIcon = new ImageIcon(url);
-            // 비율 유지하며 스케일링 (정사각형 버튼에 적합)
             Image scaled = oriIcon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
             return new ImageIcon(scaled);
         } catch (Exception e) {
@@ -312,27 +320,45 @@ public class MainBannerPanel extends JPanel {
         }
     }
 
-    // loadJalnanFont(): 커스텀 폰트 로딩
     private void loadJalnanFont() {
         try {
             java.io.InputStream is = getClass().getResourceAsStream("/busantravel/resources/Jalnan2TTF.ttf");
             if (is != null) {
                 jalnanFont = Font.createFont(Font.PLAIN, is);
             } else {
-                jalnanFont = new Font("맑은 고딕", Font.PLAIN, 14); // 로드 실패 시 대체 폰트
+                jalnanFont = new Font("맑은 고딕", Font.PLAIN, 14);
             }
         } catch (Exception e) {
-            jalnanFont = new Font("맑은 고딕", Font.PLAIN, 14); // 예외 발생 시 대체 폰트
+            jalnanFont = new Font("맑은 고딕", Font.PLAIN, 14);
         }
     }
+    
+    // 수정된 팝업 메서드
+    private void showAreaDetailPopup(String areaName) {
+        Window parentWindow = SwingUtilities.getWindowAncestor(this);
+        JDialog dialog;
+        if (parentWindow instanceof Frame) {
+            dialog = new JDialog((Frame) parentWindow, areaName + " 상세 정보", true);
+        } else if (parentWindow instanceof Dialog) {
+            dialog = new JDialog((Dialog) parentWindow, areaName + " 상세 정보", true);
+        } else {
+            dialog = new JDialog((Frame) null, areaName + " 상세 정보", true);
+        }
+        dialog.setSize(800, 600);
+        dialog.setLocationRelativeTo(parentWindow);
+        
+        // AreaDetailPanel 클래스를 사용하지 않고, 임시 JLabel을 추가
+        JLabel tempLabel = new JLabel("<html><h1 style='text-align:center; padding: 20px;'>'" + areaName + "' 상세 정보 패널이 준비되지 않았습니다.</h1></html>", SwingConstants.CENTER);
+        dialog.add(tempLabel);
+        
+        dialog.setVisible(true);
+    }
 
-    // 내부 데이터 클래스: Banner (생성자 인자 순서 변경)
     private static class Banner {
         String imagePath;
         String title;
         String subtitle;
 
-        // 생성자 인자 순서: imagePath, subtitle, title
         public Banner(String imagePath, String subtitle, String title) {
             this.imagePath = imagePath;
             this.subtitle = subtitle;
@@ -340,7 +366,6 @@ public class MainBannerPanel extends JPanel {
         }
     }
 
-    // 내부 데이터 클래스: 둥근 테두리를 위한 커스텀 Border 클래스
     private static class RoundedBorder implements Border {
         private int radius;
         private Color color;
@@ -378,7 +403,6 @@ public class MainBannerPanel extends JPanel {
         }
     }
 
-    // 내부 데이터 클래스: Schedule
     private static class Schedule {
         String imagePath;
         String labelText;
