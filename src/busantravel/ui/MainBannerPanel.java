@@ -12,8 +12,6 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.Border;
-import java.awt.geom.Area;
-import java.awt.geom.RoundRectangle2D;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 
 public class MainBannerPanel extends JPanel {
@@ -566,25 +564,25 @@ public class MainBannerPanel extends JPanel {
         AreaConfig gwangalli = new AreaConfig();
         gwangalli.touristIds = java.util.Arrays.asList("377","285","1305");
         gwangalli.restaurantIds = java.util.Arrays.asList("1251","1519","942");
-        gwangalli.lodgingIds    = java.util.Arrays.asList("L000615","L000616");
+        gwangalli.lodgingIds    = java.util.Arrays.asList("L000615","L000616", "L000621");
         areaConfigs.put("광안리", gwangalli);
 
         AreaConfig seomyeon = new AreaConfig();
         seomyeon.touristIds = java.util.Arrays.asList("354","1329","458");
         seomyeon.restaurantIds = java.util.Arrays.asList("124","2330","2329");
-        seomyeon.lodgingIds    = java.util.Arrays.asList("L000617","L000620");
+        seomyeon.lodgingIds    = java.util.Arrays.asList("L000617","L000620", "L000606");
         areaConfigs.put("서면", seomyeon);
 
         AreaConfig nampo = new AreaConfig();
         nampo.touristIds = java.util.Arrays.asList("365","257","369");
         nampo.restaurantIds = java.util.Arrays.asList("1237","1247","102");
-        nampo.lodgingIds    = java.util.Arrays.asList("L000618");
+        nampo.lodgingIds    = java.util.Arrays.asList("L000624", "L000622", "L000623");
         areaConfigs.put("남포", nampo);
 
         AreaConfig yeongdo = new AreaConfig();
         yeongdo.touristIds = java.util.Arrays.asList("1697","1179","2218");
         yeongdo.restaurantIds = java.util.Arrays.asList("1445","1437","1487");
-        yeongdo.lodgingIds    = java.util.Arrays.asList("L000618");
+        yeongdo.lodgingIds    = java.util.Arrays.asList("L000618", "L000625", "L000626");
         areaConfigs.put("영도", yeongdo);
     }
 
