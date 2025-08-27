@@ -179,11 +179,9 @@ public class PlanTripPanel extends JPanel {
         JButton saveBtn = new JButton("저장");
         styleSolidButton(saveBtn);
         saveBtn.addActionListener(e -> {
-            if (!MemberSession.isLoggedIn()) {
-                if (mainApp != null) {
-                    ScheduledPlaceService.saveSchedulesForPlan(planId, scheduledPlaces);
+            if (mainApp != null) {
+                ScheduledPlaceService.saveSchedulesForPlan(planId, scheduledPlaces);
                 if (onBack != null) onBack.run();
-                }
             }
         });
 
