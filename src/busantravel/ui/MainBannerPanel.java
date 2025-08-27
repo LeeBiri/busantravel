@@ -10,6 +10,8 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.Border;
+import java.awt.geom.Area;
+import java.awt.geom.RoundRectangle2D;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 
 public class MainBannerPanel extends JPanel {

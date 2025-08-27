@@ -676,11 +676,6 @@ public List<Festival> getFestivalsByIds(List<String> ids) {
             case "관광지":
                 dummyPlaces.add(new Tourist("D001", "해운대해수욕장 (더미)", "설명이 없습니다.", "051-749-4335", "정보 없음", "연중무휴", "부산 해운대구", "https://www.visitbusan.net/upload/preview/20240408133523345.jpg"));
                 dummyPlaces.add(new Tourist("D002", "광안리해수욕장 (더미)", "설명이 없습니다.", "051-622-4251", "정보 없음", "연중무휴", "부산 수영구", "https://www.visitbusan.net/upload/preview/20231127134103039.jpg"));
-                break;
-            case "맛집":
-                dummyPlaces.add(new Restaurant("D003", "돼지국밥집 (더미)", "설명이 없습니다.", "정보 없음", "매일 09:00 - 21:00", "부산 어딘가", "https://www.visitbusan.net/upload/preview/20231127135349987.jpg", "돼지국밥 9,000원"));
-                break;
-            case "숙소":
                 dummyPlaces.add(new Lodging("D004", "부산호텔 (더미)", "설명이 없습니다.", "051-123-4567", "정보 없음", "정보 없음", "부산 동구", "https://www.visitbusan.net/upload/preview/20231127140429858.jpg"));
                 break;
             case "축제":
