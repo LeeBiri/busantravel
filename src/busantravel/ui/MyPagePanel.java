@@ -82,7 +82,7 @@ public class MyPagePanel extends JPanel {
         statsPanel.removeAll();
         JPanel item1 = createStatsItem("" + TravelPlanService.getAllPlansByMember(loggedInUserId).size(), "총 여행 수");
         item1.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(200, 200, 200)));
-        JPanel item2 = createStatsItem("" + InterestService.getInterestById(loggedInUserId).size(), "관심장소 수");
+        JPanel item2 = createStatsItem("" + new InterestService().getInterestById(loggedInUserId).size(), "관심장소 수");
         item2.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(200, 200, 200)));
         JPanel item3 = createStatsItem("" + reviewService.getReviewCountByMember(loggedInUserId), "내가 쓴 후기 수");
         statsPanel.add(item1);
@@ -261,7 +261,7 @@ public class MyPagePanel extends JPanel {
             JPanel item1 = createStatsItem("" + TravelPlanService.getAllPlansByMember(userId).size(), "총 여행 수");
             item1.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(200, 200, 200)));
 
-            JPanel item2 = createStatsItem("" + InterestService.getInterestById(userId).size(), "관심장소 수");
+            JPanel item2 = createStatsItem("" + new InterestService().getInterestById(userId).size(), "관심장소 수");
             item2.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(200, 200, 200)));
 
             JPanel item3 = createStatsItem("" + reviewService.getReviewCountByMember(userId), "내가 쓴 후기 수");
@@ -469,7 +469,7 @@ public class MyPagePanel extends JPanel {
         listPanel.setMaximumSize(null);
 
 
-        java.util.List<Interest> interests = InterestService.getInterestById(loggedInUserId);
+        java.util.List<Interest> interests = new InterestService().getInterestById(loggedInUserId);
         if (interests.isEmpty()) {
         JLabel emptyLabel = new JLabel("저장한 관심 장소가 없습니다.", SwingConstants.CENTER);
         emptyLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 20f));
@@ -858,7 +858,7 @@ public class MyPagePanel extends JPanel {
         deleteButton.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(this, "정말로 삭제하시겠습니까?", "삭제 확인", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
-                InterestService.deleteInterest(interest);
+                new InterestService().deleteInterest(interest);
                 reloadFavoritePlacePanel();
             }
         });
@@ -871,7 +871,7 @@ public class MyPagePanel extends JPanel {
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (e.getSource() != deleteButton) {
                     // 타입과 placeId를 통해 재조회
-                    for (Interest currentInterest : InterestService.getInterestById(loggedInUserId)) {
+                    for (Interest currentInterest : new InterestService().getInterestById(loggedInUserId)) {
                         if (currentInterest.getM_id().equals(interest.getM_id()) &&
                             currentInterest.getP_id().equals(interest.getP_id()) &&
                             currentInterest.getP_type().equals(interest.getP_type())) {

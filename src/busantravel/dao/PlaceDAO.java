@@ -29,10 +29,10 @@ public class PlaceDAO {
     }
 
     public List<Object> getPlacesByCategory(String category) {
-        return getPlacesByCategory(category, 1, Integer.MAX_VALUE); // 기존 메서드는 모든 결과를 가져오도록 위임
+        return getPlacesByCategory(category, 1, Integer.MAX_VALUE, "가나다순"); // 기존 메서드는 모든 결과를 가져오도록 위임
     }
 
-    public List<Object> getPlacesByCategory(String category, int page, int pageSize) {
+    public List<Object> getPlacesByCategory(String category, int page, int pageSize, String sortBy) {
         if (!DBConnectionMgr.isDbConnected()) {
             return getDummyPlaces(category);
         }
@@ -42,14 +42,33 @@ public class PlaceDAO {
         ResultSet rs = null;
 
         String tableName = getTableName(category);
-        String sql = "SELECT * FROM " + tableName + " LIMIT ? OFFSET ?";
+        String idColumn = getIdColumnName(category);
+        String nameColumn = getPlaceColumnName(category);
+
+        String sql;
+        if ("인기순".equals(sortBy)) {
+            sql = "SELECT t.*, COUNT(i.p_id) as interest_count FROM " + tableName + " t " +
+                  "LEFT JOIN interest i ON t." + idColumn + " COLLATE utf8mb4_general_ci = i.p_id COLLATE utf8mb4_general_ci AND i.p_type = ? " +
+                  "GROUP BY t." + idColumn + " " +
+                  "ORDER BY interest_count DESC, t." + nameColumn + " ASC " +
+                  "LIMIT ? OFFSET ?";
+        } else {
+            sql = "SELECT * FROM " + tableName + " ORDER BY " + nameColumn + " ASC LIMIT ? OFFSET ?";
+        }
+        
         int offset = (page - 1) * pageSize;
 
         try {
             con = pool.getConnection();
             pstmt = con.prepareStatement(sql);
-            pstmt.setInt(1, pageSize);
-            pstmt.setInt(2, offset);
+            if ("인기순".equals(sortBy)) {
+                pstmt.setString(1, category);
+                pstmt.setInt(2, pageSize);
+                pstmt.setInt(3, offset);
+            } else {
+                pstmt.setInt(1, pageSize);
+                pstmt.setInt(2, offset);
+            }
             rs = pstmt.executeQuery();
 
             while (rs.next()) {
@@ -324,6 +343,21 @@ public class PlaceDAO {
                 return "f_name";
             default:
                 return "t_place";
+        }
+    }
+
+    private String getIdColumnName(String category) {
+        switch (category) {
+            case "관광지":
+                return "t_id";
+            case "맛집":
+                return "r_id";
+            case "숙소":
+                return "l_id";
+            case "축제":
+                return "f_id";
+            default:
+                return "t_id";
         }
     }
 
