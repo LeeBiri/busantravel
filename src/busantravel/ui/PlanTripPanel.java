@@ -3,6 +3,7 @@ package busantravel.ui;
 import busantravel.auth.MemberSession;
 import busantravel.dao.PlaceDAO;
 import busantravel.model.Festival;
+import busantravel.model.Interest;
 import busantravel.model.Lodging;
 import busantravel.model.Restaurant;
 import busantravel.model.ScheduledPlace;
@@ -179,11 +180,10 @@ public class PlanTripPanel extends JPanel {
         JButton saveBtn = new JButton("저장");
         styleSolidButton(saveBtn);
         saveBtn.addActionListener(e -> {
-            if (mainApp != null) {
-                ScheduledPlaceService.saveSchedulesForPlan(planId, scheduledPlaces);
-                if (onBack != null) onBack.run();
-            }
-        });
+        if (mainApp != null) {
+            ScheduledPlaceService.saveSchedulesForPlan(planId, scheduledPlaces);
+            if (onBack != null) onBack.run();
+        }});
 
         JButton back = new JButton("뒤로 가기");
         styleGhostButton(back);
@@ -413,6 +413,21 @@ public class PlanTripPanel extends JPanel {
         plus.setBorder(new LineBorder(ACCENT_DARK, 1, true));
         plus.addActionListener(e -> {
             LocalDate d = getSelectedDate();
+            boolean alreadyExists = scheduledPlaces.stream()
+                .anyMatch(existing ->
+                    existing.getP_id().equals(pd.id) &&
+                    existing.getP_type().equals(pd.type) &&
+                    existing.getScheduled_date().toLocalDate().equals(d)
+                );
+
+            if (alreadyExists) {
+                JOptionPane.showMessageDialog(this,
+                        "이 장소는 이미 선택한 일정에 추가되어 있습니다.",
+                        "중복 추가",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
             LocalDateTime visit = LocalDateTime.of(d, LocalTime.MIDNIGHT);
             ScheduledPlace sp = new ScheduledPlace(
                 planId,

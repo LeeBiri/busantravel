@@ -18,10 +18,6 @@ import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
@@ -41,8 +37,7 @@ public class MyPagePanel extends JPanel {
     private ReviewService reviewService;
     private JLabel nicknameLabel;
     private JPanel statsPanel;
-    private JFrame mainFrame;
-    private Map<String, String> placeThumbIndex = new HashMap<>();
+
 
     public MyPagePanel(JFrame frame, TravelPlannerApp mainApp) {
         loadJalnanFont();
@@ -51,7 +46,7 @@ public class MyPagePanel extends JPanel {
 
         loggedInUserId = MemberSession.getId();
         this.mainApp = mainApp;
-        this.mainFrame = frame;
+
         JPanel menuPanel = createMenuPanel();
         add(menuPanel, BorderLayout.WEST);
 
@@ -401,8 +396,6 @@ public class MyPagePanel extends JPanel {
         JScrollPane scrollPane = new JScrollPane(listPanel);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        scrollPane.getVerticalScrollBar().setUI(new MatteScrollBarUI());
-        scrollPane.getHorizontalScrollBar().setUI(new MatteScrollBarUI());
 
         panel.add(scrollPane, BorderLayout.CENTER);
 
@@ -458,90 +451,59 @@ public class MyPagePanel extends JPanel {
         panel.setBackground(Color.WHITE);
         panel.setBorder(new EmptyBorder(60, 80, 60, 80));
 
-
         JLabel title = new JLabel("저장한 관심 장소");
         title.setFont(jalnanFont.deriveFont(Font.PLAIN, 30f));
         panel.add(title, BorderLayout.NORTH);
-
 
         JPanel listPanel = new JPanel(new WrapLayout(FlowLayout.LEFT, 20, 20));
         listPanel.setBackground(Color.WHITE);
         listPanel.setMaximumSize(null);
 
-
         java.util.List<Interest> interests = InterestService.getInterestById(loggedInUserId);
         if (interests.isEmpty()) {
-        JLabel emptyLabel = new JLabel("저장한 관심 장소가 없습니다.", SwingConstants.CENTER);
-        emptyLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 20f));
-        listPanel.add(emptyLabel);
+            JLabel emptyLabel = new JLabel("저장한 관심 장소가 없습니다.", SwingConstants.CENTER);
+            emptyLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 20f));
+            listPanel.add(emptyLabel);
         } else {
+            for (Interest interest : interests) {
+                Object place = placeDAO.getPlaceByTypeAndId(interest.getP_type(), interest.getP_id());
+                String placeName = "";
+                String thumbUrl = "";
 
-        Map<String, java.util.List<String>> interestMap = new HashMap<>();
-        for (Interest interest : interests) {
-        interestMap.computeIfAbsent(interest.getP_type(), k -> new ArrayList<>()).add(interest.getP_id());
-        }
+                if (place instanceof Tourist) {
+                    Tourist t = (Tourist) place;
+                    placeName = t.getT_place();
+                    thumbUrl = t.getT_thum();
+                } else if (place instanceof Restaurant) {
+                    Restaurant r = (Restaurant) place;
+                    placeName = r.getR_place();
+                    thumbUrl = r.getR_thum();
+                } else if (place instanceof Lodging) {
+                    Lodging l = (Lodging) place;
+                    placeName = l.getL_place();
+                    thumbUrl = l.getL_thum();
+                } else if (place instanceof Festival) {
+                    Festival f = (Festival) place;
+                    placeName = f.getF_name();
+                    thumbUrl = f.getF_thum();
+                }
 
-
-        java.util.List<Tourist> touristList = placeDAO.getTouristsByIds(interestMap.getOrDefault("관광지", Collections.emptyList()));
-        java.util.List<Restaurant> restaurantList = placeDAO.getRestaurantsByIds(interestMap.getOrDefault("맛집", Collections.emptyList()));
-        java.util.List<Lodging> lodgingList = placeDAO.getLodgingsByIds(interestMap.getOrDefault("숙소", Collections.emptyList()));
-        java.util.List<Festival> festivalList = placeDAO.getFestivalsByIds(interestMap.getOrDefault("축제", Collections.emptyList()));
-
-
-        Map<String, Object> allPlaces = new HashMap<>();
-        for (Tourist t : touristList) allPlaces.put("관광지:" + t.getT_id(), t);
-        for (Restaurant r : restaurantList) allPlaces.put("맛집:" + r.getR_id(), r);
-        for (Lodging l : lodgingList) allPlaces.put("숙소:" + l.getL_id(), l);
-        for (Festival f : festivalList) allPlaces.put("축제:" + f.getF_id(), f);
-
-
-        for (Interest interest : interests) {
-            String key = interest.getP_type() + ":" + interest.getP_id();
-            Object place = allPlaces.get(key);
-            String placeName = "";
-            String thumbUrl = "";
-
-
-            if (place instanceof Tourist) {
-                Tourist t = (Tourist) place;
-                placeName = t.getT_place();
-                thumbUrl = getPlaceThumb("관광지", t.getT_id(), t);
-            } else if (place instanceof Restaurant) {
-                Restaurant r = (Restaurant) place;
-                placeName = r.getR_place();
-                thumbUrl = getPlaceThumb("맛집", r.getR_id(), r);
-            } else if (place instanceof Lodging) {
-                Lodging l = (Lodging) place;
-                placeName = l.getL_place();
-                thumbUrl = getPlaceThumb("숙소", l.getL_id(), l);
-            } else if (place instanceof Festival) {
-                Festival f = (Festival) place;
-                placeName = f.getF_name();
-                thumbUrl = getPlaceThumb("축제", f.getF_id(), f);
+                JPanel box = createFavoritePlaceBox(placeName, thumbUrl, interest);
+                listPanel.add(box);
             }
-
-
-            JPanel box = createFavoritePlaceBox(placeName, thumbUrl, interest);
-            listPanel.add(box);
         }
-    }
-
 
         JScrollPane scroll = new JScrollPane(listPanel);
         scroll.setBorder(null);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
-        scroll.getVerticalScrollBar().setUI(new MatteScrollBarUI());
-        scroll.getHorizontalScrollBar().setUI(new MatteScrollBarUI());
         ((JPanel) scroll.getViewport().getView()).setAlignmentY(Component.TOP_ALIGNMENT);
-
 
         panel.add(scroll, BorderLayout.CENTER);
         panel.add(createGoBackButtonPanel(), BorderLayout.SOUTH);
 
-
         return panel;
-        }
-    
+    }
+
     private JPanel createMemberInfoPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.WHITE);
@@ -922,30 +884,5 @@ public class MyPagePanel extends JPanel {
         contentPanel.repaint();
     }
 
-    private String getPlaceThumb(String type, String id, Object place) {
-        String key = type + ":" + id;
-        if (placeThumbIndex.containsKey(key)) {
-            return placeThumbIndex.get(key);
-        }
-
-        String thumb = "";
-        switch (type) {
-            case "관광지":
-                thumb = ((Tourist) place).getT_thum();
-                break;
-            case "맛집":
-                thumb = ((Restaurant) place).getR_thum();
-                break;
-            case "숙소":
-                thumb = ((Lodging) place).getL_thum();
-                break;
-            case "축제":
-                thumb = ((Festival) place).getF_thum();
-                break;
-        }
-
-        placeThumbIndex.put(key, thumb);
-        return thumb;
-    }
 
 }

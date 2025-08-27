@@ -56,19 +56,5 @@ public class ScheduledPlace {
     public void setSchedule_memo(String schedule_memo) {
         this.schedule_memo = schedule_memo;
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ScheduledPlace that = (ScheduledPlace) o;
-        return visit_order == that.visit_order &&
-               java.util.Objects.equals(plan_id, that.plan_id) &&
-               java.util.Objects.equals(p_id, that.p_id);
-    }
-
-    @Override
-    public int hashCode() {
-        return java.util.Objects.hash(plan_id, p_id, visit_order);
-    }
+    
 }

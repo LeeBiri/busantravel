@@ -99,37 +99,16 @@ public class ScheduledPlaceDAO {
     }
 
     public void updateScheduleOrder(List<ScheduledPlace> schedules) {
-        if (schedules == null || schedules.isEmpty()) {
-            return;
-        }
-
-        String planId = schedules.get(0).getplan_id();
-        
-        String deleteSql = "DELETE FROM scheduled_place WHERE plan_id = ?";
-        String insertSql = "INSERT INTO scheduled_place(plan_id, p_id, p_type, scheduled_date, visit_order, schedule_memo) VALUES(?, ?, ?, ?, ?, ?)";
-
-        try (Connection con = pool.getConnection()) {
-            con.setAutoCommit(false);
-
-            try (PreparedStatement deletePstmt = con.prepareStatement(deleteSql)) {
-                deletePstmt.setString(1, planId);
-                deletePstmt.executeUpdate();
+        String sql = "UPDATE scheduled_place SET visit_order = ? WHERE plan_id = ? AND p_id = ?";
+        try (Connection con = pool.getConnection();
+             PreparedStatement pstmt = con.prepareStatement(sql)) {
+            for (ScheduledPlace schedule : schedules) {
+                pstmt.setInt(1, schedule.getVisit_order());
+                pstmt.setString(2, schedule.getplan_id());
+                pstmt.setString(3, schedule.getP_id());
+                pstmt.addBatch();
             }
-
-            try (PreparedStatement insertPstmt = con.prepareStatement(insertSql)) {
-                for (ScheduledPlace schedule : schedules) {
-                    insertPstmt.setString(1, schedule.getplan_id());
-                    insertPstmt.setString(2, schedule.getP_id());
-                    insertPstmt.setString(3, schedule.getP_type());
-                    insertPstmt.setTimestamp(4, Timestamp.valueOf(schedule.getScheduled_date()));
-                    insertPstmt.setInt(5, schedule.getVisit_order());
-                    insertPstmt.setString(6, schedule.getSchedule_memo());
-                    insertPstmt.addBatch();
-                }
-                insertPstmt.executeBatch();
-            }
-
-            con.commit();
+            pstmt.executeBatch();
         } catch (Exception e) {
             e.printStackTrace();
         }

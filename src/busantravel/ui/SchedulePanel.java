@@ -2,9 +2,7 @@ package busantravel.ui;
 
 import busantravel.auth.MemberSession;
 import busantravel.controller.PlanController;
-import busantravel.model.ScheduledPlace;
 import busantravel.model.TravelPlan;
-import busantravel.service.ScheduledPlaceService;
 import java.awt.*;
 import java.io.InputStream;
 import java.util.List;
@@ -295,8 +293,7 @@ public class SchedulePanel extends JPanel {
             reviewBtn.setForeground(Color.WHITE);
             reviewBtn.setFocusPainted(false);
             reviewBtn.addActionListener(e -> {
-                List<ScheduledPlace> scheduledPlaces = ScheduledPlaceService.getSchedulesByPlanId(plan.getPlan_id());
-                new ReviewPopup(parentFrame, null, () -> controller.refreshRoomLists(), scheduledPlaces, plan.getPlan_id()).setVisible(true);
+                new ReviewPopup(parentFrame, null, () -> controller.refreshRoomLists()).setVisible(true);
             });
 
             JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));

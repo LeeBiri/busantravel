@@ -26,7 +26,6 @@ public class PlaceCard extends JPanel {
     private StaticMapGenerator staticMapGenerator;
     private int currentZoom = 14;
     private TravelPlannerApp mainApp;
-    private JFrame frame;
     private static final String API_KEY = "h5baCQSfp37eFmXohbwx23t7n1KLSIcn3RyFtMcg"; // TMAP API Key
 
     public enum ViewType {
@@ -36,7 +35,6 @@ public class PlaceCard extends JPanel {
 
     public PlaceCard(JFrame frame, String placeId, String placeName, String category, String thumbnail, ViewType viewType, Font customFont, TravelPlannerApp mainApp) {
         this.placeId = placeId;
-        this.frame = frame;
         this.placeDAO = new PlaceDAO();
         this.tmapApiHandler = new TmapApiHandler(API_KEY);
         this.staticMapGenerator = new StaticMapGenerator(API_KEY);
@@ -438,7 +436,7 @@ public class PlaceCard extends JPanel {
 
         button.addActionListener(e -> {
             if (!MemberSession.isLoggedIn()) {
-                JOptionPane.showMessageDialog(frame, "로그인이 필요한 서비스입니다.", "알림", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "로그인이 필요한 서비스입니다.", "알림", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
 
@@ -450,12 +448,12 @@ public class PlaceCard extends JPanel {
             if (existingInterest != null) {
                 // 찜 취소
                 InterestService.deleteInterest(existingInterest);
-                JOptionPane.showMessageDialog(frame, placeName + " 찜을 취소했습니다!");
+                JOptionPane.showMessageDialog(this, placeName + " 찜을 취소했습니다!");
                 button.setText("찜하기");
             } else {
                 // 찜하기
                 InterestService.insertInterest(MemberSession.getId(), placeId, category);
-                JOptionPane.showMessageDialog(frame, placeName + "을 찜했습니다!");
+                JOptionPane.showMessageDialog(this, placeName + "을 찜했습니다!");
                 button.setText("찜 취소");
             }
         });

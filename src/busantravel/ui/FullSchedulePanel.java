@@ -315,9 +315,7 @@ public class FullSchedulePanel extends JPanel {
             writeReviewBtn.setForeground(Color.WHITE);
             writeReviewBtn.setFocusPainted(false);
             writeReviewBtn.addActionListener(e -> {
-                List<ScheduledPlace> scheduledPlaces = ScheduledPlaceService.getSchedulesByPlanId(plan.getPlan_id());
-                ReviewPopup popup = new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this), null, () -> mainApp.refreshFullSchedule(plan), scheduledPlaces, plan.getPlan_id());
-                popup.setVisible(true);
+                new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this), null, () -> mainApp.refreshFullSchedule(plan)).setVisible(true);
             });
             buttonContainer.add(Box.createHorizontalStrut(10));
             buttonContainer.add(writeReviewBtn);
@@ -453,7 +451,7 @@ public class FullSchedulePanel extends JPanel {
             if (o instanceof Restaurant r)
                 return new PlaceData(r.getR_id(), r.getR_place(), r.getR_addr(), "맛집", r.getR_thum());
             if (o instanceof Lodging l)
-                return new PlaceData(l.getL_id(), l.getL_place(), l.getL_addr(), "숙소", l.getL_thum());
+                return new PlaceData(l.getL_id(), l.getL_place(), l.getL_addr(), "숙소", null);
             if (o instanceof Festival f)
                 return new PlaceData(f.getF_id(), f.getF_name(), f.getF_addr(), "축제", f.getF_thum());
             return new PlaceData("", "알 수 없는 장소", "", "기타", null);
