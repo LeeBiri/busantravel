@@ -19,4 +19,11 @@ public class ReviewService {
     public int getReviewCountByMember(String memberId) {
         return reviewDAO.getReviewCountByMemberId(memberId);
     }
+
+    public void deleteReviewsByPlanId(String planId) {
+        List<Review> reviewsToDelete = reviewDAO.getReviewsByPlanId(planId);
+        for (Review review : reviewsToDelete) {
+            reviewDAO.deleteReview(review.getReviewId());
+        }
+    }
 }

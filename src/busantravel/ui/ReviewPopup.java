@@ -212,6 +212,7 @@ public class ReviewPopup extends JDialog {
             newReview.setTitle(title);
             newReview.setContent(content);
             newReview.setVisibility(visibility);
+            newReview.setPlanId(planId);
             reviewDAO.addReview(newReview);               // ① 후기 저장
         } else { // 수정
             review.setTitle(title);

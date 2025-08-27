@@ -289,6 +289,9 @@ public class SchedulePanel extends JPanel {
 
             card.add(buttonPanel, BorderLayout.EAST);
         } else {
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            buttonPanel.setBackground(Color.WHITE);
+
             JButton reviewBtn = new JButton("후기 작성");
             reviewBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 14f));
             reviewBtn.setBackground(ColorConstants.ACCENT);
@@ -298,10 +301,26 @@ public class SchedulePanel extends JPanel {
                 List<ScheduledPlace> scheduledPlaces = ScheduledPlaceService.getSchedulesByPlanId(plan.getPlan_id());
                 new ReviewPopup(parentFrame, null, () -> controller.refreshRoomLists(), scheduledPlaces, plan.getPlan_id()).setVisible(true);
             });
-
-            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-            buttonPanel.setBackground(Color.WHITE);
             buttonPanel.add(reviewBtn);
+
+            JButton deleteBtn = new JButton("삭제");
+            deleteBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
+            deleteBtn.setBackground(new Color(220, 220, 220));
+            deleteBtn.setFocusPainted(false);
+            deleteBtn.addActionListener(e -> {
+                int confirm = JOptionPane.showConfirmDialog(
+                    parentFrame,
+                    "이 여행 계획을 삭제하면 작성된 후기도 함께 삭제됩니다.\n정말로 삭제하시겠습니까?",
+                    "여행 계획 삭제",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+                );
+                if (confirm == JOptionPane.YES_OPTION) {
+                    controller.handleDeletePlan(plan.getPlan_id());
+                }
+            });
+            buttonPanel.add(deleteBtn);
+
             card.add(buttonPanel, BorderLayout.EAST);
         }
 
