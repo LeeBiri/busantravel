@@ -6,17 +6,27 @@ public class Lodging {
 	private String l_num; // 연락처
 	private String l_addr; //주소
 	private String l_thum; //썸네일 이미지 URL
+	private String l_intro;
 	
 	
 	public Lodging(String l_id, String l_place, String l_intro, String l_num, String l_tra, String l_infor,
 			String l_addr, String l_thum) {
 		this.l_id = l_id;
 		this.l_place = l_place;
+		this.l_intro = l_intro;
 		this.l_num = l_num;
 		this.l_addr = l_addr;
 		this.l_thum = l_thum;
 	}
 	
+	public String getL_intro() {
+		return l_intro;
+	}
+
+	public void setL_intro(String l_intro) {
+		this.l_intro = l_intro;
+	}
+
 	public String getL_id() {
 		return l_id;
 	}
@@ -47,5 +57,6 @@ public class Lodging {
 	public void setL_thum(String l_thum) {
 		this.l_thum = l_thum;
 	}
+
 
 }

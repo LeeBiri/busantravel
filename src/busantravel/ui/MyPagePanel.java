@@ -14,8 +14,8 @@ import busantravel.service.MemberService;
 import busantravel.service.ReviewService;
 import busantravel.service.TravelPlanService;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.InputStream;
-import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import javax.swing.*;
@@ -783,18 +783,17 @@ public class MyPagePanel extends JPanel {
         imageLabel.setPreferredSize(new Dimension(48, 48));
         imageLabel.setMaximumSize(new Dimension(48, 48));
         imageLabel.setMinimumSize(new Dimension(48, 48));
-        try {
-            if (thumbUrl != null && !thumbUrl.isEmpty()) {
-                URL imageUrl = new URL(thumbUrl);
-                ImageIcon originalIcon = new ImageIcon(imageUrl);
-                Image scaledImage = originalIcon.getImage().getScaledInstance(48, 48, Image.SCALE_SMOOTH);
-                imageLabel.setIcon(new ImageIcon(scaledImage));
-            } else {
-                imageLabel.setText("No Image");
-                imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-            }
-        } catch (Exception e) {
-            imageLabel.setText("X");
+
+        ImageIcon placeholder = new ImageIcon(
+            new BufferedImage(48, 48, BufferedImage.TYPE_INT_RGB)
+        );
+        imageLabel.setIcon(placeholder);
+
+        // ✅ 비동기 로딩 적용
+        if (thumbUrl != null && !thumbUrl.isEmpty()) {
+            ImageThumbLoader.load(imageLabel, thumbUrl, 48, 48, placeholder);
+        } else {
+            imageLabel.setText("No Image");
             imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
         }
 
