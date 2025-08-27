@@ -5,7 +5,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Font;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -21,9 +20,12 @@ import javax.swing.border.EmptyBorder;
 
 import busantravel.auth.MemberSession;
 import busantravel.dao.TravelPlanDAO;
+import busantravel.model.ScheduledPlace;
 import busantravel.model.TravelPlan;
+import busantravel.service.ScheduledPlaceService;
 import busantravel.util.FontManager;
 import java.time.LocalDateTime;
+
 public class ProfileSidePanel extends JPanel {
 
     private ReviewPanel reviewPanel;
@@ -60,9 +62,9 @@ public class ProfileSidePanel extends JPanel {
         contentPanel.setOpaque(false);
 
         // Review filter buttons
-        contentPanel.add(createStyledButton("내가 작성한 리뷰 보기", e -> reviewPanel.loadMyReviews()));
+        contentPanel.add(createStyledButton("내가 작성한 후기 보기", e -> reviewPanel.loadMyReviews()));
         contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        contentPanel.add(createStyledButton("전체 리뷰 보기", e -> reviewPanel.loadAllReviews()));
+        contentPanel.add(createStyledButton("전체 후기 보기", e -> reviewPanel.loadAllReviews()));
 
         // Past trips list
         JLabel pastTripsTitle = new JLabel("지난 일정 목록");
@@ -130,7 +132,8 @@ public class ProfileSidePanel extends JPanel {
         writeReviewButton.setForeground(ColorConstants.ACCENT);
         writeReviewButton.setFocusPainted(false);
         writeReviewButton.addActionListener(e -> {
-            new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this), null, reviewPanel::refreshReviews).setVisible(true);
+            List<ScheduledPlace> scheduledPlaces = ScheduledPlaceService.getSchedulesByPlanId(plan.getPlan_id());
+            new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this), null, reviewPanel::refreshReviews, scheduledPlaces, plan.getPlan_id()).setVisible(true);
         });
         
         JPanel buttonWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));

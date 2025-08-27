@@ -24,6 +24,8 @@ import javax.swing.border.EmptyBorder;
 import busantravel.auth.MemberSession;
 import busantravel.dao.ReviewDAO;
 import busantravel.model.Review;
+import busantravel.model.ScheduledPlace;
+import busantravel.service.ScheduledPlaceService;
 import busantravel.util.FontManager;
 
 public class ReviewPanel extends JPanel {
@@ -65,16 +67,15 @@ public class ReviewPanel extends JPanel {
 
         String memberId = MemberSession.getId();
         if (memberId != null && !memberId.isEmpty()) {
-            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-            splitPane.setLeftComponent(reviewListPanel);
-
+            JPanel mainPanel = new JPanel(new BorderLayout());
+            mainPanel.setBackground(Color.WHITE);
+            
+            mainPanel.add(reviewListPanel, BorderLayout.CENTER);
+            
             ProfileSidePanel profileSidePanel = new ProfileSidePanel(this);
-            splitPane.setRightComponent(profileSidePanel);
+            mainPanel.add(profileSidePanel, BorderLayout.EAST);
 
-            splitPane.setResizeWeight(0.9);
-            splitPane.setBorder(null);
-
-            add(splitPane, BorderLayout.CENTER);
+            add(mainPanel, BorderLayout.CENTER);
         } else {
             add(reviewListPanel, BorderLayout.CENTER);
         }
@@ -177,12 +178,12 @@ public class ReviewPanel extends JPanel {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setBackground(Color.WHITE);
         
-        JButton readButton = new JButton("리뷰 읽기");
+        JButton readButton = new JButton("후기 읽기");
         readButton.setFont(FontManager.getJalnanFont(12f));
         readButton.setBackground(ColorConstants.ACCENT);
         readButton.setForeground(Color.WHITE);
         readButton.addActionListener(e -> {
-            new ReviewDetailPopup((JFrame) SwingUtilities.getWindowAncestor(this), review).setVisible(true);
+            new ReviewDetailPopup((JFrame) SwingUtilities.getWindowAncestor(this), review, null).setVisible(true);
         });
         buttonPanel.add(readButton);
 
@@ -195,7 +196,9 @@ public class ReviewPanel extends JPanel {
             editButton.setBackground(ColorConstants.ACCENT);
             editButton.setForeground(Color.WHITE);
             editButton.addActionListener(e -> {
-                new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this), review, this::refreshReviews).setVisible(true);
+                // Since we reverted Review model, we can't get planId from review object.
+                // We will pass null for scheduledPlaces, so the sidebar will not be shown in edit mode.
+                new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this), review, this::refreshReviews, null, null).setVisible(true);
             });
             buttonPanel.add(editButton);
         }
