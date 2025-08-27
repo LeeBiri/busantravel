@@ -453,7 +453,7 @@ public class FullSchedulePanel extends JPanel {
             if (o instanceof Restaurant r)
                 return new PlaceData(r.getR_id(), r.getR_place(), r.getR_addr(), "맛집", r.getR_thum());
             if (o instanceof Lodging l)
-                return new PlaceData(l.getL_id(), l.getL_place(), l.getL_addr(), "숙소", null);
+                return new PlaceData(l.getL_id(), l.getL_place(), l.getL_addr(), "숙소", l.getL_thum());
             if (o instanceof Festival f)
                 return new PlaceData(f.getF_id(), f.getF_name(), f.getF_addr(), "축제", f.getF_thum());
             return new PlaceData("", "알 수 없는 장소", "", "기타", null);
