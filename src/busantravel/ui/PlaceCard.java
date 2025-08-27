@@ -16,6 +16,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PlaceCard extends JPanel {
@@ -181,12 +182,18 @@ public class PlaceCard extends JPanel {
         
         rightPanel.add(infoAndMapPanel, BorderLayout.CENTER);
 
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottomPanel.setBackground(Color.WHITE);
+
+        JLabel interestCountLabel = new JLabel();
+        interestCountLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 14f));
+        bottomPanel.add(interestCountLabel);
+
         JButton saveBtn = new JButton("찜하기");
-        setupSaveButton(saveBtn, placeName, category);
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.setBackground(Color.WHITE);
-        buttonPanel.add(saveBtn);
-        rightPanel.add(buttonPanel, BorderLayout.SOUTH);
+        setupSaveButton(saveBtn, placeName, category, interestCountLabel);
+        bottomPanel.add(saveBtn);
+        
+        rightPanel.add(bottomPanel, BorderLayout.SOUTH);
 
         return rightPanel;
     }
@@ -413,7 +420,9 @@ public class PlaceCard extends JPanel {
         button.setBorderPainted(false);
     }
 
-    private void setupSaveButton(JButton button, String placeName, String category) {
+    private void setupSaveButton(JButton button, String placeName, String category, JLabel interestCountLabel) {
+        InterestService interestService = new InterestService();
+        
         button.setBackground(ColorConstants.ACCENT);
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
@@ -423,18 +432,7 @@ public class PlaceCard extends JPanel {
             BorderFactory.createEmptyBorder(5, 15, 5, 15)
         ));
 
-        if (MemberSession.isLoggedIn()) {
-            java.util.List<Interest> interests = InterestService.getInterestById(MemberSession.getId());
-            boolean isInterested = interests.stream().anyMatch(i -> i.getP_id().equals(placeId) && i.getP_type().equals(category));
-
-            if (isInterested) {
-                button.setText("찜 취소");
-            } else {
-                button.setText("찜하기");
-            }
-        } else {
-            button.setText("찜하기");
-        }
+        updateInterestStatus(button, interestCountLabel, placeName, category, interestService);
 
         button.addActionListener(e -> {
             if (!MemberSession.isLoggedIn()) {
@@ -442,23 +440,33 @@ public class PlaceCard extends JPanel {
                 return;
             }
 
-            java.util.List<Interest> interests = InterestService.getInterestById(MemberSession.getId());
+            List<Interest> interests = interestService.getInterestById(MemberSession.getId());
             Interest existingInterest = interests.stream()
                 .filter(i -> i.getP_id().equals(placeId) && i.getP_type().equals(category))
                 .findFirst().orElse(null);
 
             if (existingInterest != null) {
-                // 찜 취소
-                InterestService.deleteInterest(existingInterest);
+                interestService.deleteInterest(existingInterest);
                 JOptionPane.showMessageDialog(frame, placeName + " 찜을 취소했습니다!");
-                button.setText("찜하기");
             } else {
-                // 찜하기
-                InterestService.insertInterest(MemberSession.getId(), placeId, category);
+                interestService.insertInterest(MemberSession.getId(), placeId, category);
                 JOptionPane.showMessageDialog(frame, placeName + "을 찜했습니다!");
-                button.setText("찜 취소");
             }
+            updateInterestStatus(button, interestCountLabel, placeName, category, interestService);
         });
+    }
+
+    private void updateInterestStatus(JButton button, JLabel label, String placeName, String category, InterestService interestService) {
+        int count = interestService.getInterestCountByPlace(placeId, category);
+        label.setText("♥ " + count);
+
+        if (MemberSession.isLoggedIn()) {
+            List<Interest> interests = interestService.getInterestById(MemberSession.getId());
+            boolean isInterested = interests.stream().anyMatch(i -> i.getP_id().equals(placeId) && i.getP_type().equals(category));
+            button.setText(isInterested ? "찜 취소" : "찜하기");
+        } else {
+            button.setText("찜하기");
+        }
     }
 
     private MouseAdapter createMouseAdapter(JFrame frame, String placeName, String category) {

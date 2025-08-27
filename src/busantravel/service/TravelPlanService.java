@@ -1,5 +1,6 @@
 package busantravel.service;
 
+import busantravel.dao.ScheduledPlaceDAO;
 import busantravel.dao.TravelPlanDAO;
 import busantravel.dao.TravelPlanMemberDAO;
 import busantravel.model.TravelPlan;
@@ -66,9 +67,10 @@ public class TravelPlanService {
 	}
 
     public static void deletePlan(String planId) {
-        // First, delete all members associated with the plan
+        // 관련 자식 레코드들 (예: travel_plan_member, scheduled_place 등)을 먼저 삭제해야 함
+        new ReviewService().deleteReviewsByPlanId(planId);
         TravelPlanMemberDAO.deleteByPlanId(planId);
-        // Then, delete the plan itself
-        travelPlanDAO.deleteById(planId);
+        new ScheduledPlaceDAO().deleteAllByPlanId(planId);
+        new TravelPlanDAO().deleteById(planId);
     }
 }

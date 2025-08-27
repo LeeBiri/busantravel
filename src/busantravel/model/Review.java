@@ -10,6 +10,7 @@ public class Review {
     private String content;
     private int visibility; // 0: public, 1: private
     private Date createdAt;
+    private String planId;
     private List<String> photoUris;
     private String memberNickname;
 
@@ -72,6 +73,14 @@ public class Review {
 
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getPlanId() {
+        return planId;
+    }
+
+    public void setPlanId(String planId) {
+        this.planId = planId;
     }
 
 

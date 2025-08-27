@@ -183,7 +183,11 @@ public class ReviewPanel extends JPanel {
         readButton.setBackground(ColorConstants.ACCENT);
         readButton.setForeground(Color.WHITE);
         readButton.addActionListener(e -> {
-            new ReviewDetailPopup((JFrame) SwingUtilities.getWindowAncestor(this), review, null).setVisible(true);
+            List<ScheduledPlace> scheduledPlaces = null;
+            if (review.getPlanId() != null) {
+                scheduledPlaces = ScheduledPlaceService.getSchedulesByPlanId(review.getPlanId());
+            }
+            new ReviewDetailPopup((JFrame) SwingUtilities.getWindowAncestor(this), review, scheduledPlaces).setVisible(true);
         });
         buttonPanel.add(readButton);
 
@@ -196,9 +200,11 @@ public class ReviewPanel extends JPanel {
             editButton.setBackground(ColorConstants.ACCENT);
             editButton.setForeground(Color.WHITE);
             editButton.addActionListener(e -> {
-                // Since we reverted Review model, we can't get planId from review object.
-                // We will pass null for scheduledPlaces, so the sidebar will not be shown in edit mode.
-                new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this), review, this::refreshReviews, null, null).setVisible(true);
+                List<ScheduledPlace> scheduledPlaces = null;
+                if (review.getPlanId() != null) {
+                    scheduledPlaces = ScheduledPlaceService.getSchedulesByPlanId(review.getPlanId());
+                }
+                new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this), review, this::refreshReviews, scheduledPlaces, review.getPlanId()).setVisible(true);
             });
             buttonPanel.add(editButton);
         }
