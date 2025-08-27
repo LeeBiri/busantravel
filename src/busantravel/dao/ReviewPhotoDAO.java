@@ -65,17 +65,18 @@ public byte[] getFirstPhotoData(String reviewId) {
     public void insertPhotos(String reviewId, List<File> files) {
         if (files == null || files.isEmpty()) return;
 
-        Connection con = null;
-        PreparedStatement pstmt = null;
         String sql = "INSERT INTO review_photo "
                    + "(ph_id, review_id, ph_name, ph_mime, ph_data, ph_description, ph_order) "
                    + "VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try {
-            con = pool.getConnection();
-            pstmt = con.prepareStatement(sql);
+        
+        int order = 1;
+        for (File f : files) {
+            Connection con = null;
+            PreparedStatement pstmt = null;
+            try {
+                con = pool.getConnection();
+                pstmt = con.prepareStatement(sql);
 
-            int order = 1;
-            for (File f : files) {
                 String phId = UUID.randomUUID().toString().replace("-", "").substring(0, 20);
                 String fileName = f.getName();
                 String mime = probeMimeSafe(f);
@@ -85,17 +86,16 @@ public byte[] getFirstPhotoData(String reviewId) {
                     pstmt.setString(2, reviewId);
                     pstmt.setString(3, fileName);
                     pstmt.setString(4, mime);
-                    pstmt.setBinaryStream(5, in, f.length());  // BLOB 본문
-                    pstmt.setString(6, null);                  // 설명 사용 시 채우세요
+                    pstmt.setBinaryStream(5, in, f.length());
+                    pstmt.setString(6, null);
                     pstmt.setInt(7, order++);
-                    pstmt.addBatch();
+                    pstmt.executeUpdate();
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                pool.freeConnection(con, pstmt);
             }
-            pstmt.executeBatch();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            pool.freeConnection(con, pstmt);
         }
     }
 
