@@ -6,23 +6,30 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 import busantravel.auth.MemberSession;
 import busantravel.dao.ReviewDAO;
+import busantravel.dao.ReviewPhotoDAO;
 import busantravel.model.Review;
 import busantravel.model.ScheduledPlace;
 import busantravel.service.ScheduledPlaceService;
@@ -34,6 +41,7 @@ public class ReviewPanel extends JPanel {
     private ReviewDAO reviewDAO;
     private JLabel reviewListTitle;
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+    private final ReviewPhotoDAO photoDAO = new ReviewPhotoDAO();
 
     public ReviewPanel() {
         this.reviewDAO = new ReviewDAO();
@@ -125,11 +133,24 @@ public class ReviewPanel extends JPanel {
         card.setBackground(Color.WHITE);
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 180));
 
-        JPanel imagePanel = new JPanel();
-        imagePanel.setPreferredSize(new Dimension(150, 150));
-        imagePanel.setBackground(Color.GRAY);
-        JLabel imageLabel = new JLabel("사진");
-        imagePanel.add(imageLabel);
+        JLabel imageLabel = new JLabel();
+        imageLabel.setPreferredSize(new Dimension(150, 150));
+        imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        imageLabel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        
+        // 썸네일 로딩
+        byte[] imageData = photoDAO.getFirstPhotoData(review.getReviewId());
+        if (imageData != null) {
+            try {
+                BufferedImage img = ImageIO.read(new ByteArrayInputStream(imageData));
+                Image scaledImg = img.getScaledInstance(150, 150, Image.SCALE_SMOOTH);
+                imageLabel.setIcon(new ImageIcon(scaledImg));
+            } catch (Exception e) {
+                imageLabel.setText("이미지 로딩 실패");
+            }
+        } else {
+            imageLabel.setText("사진 없음");
+        }
 
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
@@ -172,7 +193,7 @@ public class ReviewPanel extends JPanel {
         infoPanel.add(Box.createVerticalGlue());
         infoPanel.add(metaPanel);
 
-        card.add(imagePanel, BorderLayout.WEST);
+        card.add(imageLabel, BorderLayout.WEST);
         card.add(infoPanel, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));

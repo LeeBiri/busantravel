@@ -213,18 +213,16 @@ public class ReviewPopup extends JDialog {
             newReview.setContent(content);
             newReview.setVisibility(visibility);
             newReview.setPlanId(planId);
-            reviewDAO.addReview(newReview);               // ① 후기 저장
+            reviewDAO.addReview(newReview);
         } else { // 수정
             review.setTitle(title);
             review.setContent(content);
             review.setVisibility(visibility);
-            reviewDAO.updateReview(review);               // ① 후기 수정
+            reviewDAO.updateReview(review);
             reviewId = review.getReviewId();
-            // 이전 사진 제거 후 다시 저장하고 싶을 때:
             reviewPhotoDAO.deletePhotosByReviewId(reviewId);
         }
 
-        // ② 선택된 사진들을 BLOB으로 저장
         reviewPhotoDAO.insertPhotos(reviewId, selectedPhotos);
 
         if (onDispose != null) onDispose.run();
