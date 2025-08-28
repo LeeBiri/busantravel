@@ -61,15 +61,49 @@ public class ReviewDAO {
     public void deleteReview(String reviewId) {
         Connection con = null;
         PreparedStatement pstmt = null;
-        String sql = "DELETE FROM travel_review WHERE review_id = ?";
+        PreparedStatement photoPstmt = null;
+        String deletePhotosSQL = "DELETE FROM review_photo WHERE review_id = ?";
+        String deleteReviewSQL = "DELETE FROM travel_review WHERE review_id = ?";
+
         try {
             con = pool.getConnection();
-            pstmt = con.prepareStatement(sql);
+            con.setAutoCommit(false); // 트랜잭션 시작
+
+            // 1. 리뷰에 연결된 사진 삭제
+            photoPstmt = con.prepareStatement(deletePhotosSQL);
+            photoPstmt.setString(1, reviewId);
+            photoPstmt.executeUpdate();
+
+            // 2. 리뷰 삭제
+            pstmt = con.prepareStatement(deleteReviewSQL);
             pstmt.setString(1, reviewId);
             pstmt.executeUpdate();
+
+            con.commit(); // 트랜잭션 커밋
         } catch (Exception e) {
             e.printStackTrace();
+            if (con != null) {
+                try {
+                    con.rollback(); // 오류 발생 시 롤백
+                } catch (SQLException se) {
+                    se.printStackTrace();
+                }
+            }
         } finally {
+            if (photoPstmt != null) {
+                try {
+                    photoPstmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (con != null) {
+                try {
+                    con.setAutoCommit(true);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
             pool.freeConnection(con, pstmt);
         }
     }
