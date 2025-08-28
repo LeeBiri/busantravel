@@ -39,14 +39,14 @@ public class ScheduledPlaceDAO {
     }
 
     public void updateSchedule(ScheduledPlace schedule) {
-        String sql = "UPDATE scheduled_place SET scheduled_date = ?, visit_order = ?, schedule_memo = ? WHERE plan_id = ? AND p_id = ?";
+        String sql = "UPDATE scheduled_place SET scheduled_date = ?, schedule_memo = ? WHERE plan_id = ? AND p_id = ? AND visit_order = ?";
         try (Connection con = pool.getConnection();
              PreparedStatement pstmt = con.prepareStatement(sql)) {
             pstmt.setTimestamp(1, Timestamp.valueOf(schedule.getScheduled_date()));
-            pstmt.setInt(2, schedule.getVisit_order());
-            pstmt.setString(3, schedule.getSchedule_memo());
-            pstmt.setString(4, schedule.getplan_id());
-            pstmt.setString(5, schedule.getP_id());
+            pstmt.setString(2, schedule.getSchedule_memo());
+            pstmt.setString(3, schedule.getplan_id());
+            pstmt.setString(4, schedule.getP_id());
+            pstmt.setInt(5, schedule.getVisit_order());
             pstmt.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();

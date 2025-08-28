@@ -574,7 +574,7 @@ public class MainBannerPanel extends JPanel {
         areaConfigs.put("서면", seomyeon);
 
         AreaConfig nampo = new AreaConfig();
-        nampo.touristIds = java.util.Arrays.asList("365","257","369");
+        nampo.touristIds = java.util.Arrays.asList("365","257","2284");
         nampo.restaurantIds = java.util.Arrays.asList("1237","1247","102");
         nampo.lodgingIds    = java.util.Arrays.asList("L000624", "L000622", "L000623");
         areaConfigs.put("남포", nampo);
