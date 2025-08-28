@@ -16,9 +16,11 @@ import javax.swing.plaf.basic.BasicScrollBarUI;
 
 public class MainBannerPanel extends JPanel {
 
+    private JScrollPane scrollPane;
     private CardLayout bannerCardLayout;
     private JPanel bannerArea;
     private Timer autoSlideTimer;
+    private Timer scrollTimer;
     private int currentBannerIndex = 0;
     private PlaceDAO placeDAO;
 
@@ -150,7 +152,7 @@ public class MainBannerPanel extends JPanel {
 
         initAreaConfigs();
 
-        JScrollPane scrollPane = new JScrollPane(contentPanel);
+        scrollPane = new JScrollPane(contentPanel);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -371,7 +373,7 @@ public class MainBannerPanel extends JPanel {
         panel.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
         
         JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(jalnanFont.deriveFont(Font.BOLD, titleSize));
+        titleLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, titleSize));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
         JLabel subtitleLabel = new JLabel(subtitle);
@@ -431,7 +433,7 @@ public class MainBannerPanel extends JPanel {
         imgPanel.add(imgLabel, BorderLayout.CENTER);
 
         JLabel overlay = new JLabel(title, SwingConstants.CENTER);
-        overlay.setFont(jalnanFont.deriveFont(Font.BOLD, 16f));
+        overlay.setFont(jalnanFont.deriveFont(Font.PLAIN, 16f));
         overlay.setForeground(Color.WHITE);
         overlay.setOpaque(true);
         overlay.setBackground(new Color(0,0,0,120));
@@ -606,15 +608,13 @@ public class MainBannerPanel extends JPanel {
         currentArea = areaName;
         areaCardLayout.show(areaContentContainer, areaName);
         areaContentContainer.setVisible(true);
+        
+        revalidate();
+        repaint();
 
         // 스크롤 위치를 자연스럽게 아래로
         SwingUtilities.invokeLater(() -> {
-            Container top = getParent();
-            while (top != null && !(top instanceof JScrollPane)) top = top.getParent();
-            if (top instanceof JScrollPane) {
-                JScrollPane sp = (JScrollPane) top;
-                smoothScrollTo(sp, areaContentContainer.getY());
-            }
+            smoothScrollTo(scrollPane, areaContentContainer.getY());
         });
     }
 
@@ -700,14 +700,26 @@ public class MainBannerPanel extends JPanel {
     private static String nvl(String s) { return (s == null) ? "" : s; }
 
     private void smoothScrollTo(JScrollPane sp, int target) {
-        javax.swing.Timer t = new javax.swing.Timer(8, null);
-        t.addActionListener(ev -> {
+        if (scrollTimer != null && scrollTimer.isRunning()) {
+            scrollTimer.stop();
+        }
+        scrollTimer = new javax.swing.Timer(8, ev -> {
             JScrollBar bar = sp.getVerticalScrollBar();
-            int cur = bar.getValue();
-            int step = (target - cur) / 5; // 감속
-            if (Math.abs(target - cur) <= 2) { bar.setValue(target); t.stop(); }
-            else bar.setValue(cur + step);
+            int currentValue = bar.getValue();
+            int diff = target - currentValue;
+
+            if (Math.abs(diff) < 5) {
+                bar.setValue(target);
+                scrollTimer.stop();
+                return;
+            }
+
+            int step = diff / 10;
+            if (step == 0) {
+                step = (diff > 0) ? 1 : -1;
+            }
+            bar.setValue(currentValue + step);
         });
-        t.start();
+        scrollTimer.start();
     }
 }
