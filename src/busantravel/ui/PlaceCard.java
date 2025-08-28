@@ -16,6 +16,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PlaceCard extends JPanel {
     private String placeId;
@@ -24,6 +26,8 @@ public class PlaceCard extends JPanel {
     private TmapApiHandler tmapApiHandler;
     private StaticMapGenerator staticMapGenerator;
     private int currentZoom = 14;
+    private TravelPlannerApp mainApp;
+    private JFrame frame;
     private static final String API_KEY = "h5baCQSfp37eFmXohbwx23t7n1KLSIcn3RyFtMcg"; // TMAP API Key
 
     public enum ViewType {
@@ -31,12 +35,14 @@ public class PlaceCard extends JPanel {
         LIST
     }
 
-    public PlaceCard(JFrame frame, String placeId, String placeName, String category, String thumbnail, ViewType viewType, Font customFont) {
+    public PlaceCard(JFrame frame, String placeId, String placeName, String category, String thumbnail, ViewType viewType, Font customFont, TravelPlannerApp mainApp) {
         this.placeId = placeId;
+        this.frame = frame;
         this.placeDAO = new PlaceDAO();
         this.tmapApiHandler = new TmapApiHandler(API_KEY);
         this.staticMapGenerator = new StaticMapGenerator(API_KEY);
         this.jalnanFont = customFont;
+        this.mainApp = mainApp;
         if (viewType == ViewType.GRID) {
             setupGridView(frame, placeName, category, thumbnail);
         } else {
@@ -165,22 +171,29 @@ public class PlaceCard extends JPanel {
         titleLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 26f));
         rightPanel.add(titleLabel, BorderLayout.NORTH);
 
-        JPanel infoAndMapPanel = new JPanel();
-        infoAndMapPanel.setLayout(new BoxLayout(infoAndMapPanel, BoxLayout.Y_AXIS));
+        JPanel infoAndMapPanel = new JPanel(new BorderLayout());
         infoAndMapPanel.setBackground(Color.WHITE);
 
-        infoAndMapPanel.add(createDetailsPanel(detailInfo, category));
-        infoAndMapPanel.add(Box.createVerticalStrut(10));
-        infoAndMapPanel.add(createMapPanel(detailInfo));
+        Component detailsPanel = createDetailsPanel(detailInfo, category);
+        detailsPanel.setPreferredSize(new Dimension(0, 250)); // Set preferred height
+        infoAndMapPanel.add(detailsPanel, BorderLayout.NORTH);
+        
+        infoAndMapPanel.add(createMapPanel(detailInfo), BorderLayout.CENTER);
         
         rightPanel.add(infoAndMapPanel, BorderLayout.CENTER);
 
-        JButton saveBtn = new JButton("저장하기");
-        setupSaveButton(saveBtn, placeName, category);
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.setBackground(Color.WHITE);
-        buttonPanel.add(saveBtn);
-        rightPanel.add(buttonPanel, BorderLayout.SOUTH);
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bottomPanel.setBackground(Color.WHITE);
+
+        JLabel interestCountLabel = new JLabel();
+        interestCountLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 14f));
+        bottomPanel.add(interestCountLabel);
+
+        JButton saveBtn = new JButton("찜하기");
+        setupSaveButton(saveBtn, placeName, category, interestCountLabel);
+        bottomPanel.add(saveBtn);
+        
+        rightPanel.add(bottomPanel, BorderLayout.SOUTH);
 
         return rightPanel;
     }
@@ -222,6 +235,7 @@ public class PlaceCard extends JPanel {
         infoScrollPane.getVerticalScrollBar().setUI(new MatteScrollBarUI());
         infoScrollPane.getHorizontalScrollBar().setUI(new MatteScrollBarUI());
         infoScrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);
+        infoScrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, 200)); // Prevent vertical expansion
         return infoScrollPane;
     }
 
@@ -406,31 +420,53 @@ public class PlaceCard extends JPanel {
         button.setBorderPainted(false);
     }
 
-    private void setupSaveButton(JButton button, String placeName, String category) {
+    private void setupSaveButton(JButton button, String placeName, String category, JLabel interestCountLabel) {
+        InterestService interestService = new InterestService();
+        
         button.setBackground(ColorConstants.ACCENT);
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setFont(new Font("맑은 고딕", Font.BOLD, 15));
+        button.setFont(jalnanFont.deriveFont(Font.BOLD, 15f));
+        button.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(ColorConstants.ACCENT.darker(), 1),
+            BorderFactory.createEmptyBorder(5, 15, 5, 15)
+        ));
+
+        updateInterestStatus(button, interestCountLabel, placeName, category, interestService);
+
         button.addActionListener(e -> {
-            java.util.List<Interest> interests = InterestService.getInterestById(MemberSession.getId());
-            if (interests.isEmpty()) {
-                    InterestService.insertInterest(MemberSession.getId(), placeId, category);
-                    JOptionPane.showMessageDialog(this, placeName + "을 찜했습니다!");
-            } else {
-                for (Interest interest : interests) {
-                    if (interest.getP_id().equals(placeId) && interest.getP_type().equals(category)) {
-                        JOptionPane.showMessageDialog(this, placeName + "이미 찜 되어있는 장소입니다.");
-                        return;
-                    } else {
-                        InterestService.insertInterest(MemberSession.getId(), placeId, category);
-                        JOptionPane.showMessageDialog(this, placeName + "을 찜했습니다!");
-                        return;
-                    }
-                }
+            if (!MemberSession.isLoggedIn()) {
+                JOptionPane.showMessageDialog(frame, "로그인이 필요한 서비스입니다.", "알림", JOptionPane.INFORMATION_MESSAGE);
+                return;
             }
 
+            List<Interest> interests = interestService.getInterestById(MemberSession.getId());
+            Interest existingInterest = interests.stream()
+                .filter(i -> i.getP_id().equals(placeId) && i.getP_type().equals(category))
+                .findFirst().orElse(null);
+
+            if (existingInterest != null) {
+                interestService.deleteInterest(existingInterest);
+                JOptionPane.showMessageDialog(frame, placeName + " 찜을 취소했습니다!");
+            } else {
+                interestService.insertInterest(MemberSession.getId(), placeId, category);
+                JOptionPane.showMessageDialog(frame, placeName + "을 찜했습니다!");
+            }
+            updateInterestStatus(button, interestCountLabel, placeName, category, interestService);
         });
+    }
+
+    private void updateInterestStatus(JButton button, JLabel label, String placeName, String category, InterestService interestService) {
+        int count = interestService.getInterestCountByPlace(placeId, category);
+        label.setText("♥ " + count);
+
+        if (MemberSession.isLoggedIn()) {
+            List<Interest> interests = interestService.getInterestById(MemberSession.getId());
+            boolean isInterested = interests.stream().anyMatch(i -> i.getP_id().equals(placeId) && i.getP_type().equals(category));
+            button.setText(isInterested ? "찜 취소" : "찜하기");
+        } else {
+            button.setText("찜하기");
+        }
     }
 
     private MouseAdapter createMouseAdapter(JFrame frame, String placeName, String category) {

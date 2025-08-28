@@ -15,7 +15,6 @@ public class InterestDAO {
         Connection con = null;
 		PreparedStatement pstmt = null;
 		String sql = null;
-		boolean flag = false;
 		try {
 			con = pool.getConnection();
 			sql = "INSERT INTO interest(m_id, p_id, p_type) VALUES(?, ?, ?)";
@@ -58,9 +57,8 @@ public class InterestDAO {
 
     public static void deleteInterest(Interest interest) {
         String sql = "DELETE FROM INTEREST WHERE M_ID = ? AND P_ID = ? AND P_TYPE = ?";
-        try {
-            Connection con = pool.getConnection();
-            PreparedStatement pstmt = con.prepareStatement(sql);
+        try (Connection con = pool.getConnection();
+             PreparedStatement pstmt = con.prepareStatement(sql)) {
             pstmt.setString(1, interest.getM_id());
             pstmt.setString(2, interest.getP_id());
             pstmt.setString(3, interest.getP_type());
@@ -68,5 +66,23 @@ public class InterestDAO {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public int countInterestsByPlace(String p_id, String p_type) {
+        int count = 0;
+        String sql = "SELECT COUNT(*) FROM interest WHERE p_id = ? AND p_type = ?";
+        try (Connection con = pool.getConnection();
+             PreparedStatement pstmt = con.prepareStatement(sql)) {
+            pstmt.setString(1, p_id);
+            pstmt.setString(2, p_type);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return count;
     }
 }

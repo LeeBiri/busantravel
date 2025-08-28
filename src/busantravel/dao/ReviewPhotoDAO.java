@@ -1,5 +1,8 @@
 package busantravel.dao;
 
+import busantravel.db.DBConnectionMgr;
+import busantravel.model.ReviewPhoto;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -13,70 +16,67 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import busantravel.db.DBConnectionMgr;
-import busantravel.model.ReviewPhoto;
-
 public class ReviewPhotoDAO {
 
-    private DBConnectionMgr pool;
+    private final DBConnectionMgr pool = DBConnectionMgr.getInstance();
 
-    public ReviewPhotoDAO() {
-        pool = DBConnectionMgr.getInstance();
-    }
+    // 스키마 컬럼 길이에 맞춰 조정 (필요시 값 변경)
+    private static final int NAME_MAX = 100;   // ph_name VARCHAR(100)
+    private static final int MIME_MAX = 200;   // ph_mime VARCHAR(200)
 
-    /* =========================
-       INSERT (BLOB 저장)
-       ========================= */
+    public ReviewPhotoDAO() {}
 
-    /** 단건: 모델의 byte[] 데이터로 저장 */
-    public void addReviewPhoto(ReviewPhoto photo) {
-        Connection con = null;
-        PreparedStatement pstmt = null;
-        String sql = "INSERT INTO review_photo "
-                   + "(ph_id, review_id, ph_name, ph_mime, ph_data, ph_description, ph_order) "
-                   + "VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try {
-            con = pool.getConnection();
-            pstmt = con.prepareStatement(sql);
+    /* =========================================================
+       단건 저장 (모델이 byte[] 데이터를 가지고 있을 때)
+       ========================================================= */
 
-            String phId = (photo.getPhotoId() != null && !photo.getPhotoId().isEmpty())
-                    ? photo.getPhotoId()
-                    : UUID.randomUUID().toString().replace("-", "").substring(0, 20);
-
-            pstmt.setString(1, phId);
-            pstmt.setString(2, photo.getReviewId());
-            pstmt.setString(3, photo.getPhName());                   // 파일명
-            pstmt.setString(4, photo.getPhMime());                   // MIME
-            if (photo.getData() != null) {
-                pstmt.setBytes(5, photo.getData());                  // BLOB 데이터
-            } else {
-                pstmt.setNull(5, java.sql.Types.BLOB);
+       // 첫 장의 BLOB만 빠르게 가져오기 (없으면 null)
+public byte[] getFirstPhotoData(String reviewId) {
+    Connection con = null;
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
+    String sql = "SELECT ph_data FROM review_photo " +
+                 "WHERE review_id = ? " +
+                 "ORDER BY ph_order ASC, ph_id ASC " +
+                 "LIMIT 1";
+    try {
+        con = pool.getConnection();
+        pstmt = con.prepareStatement(sql);
+        pstmt.setString(1, reviewId);
+        rs = pstmt.executeQuery();
+        if (rs.next()) {
+            try (InputStream bin = rs.getBinaryStream(1);
+                 ByteArrayOutputStream bout = new ByteArrayOutputStream()) {
+                if (bin != null) {
+                    bin.transferTo(bout);
+                    return bout.toByteArray();
+                }
             }
-            pstmt.setString(6, photo.getDescription());
-            pstmt.setInt(7, photo.getOrder());
-            pstmt.executeUpdate();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            pool.freeConnection(con, pstmt);
         }
+    } catch (Exception e) {
+        e.printStackTrace();
+    } finally {
+        pool.freeConnection(con, pstmt, rs);
     }
+    return null;
+}
 
     /** 여러 파일을 한 번에 저장 (ReviewPopup의 selectedPhotos 연동) */
     public void insertPhotos(String reviewId, List<File> files) {
         if (files == null || files.isEmpty()) return;
 
-        Connection con = null;
-        PreparedStatement pstmt = null;
         String sql = "INSERT INTO review_photo "
                    + "(ph_id, review_id, ph_name, ph_mime, ph_data, ph_description, ph_order) "
                    + "VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try {
-            con = pool.getConnection();
-            pstmt = con.prepareStatement(sql);
+        
+        int order = 1;
+        for (File f : files) {
+            Connection con = null;
+            PreparedStatement pstmt = null;
+            try {
+                con = pool.getConnection();
+                pstmt = con.prepareStatement(sql);
 
-            int order = 1;
-            for (File f : files) {
                 String phId = UUID.randomUUID().toString().replace("-", "").substring(0, 20);
                 String fileName = f.getName();
                 String mime = probeMimeSafe(f);
@@ -86,17 +86,16 @@ public class ReviewPhotoDAO {
                     pstmt.setString(2, reviewId);
                     pstmt.setString(3, fileName);
                     pstmt.setString(4, mime);
-                    pstmt.setBinaryStream(5, in, f.length());  // BLOB 본문
-                    pstmt.setString(6, null);                  // 설명 사용 시 채우세요
+                    pstmt.setBinaryStream(5, in, f.length());
+                    pstmt.setString(6, null);
                     pstmt.setInt(7, order++);
-                    pstmt.addBatch();
+                    pstmt.executeUpdate();
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                pool.freeConnection(con, pstmt);
             }
-            pstmt.executeBatch();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            pool.freeConnection(con, pstmt);
         }
     }
 

@@ -1,8 +1,10 @@
 package busantravel.ui;
 
 import busantravel.dao.PlaceDAO;
+import busantravel.dao.TravelPlanMemberDAO;
 import busantravel.model.Festival;
 import busantravel.model.Lodging;
+import busantravel.model.Member;
 import busantravel.model.Restaurant;
 import busantravel.model.ScheduledPlace;
 import busantravel.model.Tourist;
@@ -96,6 +98,11 @@ public class FullSchedulePanel extends JPanel {
         membersBtn.setBackground(ColorConstants.ACCENT);
         membersBtn.setForeground(Color.WHITE);
         membersBtn.setFocusPainted(false);
+        membersBtn.addActionListener(e -> {
+            List<Member> members = TravelPlanMemberDAO.findMembersByPlanId(plan.getPlan_id());
+            MemberListDialog dialog = new MemberListDialog((JFrame) SwingUtilities.getWindowAncestor(this), members);
+            dialog.setVisible(true);
+        });
 
         buttonPanel.add(checklistBtn);
         buttonPanel.add(membersBtn);
@@ -106,7 +113,7 @@ public class FullSchedulePanel extends JPanel {
         JPanel scheduleListPanel = createScheduleListPanel();
         JScrollPane scrollPane = new JScrollPane(scheduleListPanel);
         scrollPane.setBorder(null);
-        scrollPane.setPreferredSize(new Dimension(900, 0));
+        scrollPane.setPreferredSize(new Dimension(800, 0));
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.getVerticalScrollBar().setUI(new MatteScrollBarUI());
         scrollPane.getHorizontalScrollBar().setUI(new MatteScrollBarUI());
@@ -308,7 +315,9 @@ public class FullSchedulePanel extends JPanel {
             writeReviewBtn.setForeground(Color.WHITE);
             writeReviewBtn.setFocusPainted(false);
             writeReviewBtn.addActionListener(e -> {
-                new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this), null, () -> mainApp.refreshFullSchedule(plan)).setVisible(true);
+                List<ScheduledPlace> scheduledPlaces = ScheduledPlaceService.getSchedulesByPlanId(plan.getPlan_id());
+                ReviewPopup popup = new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this), null, () -> mainApp.refreshFullSchedule(plan), scheduledPlaces, plan.getPlan_id());
+                popup.setVisible(true);
             });
             buttonContainer.add(Box.createHorizontalStrut(10));
             buttonContainer.add(writeReviewBtn);
@@ -363,6 +372,48 @@ public class FullSchedulePanel extends JPanel {
         card.add(imageLabel);
         card.add(infoPanel);
 
+        // rightPanel: 메모와 버튼 감싸는 전체 박스
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 14)); // 좌우15, 상하14 padding
+        rightPanel.setOpaque(false);
+        rightPanel.setPreferredSize(new Dimension(300, 56));
+
+        // 메모 라벨
+        String memo = place.getSchedule_memo();
+        if (memo == null || memo.isBlank()) memo = "메모 없음";
+        String displayMemo = memo.length() > 20 ? memo.substring(0, 20) + "..." : memo;
+
+        JLabel memoLabel = new JLabel(displayMemo);
+        memoLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 13f));
+        memoLabel.setForeground(Color.DARK_GRAY);
+        memoLabel.setToolTipText(memo);
+        memoLabel.setPreferredSize(new Dimension(160, 28)); // 고정폭
+        memoLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+
+        // 메모 수정 버튼
+        JButton editMemoBtn = new JButton("메모 수정");
+        editMemoBtn.setFont(jalnanFont.deriveFont(Font.PLAIN, 13f));
+        editMemoBtn.setBackground(new Color(255, 204, 204));
+        editMemoBtn.setFocusPainted(false);
+        editMemoBtn.setForeground(Color.BLACK);
+        editMemoBtn.setPreferredSize(new Dimension(90, 28));
+
+        editMemoBtn.addActionListener(e -> {
+            String newMemo = JOptionPane.showInputDialog(this, "메모를 입력하세요", place.getSchedule_memo());
+            if (newMemo != null) {
+                place.setSchedule_memo(newMemo);
+                ScheduledPlaceService.updateSchedule(place);
+                mainApp.refreshFullSchedule(plan);
+            }
+        });
+
+        // 오른쪽 패널 조립
+        rightPanel.add(memoLabel);
+        rightPanel.add(editMemoBtn);
+
+        card.add(Box.createHorizontalGlue());
+        card.add(rightPanel);
+
+
         return card;
     }
 
@@ -402,7 +453,7 @@ public class FullSchedulePanel extends JPanel {
             if (o instanceof Restaurant r)
                 return new PlaceData(r.getR_id(), r.getR_place(), r.getR_addr(), "맛집", r.getR_thum());
             if (o instanceof Lodging l)
-                return new PlaceData(l.getL_id(), l.getL_place(), l.getL_addr(), "숙소", null);
+                return new PlaceData(l.getL_id(), l.getL_place(), l.getL_addr(), "숙소", l.getL_thum());
             if (o instanceof Festival f)
                 return new PlaceData(f.getF_id(), f.getF_name(), f.getF_addr(), "축제", f.getF_thum());
             return new PlaceData("", "알 수 없는 장소", "", "기타", null);

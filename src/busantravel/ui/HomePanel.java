@@ -5,8 +5,11 @@ import busantravel.model.Festival;
 import busantravel.model.Lodging;
 import busantravel.model.Restaurant;
 import busantravel.model.Tourist;
+import busantravel.service.InterestService;
 import java.awt.*;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,9 +31,10 @@ public class HomePanel extends JPanel {
     private JTextField searchField; // 검색어 입력 필드
     private JButton searchButton; // 검색 실행 버튼
     private JPanel paginationPanel; // 페이지네이션 UI를 담는 패널
+    private JComboBox<String> sortComboBox; // 정렬 옵션 콤보박스
 
     private int currentPage = 1; // 현재 페이지 번호
-    private int pageSize = 24; // 한 페이지에 보여줄 항목 수
+    private int pageSize = 25; // 한 페이지에 보여줄 항목 수
     private int totalPages = 1; // 전체 페이지 수
     private String currentSearchQuery = null; // 현재 검색어 저장
 
@@ -137,6 +141,23 @@ public class HomePanel extends JPanel {
         
         topBarPanel.add(searchPanel);
 
+        // 정렬 UI 패널
+        JPanel sortPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        sortPanel.setOpaque(false);
+        sortPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+
+        JLabel sortLabel = new JLabel("정렬:");
+        sortLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
+        sortPanel.add(sortLabel);
+
+        String[] sortOptions = {"가나다순", "인기순"};
+        sortComboBox = new JComboBox<>(sortOptions);
+        sortComboBox.setFont(jalnanFont.deriveFont(Font.PLAIN, 12f));
+        sortComboBox.addActionListener(e -> loadPlaces(selectedCategory, 1));
+        sortPanel.add(sortComboBox);
+        
+        topBarPanel.add(sortPanel);
+
 
         // --- 장소 카드 패널 ---
         gridPanel = new JPanel(); // 레이아웃은 loadPlaces에서 동적으로 설정
@@ -206,14 +227,15 @@ public class HomePanel extends JPanel {
             this.pageSize = 10;
             gridPanel.setLayout(new BoxLayout(gridPanel, BoxLayout.Y_AXIS));
         } else {
-            this.pageSize = 24;
+            this.pageSize = 25;
             gridPanel.setLayout(new GridLayout(0, 5, 30, 30));
         }
 
         int totalItems = placeDAO.getTotalPlaceCount(category);
         totalPages = (int) Math.ceil((double) totalItems / pageSize);
 
-        List<Object> places = placeDAO.getPlacesByCategory(category, currentPage, pageSize);
+        String sortBy = (String) sortComboBox.getSelectedItem();
+        List<Object> places = placeDAO.getPlacesByCategory(category, currentPage, pageSize, sortBy);
 
         if (places.isEmpty()) {
             gridPanel.add(new JLabel("데이터가 없습니다."));
@@ -250,7 +272,7 @@ public class HomePanel extends JPanel {
                     placeName = ((Festival) place).getF_name();
                     thumbnail = ((Festival) place).getF_thum();
                 }
-                contentPanel.add(new PlaceCard(frame, placeId, placeName, category, thumbnail, viewType, jalnanFont));
+                contentPanel.add(new PlaceCard(frame, placeId, placeName, category, thumbnail, viewType, jalnanFont, null));
             }
             
             if (viewType == PlaceCard.ViewType.LIST) {
@@ -291,7 +313,7 @@ public class HomePanel extends JPanel {
             gridPanel.setLayout(new BoxLayout(gridPanel, BoxLayout.Y_AXIS));
             viewType = PlaceCard.ViewType.LIST;
         } else {
-            this.pageSize = 24;
+            this.pageSize = 25;
             gridPanel.setLayout(new GridLayout(0, 5, 30, 30));
             viewType = PlaceCard.ViewType.GRID;
         }
@@ -334,7 +356,7 @@ public class HomePanel extends JPanel {
                     placeName = ((Festival) place).getF_name();
                     thumbnail = ((Festival) place).getF_thum();
                 }
-                contentPanel.add(new PlaceCard(frame, placeId, placeName, selectedCategory, thumbnail, viewType, jalnanFont));
+                contentPanel.add(new PlaceCard(frame, placeId, placeName, selectedCategory, thumbnail, viewType, jalnanFont, null));
             }
 
             if (viewType == PlaceCard.ViewType.LIST) {

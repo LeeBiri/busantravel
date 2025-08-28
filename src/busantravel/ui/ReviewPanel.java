@@ -6,24 +6,33 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 import busantravel.auth.MemberSession;
 import busantravel.dao.ReviewDAO;
+import busantravel.dao.ReviewPhotoDAO;
 import busantravel.model.Review;
+import busantravel.model.ScheduledPlace;
+import busantravel.service.ScheduledPlaceService;
 import busantravel.util.FontManager;
 
 public class ReviewPanel extends JPanel {
@@ -32,6 +41,7 @@ public class ReviewPanel extends JPanel {
     private ReviewDAO reviewDAO;
     private JLabel reviewListTitle;
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+    private final ReviewPhotoDAO photoDAO = new ReviewPhotoDAO();
 
     public ReviewPanel() {
         this.reviewDAO = new ReviewDAO();
@@ -65,16 +75,15 @@ public class ReviewPanel extends JPanel {
 
         String memberId = MemberSession.getId();
         if (memberId != null && !memberId.isEmpty()) {
-            JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-            splitPane.setLeftComponent(reviewListPanel);
-
+            JPanel mainPanel = new JPanel(new BorderLayout());
+            mainPanel.setBackground(Color.WHITE);
+            
+            mainPanel.add(reviewListPanel, BorderLayout.CENTER);
+            
             ProfileSidePanel profileSidePanel = new ProfileSidePanel(this);
-            splitPane.setRightComponent(profileSidePanel);
+            mainPanel.add(profileSidePanel, BorderLayout.EAST);
 
-            splitPane.setResizeWeight(0.9);
-            splitPane.setBorder(null);
-
-            add(splitPane, BorderLayout.CENTER);
+            add(mainPanel, BorderLayout.CENTER);
         } else {
             add(reviewListPanel, BorderLayout.CENTER);
         }
@@ -124,11 +133,24 @@ public class ReviewPanel extends JPanel {
         card.setBackground(Color.WHITE);
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 180));
 
-        JPanel imagePanel = new JPanel();
-        imagePanel.setPreferredSize(new Dimension(150, 150));
-        imagePanel.setBackground(Color.GRAY);
-        JLabel imageLabel = new JLabel("사진");
-        imagePanel.add(imageLabel);
+        JLabel imageLabel = new JLabel();
+        imageLabel.setPreferredSize(new Dimension(150, 150));
+        imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        imageLabel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        
+        // 썸네일 로딩
+        byte[] imageData = photoDAO.getFirstPhotoData(review.getReviewId());
+        if (imageData != null) {
+            try {
+                BufferedImage img = ImageIO.read(new ByteArrayInputStream(imageData));
+                Image scaledImg = img.getScaledInstance(150, 150, Image.SCALE_SMOOTH);
+                imageLabel.setIcon(new ImageIcon(scaledImg));
+            } catch (Exception e) {
+                imageLabel.setText("이미지 로딩 실패");
+            }
+        } else {
+            imageLabel.setText("사진 없음");
+        }
 
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
@@ -171,18 +193,22 @@ public class ReviewPanel extends JPanel {
         infoPanel.add(Box.createVerticalGlue());
         infoPanel.add(metaPanel);
 
-        card.add(imagePanel, BorderLayout.WEST);
+        card.add(imageLabel, BorderLayout.WEST);
         card.add(infoPanel, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setBackground(Color.WHITE);
         
-        JButton readButton = new JButton("리뷰 읽기");
+        JButton readButton = new JButton("후기 읽기");
         readButton.setFont(FontManager.getJalnanFont(12f));
         readButton.setBackground(ColorConstants.ACCENT);
         readButton.setForeground(Color.WHITE);
         readButton.addActionListener(e -> {
-            new ReviewDetailPopup((JFrame) SwingUtilities.getWindowAncestor(this), review).setVisible(true);
+            List<ScheduledPlace> scheduledPlaces = null;
+            if (review.getPlanId() != null) {
+                scheduledPlaces = ScheduledPlaceService.getSchedulesByPlanId(review.getPlanId());
+            }
+            new ReviewDetailPopup((JFrame) SwingUtilities.getWindowAncestor(this), review, scheduledPlaces).setVisible(true);
         });
         buttonPanel.add(readButton);
 
@@ -195,7 +221,11 @@ public class ReviewPanel extends JPanel {
             editButton.setBackground(ColorConstants.ACCENT);
             editButton.setForeground(Color.WHITE);
             editButton.addActionListener(e -> {
-                new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this), review, this::refreshReviews).setVisible(true);
+                List<ScheduledPlace> scheduledPlaces = null;
+                if (review.getPlanId() != null) {
+                    scheduledPlaces = ScheduledPlaceService.getSchedulesByPlanId(review.getPlanId());
+                }
+                new ReviewPopup((JFrame) SwingUtilities.getWindowAncestor(this), review, this::refreshReviews, scheduledPlaces, review.getPlanId()).setVisible(true);
             });
             buttonPanel.add(editButton);
         }

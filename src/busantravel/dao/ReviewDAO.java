@@ -21,7 +21,7 @@ public class ReviewDAO {
     public void addReview(Review review) {
         Connection con = null;
         PreparedStatement pstmt = null;
-        String sql = "INSERT INTO travel_review (review_id, m_id, title, content, review_visibility, created_at) VALUES (?, ?, ?, ?, ?, NOW())";
+        String sql = "INSERT INTO travel_review (review_id, m_id, title, content, review_visibility, created_at, plan_id) VALUES (?, ?, ?, ?, ?, NOW(), ?)";
         try {
             con = pool.getConnection();
             pstmt = con.prepareStatement(sql);
@@ -30,6 +30,7 @@ public class ReviewDAO {
             pstmt.setString(3, review.getTitle());
             pstmt.setString(4, review.getContent());
             pstmt.setInt(5, review.getVisibility());
+            pstmt.setString(6, review.getPlanId());
             pstmt.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
@@ -60,17 +61,97 @@ public class ReviewDAO {
     public void deleteReview(String reviewId) {
         Connection con = null;
         PreparedStatement pstmt = null;
-        String sql = "DELETE FROM travel_review WHERE review_id = ?";
+        PreparedStatement photoPstmt = null;
+        String deletePhotosSQL = "DELETE FROM review_photo WHERE review_id = ?";
+        String deleteReviewSQL = "DELETE FROM travel_review WHERE review_id = ?";
+
+        try {
+            con = pool.getConnection();
+            con.setAutoCommit(false); // 트랜잭션 시작
+
+            // 1. 리뷰에 연결된 사진 삭제
+            photoPstmt = con.prepareStatement(deletePhotosSQL);
+            photoPstmt.setString(1, reviewId);
+            photoPstmt.executeUpdate();
+
+            // 2. 리뷰 삭제
+            pstmt = con.prepareStatement(deleteReviewSQL);
+            pstmt.setString(1, reviewId);
+            pstmt.executeUpdate();
+
+            con.commit(); // 트랜잭션 커밋
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (con != null) {
+                try {
+                    con.rollback(); // 오류 발생 시 롤백
+                } catch (SQLException se) {
+                    se.printStackTrace();
+                }
+            }
+        } finally {
+            if (photoPstmt != null) {
+                try {
+                    photoPstmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (con != null) {
+                try {
+                    con.setAutoCommit(true);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            pool.freeConnection(con, pstmt);
+        }
+    }
+
+    public void deleteReviewsByPlanId(String planId) {
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        String sql = "DELETE FROM travel_review WHERE plan_id = ?";
         try {
             con = pool.getConnection();
             pstmt = con.prepareStatement(sql);
-            pstmt.setString(1, reviewId);
+            pstmt.setString(1, planId);
             pstmt.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             pool.freeConnection(con, pstmt);
         }
+    }
+
+    public List<Review> getReviewsByPlanId(String planId) {
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        String sql = "SELECT * FROM travel_review WHERE plan_id = ?";
+        List<Review> reviewList = new ArrayList<>();
+        try {
+            con = pool.getConnection();
+            pstmt = con.prepareStatement(sql);
+            pstmt.setString(1, planId);
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                Review review = new Review();
+                review.setReviewId(rs.getString("review_id"));
+                review.setMemberId(rs.getString("m_id"));
+                review.setTitle(rs.getString("title"));
+                review.setContent(rs.getString("content"));
+                review.setVisibility(rs.getInt("review_visibility"));
+                review.setCreatedAt(rs.getTimestamp("created_at"));
+                review.setPlanId(rs.getString("plan_id"));
+                reviewList.add(review);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            pool.freeConnection(con, pstmt, rs);
+        }
+        return reviewList;
     }
 
     public Review getReview(String reviewId) {
@@ -92,6 +173,7 @@ public class ReviewDAO {
                 review.setContent(rs.getString("content"));
                 review.setVisibility(rs.getInt("review_visibility"));
                 review.setCreatedAt(rs.getTimestamp("created_at"));
+                review.setPlanId(rs.getString("plan_id"));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -142,6 +224,7 @@ public class ReviewDAO {
                 review.setContent(rs.getString("content"));
                 review.setVisibility(rs.getInt("review_visibility"));
                 review.setCreatedAt(rs.getTimestamp("created_at"));
+                review.setPlanId(rs.getString("plan_id"));
                 reviewList.add(review);
             }
         } catch (Exception e) {
@@ -170,6 +253,7 @@ public class ReviewDAO {
                 review.setContent(rs.getString("content"));
                 review.setVisibility(rs.getInt("review_visibility"));
                 review.setCreatedAt(rs.getTimestamp("created_at"));
+                review.setPlanId(rs.getString("plan_id"));
                 reviewList.add(review);
             }
         } catch (Exception e) {

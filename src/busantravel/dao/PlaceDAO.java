@@ -10,7 +10,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class PlaceDAO {
     private DBConnectionMgr pool;
@@ -27,10 +29,10 @@ public class PlaceDAO {
     }
 
     public List<Object> getPlacesByCategory(String category) {
-        return getPlacesByCategory(category, 1, Integer.MAX_VALUE); // 기존 메서드는 모든 결과를 가져오도록 위임
+        return getPlacesByCategory(category, 1, Integer.MAX_VALUE, "가나다순"); // 기존 메서드는 모든 결과를 가져오도록 위임
     }
 
-    public List<Object> getPlacesByCategory(String category, int page, int pageSize) {
+    public List<Object> getPlacesByCategory(String category, int page, int pageSize, String sortBy) {
         if (!DBConnectionMgr.isDbConnected()) {
             return getDummyPlaces(category);
         }
@@ -40,14 +42,33 @@ public class PlaceDAO {
         ResultSet rs = null;
 
         String tableName = getTableName(category);
-        String sql = "SELECT * FROM " + tableName + " LIMIT ? OFFSET ?";
+        String idColumn = getIdColumnName(category);
+        String nameColumn = getPlaceColumnName(category);
+
+        String sql;
+        if ("인기순".equals(sortBy)) {
+            sql = "SELECT t.*, COUNT(i.p_id) as interest_count FROM " + tableName + " t " +
+                  "LEFT JOIN interest i ON t." + idColumn + " COLLATE utf8mb4_general_ci = i.p_id COLLATE utf8mb4_general_ci AND i.p_type = ? " +
+                  "GROUP BY t." + idColumn + " " +
+                  "ORDER BY interest_count DESC, t." + nameColumn + " ASC " +
+                  "LIMIT ? OFFSET ?";
+        } else {
+            sql = "SELECT * FROM " + tableName + " ORDER BY " + nameColumn + " ASC LIMIT ? OFFSET ?";
+        }
+        
         int offset = (page - 1) * pageSize;
 
         try {
             con = pool.getConnection();
             pstmt = con.prepareStatement(sql);
-            pstmt.setInt(1, pageSize);
-            pstmt.setInt(2, offset);
+            if ("인기순".equals(sortBy)) {
+                pstmt.setString(1, category);
+                pstmt.setInt(2, pageSize);
+                pstmt.setInt(3, offset);
+            } else {
+                pstmt.setInt(1, pageSize);
+                pstmt.setInt(2, offset);
+            }
             rs = pstmt.executeQuery();
 
             while (rs.next()) {
@@ -325,6 +346,21 @@ public class PlaceDAO {
         }
     }
 
+    private String getIdColumnName(String category) {
+        switch (category) {
+            case "관광지":
+                return "t_id";
+            case "맛집":
+                return "r_id";
+            case "숙소":
+                return "l_id";
+            case "축제":
+                return "f_id";
+            default:
+                return "t_id";
+        }
+    }
+
     private String getIntroColumnName(String category) {
         switch (category) {
             case "관광지":
@@ -456,6 +492,181 @@ public class PlaceDAO {
     return result;
 }
 
+public List<Tourist> getTouristsByIds(List<String> ids) {
+    if (!DBConnectionMgr.isDbConnected()) {
+        return getDummyPlaces("관광지").stream()
+            .map(p -> (Tourist)p)
+            .filter(p -> ids.contains(p.getT_id()))
+            .collect(Collectors.toList());
+    }
+
+    List<Tourist> result = new ArrayList<>();
+    if (ids == null || ids.isEmpty()) return result;
+
+    Connection con = null;
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
+    String placeholders = String.join(",", Collections.nCopies(ids.size(), "?"));
+    String sql = "SELECT * FROM tourist WHERE t_id IN (" + placeholders + ")";
+
+    try {
+        con = pool.getConnection();
+        pstmt = con.prepareStatement(sql);
+        for (int i = 0; i < ids.size(); i++) {
+            pstmt.setString(i + 1, ids.get(i));
+        }
+        rs = pstmt.executeQuery();
+        while (rs.next()) {
+            result.add(new Tourist(
+                rs.getString("t_id"),
+                rs.getString("t_place"),
+                removeHtmlTags(rs.getString("t_intro")),
+                rs.getString("t_num"),
+                rs.getString("t_tra"),
+                rs.getString("t_infor"),
+                rs.getString("t_addr"),
+                rs.getString("t_thum")
+            ));
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    } finally {
+        pool.freeConnection(con, pstmt, rs);
+    }
+    return result;
+}
+
+public List<Restaurant> getRestaurantsByIds(List<String> ids) {
+    if (!DBConnectionMgr.isDbConnected()) {
+        return getDummyPlaces("맛집").stream()
+            .map(p -> (Restaurant)p)
+            .filter(p -> ids.contains(p.getR_id()))
+            .collect(Collectors.toList());
+    }
+
+    List<Restaurant> result = new ArrayList<>();
+    if (ids == null || ids.isEmpty()) return result;
+
+    Connection con = null;
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
+    String placeholders = String.join(",", Collections.nCopies(ids.size(), "?"));
+    String sql = "SELECT * FROM restaurant WHERE r_id IN (" + placeholders + ")";
+
+    try {
+        con = pool.getConnection();
+        pstmt = con.prepareStatement(sql);
+        for (int i = 0; i < ids.size(); i++) {
+            pstmt.setString(i + 1, ids.get(i));
+        }
+        rs = pstmt.executeQuery();
+        while (rs.next()) {
+            result.add(new Restaurant(
+                rs.getString("r_id"),
+                rs.getString("r_place"),
+                removeHtmlTags(rs.getString("r_intro")),
+                rs.getString("r_num"),
+                rs.getString("r_infor"),
+                rs.getString("r_addr"),
+                rs.getString("r_thum"),
+                rs.getString("r_menu")
+            ));
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    } finally {
+        pool.freeConnection(con, pstmt, rs);
+    }
+    return result;
+}
+
+public List<Lodging> getLodgingsByIds(List<String> ids) {
+    if (!DBConnectionMgr.isDbConnected()) {
+        return getDummyPlaces("숙소").stream()
+            .map(p -> (Lodging)p)
+            .filter(p -> ids.contains(p.getL_id()))
+            .collect(Collectors.toList());
+    }
+
+    List<Lodging> result = new ArrayList<>();
+    if (ids == null || ids.isEmpty()) return result;
+
+    Connection con = null;
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
+    String placeholders = String.join(",", Collections.nCopies(ids.size(), "?"));
+    String sql = "SELECT * FROM stay WHERE l_id IN (" + placeholders + ")";
+
+    try {
+        con = pool.getConnection();
+        pstmt = con.prepareStatement(sql);
+        for (int i = 0; i < ids.size(); i++) {
+            pstmt.setString(i + 1, ids.get(i));
+        }
+        rs = pstmt.executeQuery();
+        while (rs.next()) {
+            result.add(new Lodging(
+                rs.getString("l_id"),
+                rs.getString("l_place"),
+                removeHtmlTags(rs.getString("l_intro")),
+                rs.getString("l_num"),
+                rs.getString("l_tra"),
+                rs.getString("l_infor"),
+                rs.getString("l_addr"),
+                rs.getString("l_thum")
+            ));
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    } finally {
+        pool.freeConnection(con, pstmt, rs);
+    }
+    return result;
+}
+
+public List<Festival> getFestivalsByIds(List<String> ids) {
+    if (!DBConnectionMgr.isDbConnected()) {
+        return getDummyPlaces("축제").stream()
+            .map(p -> (Festival)p)
+            .filter(p -> ids.contains(p.getF_id()))
+            .collect(Collectors.toList());
+    }
+
+    List<Festival> result = new ArrayList<>();
+    if (ids == null || ids.isEmpty()) return result;
+
+    Connection con = null;
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
+    String placeholders = String.join(",", Collections.nCopies(ids.size(), "?"));
+    String sql = "SELECT * FROM festival WHERE f_id IN (" + placeholders + ")";
+
+    try {
+        con = pool.getConnection();
+        pstmt = con.prepareStatement(sql);
+        for (int i = 0; i < ids.size(); i++) {
+            pstmt.setString(i + 1, ids.get(i));
+        }
+        rs = pstmt.executeQuery();
+        while (rs.next()) {
+            result.add(new Festival(
+                rs.getString("f_id"),
+                rs.getString("f_name"),
+                removeHtmlTags(rs.getString("f_intro")),
+                rs.getString("f_plan"),
+                rs.getString("f_tra"),
+                rs.getString("f_infor"),
+                rs.getString("f_addr"),
+                rs.getString("f_thum")
+            ));
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    } finally {
+        pool.freeConnection(con, pstmt, rs);
+    }
+    return result;
+}
 
     // --- 더미 데이터 생성 메서드 ---
 
@@ -465,11 +676,6 @@ public class PlaceDAO {
             case "관광지":
                 dummyPlaces.add(new Tourist("D001", "해운대해수욕장 (더미)", "설명이 없습니다.", "051-749-4335", "정보 없음", "연중무휴", "부산 해운대구", "https://www.visitbusan.net/upload/preview/20240408133523345.jpg"));
                 dummyPlaces.add(new Tourist("D002", "광안리해수욕장 (더미)", "설명이 없습니다.", "051-622-4251", "정보 없음", "연중무휴", "부산 수영구", "https://www.visitbusan.net/upload/preview/20231127134103039.jpg"));
-                break;
-            case "맛집":
-                dummyPlaces.add(new Restaurant("D003", "돼지국밥집 (더미)", "설명이 없습니다.", "정보 없음", "매일 09:00 - 21:00", "부산 어딘가", "https://www.visitbusan.net/upload/preview/20231127135349987.jpg", "돼지국밥 9,000원"));
-                break;
-            case "숙소":
                 dummyPlaces.add(new Lodging("D004", "부산호텔 (더미)", "설명이 없습니다.", "051-123-4567", "정보 없음", "정보 없음", "부산 동구", "https://www.visitbusan.net/upload/preview/20231127140429858.jpg"));
                 break;
             case "축제":
