@@ -40,7 +40,7 @@ public class TravelPlannerApp {
     public void initialize() {
         frame = new JFrame("부산 여행 플래너");
         frame.setSize(1500, 1000);
-        frame.setMinimumSize(new Dimension(1000, 700));
+        frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);
 

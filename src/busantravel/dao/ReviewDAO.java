@@ -42,14 +42,15 @@ public class ReviewDAO {
     public void updateReview(Review review) {
         Connection con = null;
         PreparedStatement pstmt = null;
-        String sql = "UPDATE travel_review SET title = ?, content = ?, review_visibility = ? WHERE review_id = ?";
+        String sql = "UPDATE travel_review SET title = ?, content = ?, review_visibility = ?, plan_id = ? WHERE review_id = ?";
         try {
             con = pool.getConnection();
             pstmt = con.prepareStatement(sql);
             pstmt.setString(1, review.getTitle());
             pstmt.setString(2, review.getContent());
             pstmt.setInt(3, review.getVisibility());
-            pstmt.setString(4, review.getReviewId());
+            pstmt.setString(4, review.getPlanId());
+            pstmt.setString(5, review.getReviewId());
             pstmt.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();

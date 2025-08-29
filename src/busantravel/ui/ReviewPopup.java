@@ -219,6 +219,7 @@ public class ReviewPopup extends JDialog {
             review.setTitle(title);
             review.setContent(content);
             review.setVisibility(visibility);
+            review.setPlanId(planId);
             reviewDAO.updateReview(review);
             reviewId = review.getReviewId();
             reviewPhotoDAO.deletePhotosByReviewId(reviewId);
