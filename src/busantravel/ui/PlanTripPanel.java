@@ -73,7 +73,7 @@ public class PlanTripPanel extends JPanel {
     private static final Color DIVIDER = new Color(235, 224, 218);
 
     private static final int COLUMN_LEFT_WIDTH = 420;
-    private static final int COLUMN_CENTER_WIDTH = 440;
+    private static final int COLUMN_CENTER_WIDTH = 520;
     private static final int ROW_HEIGHT = 78;
     private static final int THUMB_W = 68;
     private static final int THUMB_H = 54;
@@ -293,17 +293,17 @@ public class PlanTripPanel extends JPanel {
         centerScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         center.add(centerScroll, BorderLayout.CENTER);
 
-        gbc.gridx = 1; gbc.weightx = 0.34;
+        gbc.gridx = 1; gbc.weightx = 0.38;
         grid.add(center, gbc);
 
         JPanel right = boxedColumn(null);
-        right.setPreferredSize(new Dimension(520, 0));
+        right.setPreferredSize(new Dimension(440, 0));
         mapLabel = new JLabel("일정에 장소를 추가하면 지도가 표시됩니다.", SwingConstants.CENTER);
         mapLabel.setFont(jalnanFont.deriveFont(Font.PLAIN, 14f));
         mapLabel.setForeground(new Color(150, 160, 150));
         right.add(mapLabel, BorderLayout.CENTER);
 
-        gbc.gridx = 2; gbc.weightx = 0.36;
+        gbc.gridx = 2; gbc.weightx = 0.32;
         grid.add(right, gbc);
 
         add(grid, BorderLayout.CENTER);
@@ -446,7 +446,7 @@ public class PlanTripPanel extends JPanel {
         return row;
     }
 
-    private JPanel buildCenterRow(ScheduledPlace sp) {
+    private JPanel buildCenterRow(ScheduledPlace sp, int index, int total) {
         loadFont();
         String key = sp.getP_type() + ":" + sp.getP_id();
         String name = placeNameIndex.getOrDefault(key, "[" + sp.getP_id() + "]");
@@ -504,8 +504,19 @@ public class PlanTripPanel extends JPanel {
         JButton del = new JButton("삭제");
         styleDangerButton(del);
         del.addActionListener(e -> {
-            scheduledPlaces.remove(sp); refreshSelectedList();
-            });
+            scheduledPlaces.remove(sp);
+            
+            LocalDate date = sp.getScheduled_date().toLocalDate();
+            List<ScheduledPlace> todays = scheduledPlaces.stream()
+                .filter(p -> p.getScheduled_date().toLocalDate().equals(date))
+                .sorted(Comparator.comparingInt(ScheduledPlace::getVisit_order))
+                .collect(Collectors.toList());
+            for (int i = 0; i < todays.size(); i++) {
+                todays.get(i).setVisit_order(i + 1);
+            }
+            
+            refreshSelectedList();
+        });
 
         JButton swap = new JButton("교체");
         stylePrimaryButton(swap);
@@ -534,10 +545,56 @@ public class PlanTripPanel extends JPanel {
         JPanel btns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, (ROW_HEIGHT-28)/2));
         btns.setOpaque(false);
 
+        JButton upBtn = new JButton("▲");
+        styleOrderButton(upBtn);
+        upBtn.setEnabled(index > 0);
+        upBtn.addActionListener(e -> movePlace(sp, -1));
+
+        JButton downBtn = new JButton("▼");
+        styleOrderButton(downBtn);
+        downBtn.setEnabled(index < total - 1);
+        downBtn.addActionListener(e -> movePlace(sp, 1));
+
+        btns.add(upBtn);
+        btns.add(downBtn);
         btns.add(del);
         btns.add(swap);
         row.add(btns, BorderLayout.EAST);
         return row;
+    }
+
+    private void movePlace(ScheduledPlace placeToMove, int direction) {
+        LocalDate date = placeToMove.getScheduled_date().toLocalDate();
+        
+        List<ScheduledPlace> todays = scheduledPlaces.stream()
+            .filter(p -> p.getScheduled_date().toLocalDate().equals(date))
+            .sorted(Comparator.comparingInt(ScheduledPlace::getVisit_order))
+            .collect(Collectors.toList());
+
+        int currentIndex = todays.indexOf(placeToMove);
+        if (currentIndex == -1) return;
+
+        int newIndex = currentIndex + direction;
+
+        if (newIndex >= 0 && newIndex < todays.size()) {
+            Collections.swap(todays, currentIndex, newIndex);
+
+            for (int i = 0; i < todays.size(); i++) {
+                todays.get(i).setVisit_order(i + 1);
+            }
+            
+            refreshSelectedList();
+        }
+    }
+
+    private void styleOrderButton(JButton b) {
+        loadFont();
+        b.setFocusPainted(false);
+        b.setBackground(new Color(220, 220, 220));
+        b.setForeground(Color.DARK_GRAY);
+        b.setBorder(new LineBorder(new Color(180, 180, 180), 1, true));
+        b.setFont(jalnanFont.deriveFont(Font.BOLD, 12f));
+        b.setPreferredSize(new Dimension(36, 28));
     }
 
     private void refreshSelectedList() {
@@ -547,8 +604,8 @@ public class PlanTripPanel extends JPanel {
                 .filter(sp -> sp.getScheduled_date().toLocalDate().equals(sel))
                 .sorted(Comparator.comparingInt(ScheduledPlace::getVisit_order))
                 .collect(Collectors.toList());
-        for (ScheduledPlace sp : todays) {
-            selectedPlacePanel.add(buildCenterRow(sp));
+        for (int i = 0; i < todays.size(); i++) {
+            selectedPlacePanel.add(buildCenterRow(todays.get(i), i, todays.size()));
         }
         selectedPlacePanel.revalidate();
         selectedPlacePanel.repaint();
@@ -804,7 +861,7 @@ public class PlanTripPanel extends JPanel {
                 }
 
                 String markersValue = String.join(",", markerList);
-                String mapUrl = mapGenerator.generateMapWithMarkers(center, markersValue, 520, mapLabel.getHeight(), zoom);
+                String mapUrl = mapGenerator.generateMapWithMarkers(center, markersValue, 440, mapLabel.getHeight(), zoom);
                 if (mapUrl != null) {
                     try {
                         ImageIcon icon = new ImageIcon(new URL(mapUrl));
